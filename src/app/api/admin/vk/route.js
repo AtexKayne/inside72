@@ -176,7 +176,7 @@ export async function POST(request) {
           continue;
         }
         if (!isAllowedVkMediaUrl(videoUrl)) {
-          errors.push({ vkId, error: "Недопустимый URL видео" });
+          errors.push({ vkId, error: "Недопустимый URL видео VK" });
           continue;
         }
         await addStory({

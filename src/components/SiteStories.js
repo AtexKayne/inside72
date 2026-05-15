@@ -9,6 +9,12 @@ import logoImage from "../../public/logo.jpg";
  * @typedef {{ id: string; title: string; videoUrl: string }} StoryItem
  */
 
+const VIDEO_PROPS = {
+  playsInline: true,
+  preload: "metadata",
+  referrerPolicy: "no-referrer",
+};
+
 function StoryPreview({ videoUrl }) {
   const ref = useRef(null);
 
@@ -38,9 +44,8 @@ function StoryPreview({ videoUrl }) {
       src={videoUrl}
       muted
       loop
-      playsInline
-      preload="metadata"
       aria-hidden
+      {...VIDEO_PROPS}
     />
   );
 }
@@ -209,9 +214,8 @@ export function SiteStories({ items = [] }) {
               className={styles.video}
               src={active.videoUrl}
               controls
-              playsInline
-              preload="metadata"
               controlsList="nodownload"
+              {...VIDEO_PROPS}
             />
             <p className={styles.storyTitle}>{active.title}</p>
           </div>

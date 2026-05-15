@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.scss";
 
@@ -10,7 +10,6 @@ function vkImportType(tab) {
 
 export default function AdminHomePage() {
   const router = useRouter();
-  const storyFileRef = useRef(null);
   const [news, setNews] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [albums, setAlbums] = useState([]);
@@ -23,7 +22,8 @@ export default function AdminHomePage() {
   const [caption, setCaption] = useState("");
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
-  const [storyUploading, setStoryUploading] = useState(false);
+  const [storyVideoUrl, setStoryVideoUrl] = useState("");
+  const [storySaving, setStorySaving] = useState(false);
   const [editingNewsId, setEditingNewsId] = useState(null);
   const [activeTab, setActiveTab] = useState("news");
   const [msg, setMsg] = useState(null);
@@ -307,35 +307,32 @@ export default function AdminHomePage() {
     }
   }
 
-  async function addStoryVideo(e) {
+  async function addStory(e) {
     e.preventDefault();
     setMsg(null);
-    const input = storyFileRef.current;
-    const file = input?.files?.[0];
-    if (!file) {
-      setMsg("Выберите видеофайл");
+    const videoUrl = storyVideoUrl.trim();
+    if (!videoUrl) {
+      setMsg("Укажите ссылку на видео");
       return;
     }
-    const fd = new FormData();
-    fd.append("video", file);
-    fd.append("title", storyTitle);
-    setStoryUploading(true);
+    setStorySaving(true);
     try {
       const res = await fetch("/api/admin/stories", {
         method: "POST",
-        body: fd,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: storyTitle, videoUrl }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setMsg(typeof data.error === "string" ? data.error : "Ошибка загрузки");
+        setMsg(typeof data.error === "string" ? data.error : "Ошибка сохранения");
         return;
       }
       setStoryTitle("");
-      if (input) input.value = "";
+      setStoryVideoUrl("");
       setMsg("Сторис добавлен");
       await load();
     } finally {
-      setStoryUploading(false);
+      setStorySaving(false);
     }
   }
 
@@ -685,16 +682,18 @@ export default function AdminHomePage() {
       <section className={styles.card}>
         <h2>Сторис</h2>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Загрузите короткое видео в формате 9:16 (как в соцсетях). Форматы: MP4, WebM или MOV, до ~50 МБ.
+          Укажите прямую ссылку на видео (MP4/WebM) с внешнего хостинга или импортируйте из VK. Файлы на сервер не загружаются.
         </p>
-        <form onSubmit={addStoryVideo}>
+        <form onSubmit={addStory}>
           <div className={styles.field}>
-            <label htmlFor="st-file">Видеофайл</label>
+            <label htmlFor="st-url">Ссылка на видео</label>
             <input
-              id="st-file"
-              ref={storyFileRef}
-              type="file"
-              accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+              id="st-url"
+              type="url"
+              value={storyVideoUrl}
+              onChange={(e) => setStoryVideoUrl(e.target.value)}
+              placeholder="https://…"
+              required
             />
           </div>
           <div className={styles.field}>
@@ -706,8 +705,8 @@ export default function AdminHomePage() {
               placeholder="Например: Пробный урок"
             />
           </div>
-          <button className={styles.btn} type="submit" disabled={storyUploading}>
-            {storyUploading ? "Загрузка…" : "Загрузить сторис"}
+          <button className={styles.btn} type="submit" disabled={storySaving}>
+            {storySaving ? "Сохранение…" : "Добавить сторис"}
           </button>
         </form>
 
@@ -723,6 +722,7 @@ export default function AdminHomePage() {
                       muted
                       playsInline
                       preload="metadata"
+                      referrerPolicy="no-referrer"
                       style={{
                         width: 56,
                         height: 100,

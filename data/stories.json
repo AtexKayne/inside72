@@ -1,16 +1,3 @@
 {
-  "items": [
-    {
-      "id": "s-1778848487924",
-      "title": "Тест",
-      "videoUrl": "/uploads/stories/s-1778848487924.mp4",
-      "createdAt": "2026-05-15T12:34:47.933Z"
-    },
-    {
-      "id": "s-1778820566242",
-      "title": "Тест",
-      "videoUrl": "/uploads/stories/s-1778820566242.mp4",
-      "createdAt": "2026-05-15T04:49:26.361Z"
-    }
-  ]
+  "items": []
 }
