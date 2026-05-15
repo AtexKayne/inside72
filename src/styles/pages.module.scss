@@ -1,0 +1,308 @@
+@use "variables" as *;
+
+.section {
+  padding-block: 4rem;
+}
+
+.sectionTight {
+  padding-block: 2.5rem;
+}
+
+.inner {
+  @include container;
+}
+
+.promoBanner {
+  margin-top: 200px;
+  padding-block: 0 2rem;
+}
+
+.promoBannerImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid $color-border;
+}
+
+.hero {
+  padding-block: 3rem;
+  border-bottom: 1px solid $color-border;
+}
+
+.heroGrid {
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+  grid-template-columns: 1.1fr 0.9fr;
+}
+
+@media (max-width: 900px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kicker {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $color-muted;
+  margin: 0 0 1rem;
+}
+
+.title {
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0;
+  font-size: 1.1rem;
+  color: $color-muted;
+  max-width: 36ch;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.35rem;
+  border-radius: 999px;
+  border: 1px solid $color-text;
+  background: $color-text;
+  color: $color-bg;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:hover {
+  text-decoration: none;
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.btnGhost {
+  background: transparent;
+  color: $color-text;
+}
+
+.btnGhost:hover {
+  background: $color-text;
+  color: $color-bg;
+}
+
+.cardGrid {
+  display: grid;
+  gap: 1.25rem;
+  overflow: hidden;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.card {
+  border: 1px solid $color-border;
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: linear-gradient(160deg, #141414, #0c0c0c);
+}
+
+.card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.card p {
+  margin: 0;
+  color: $color-muted;
+  font-size: 0.95rem;
+}
+
+.h2 {
+  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.newsItem {
+  border-bottom: 1px solid $color-border;
+  padding-block: 1.5rem;
+}
+
+.newsItem:first-of-type {
+  padding-top: 0;
+}
+
+.newsDate {
+  font-size: 0.8rem;
+  color: $color-muted;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.newsTitle {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.newsExcerpt {
+  margin: 0;
+  color: $color-muted;
+}
+
+.gallerySwiper {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $color-border;
+}
+
+.figure {
+  margin: 0;
+}
+
+.caption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: $color-muted;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  max-width: 480px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-muted;
+  margin-bottom: 0.35rem;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid $color-border;
+  background: #050505;
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.formError {
+  color: #fca5a5;
+  font-size: 0.9rem;
+}
+
+.formOk {
+  color: #bbf7d0;
+  font-size: 0.9rem;
+}
+
+.prose {
+  max-width: 65ch;
+}
+
+.prose p {
+  color: $color-muted;
+}
+
+.timeline {
+  border-left: 1px solid $color-border;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.timelineItem strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.timelineItem span {
+  color: $color-muted;
+  font-size: 0.95rem;
+}
+
+.contacts {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid $color-border;
+}
+
+.contactsLead {
+  margin: 0 0 1.5rem;
+  color: $color-muted;
+  max-width: 55ch;
+}
+
+.contactsMeta {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0 0 1.5rem;
+}
+
+.contactsMeta dt {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $color-muted;
+  margin-bottom: 0.35rem;
+}
+
+.contactsMeta dd {
+  margin: 0;
+  color: $color-text;
+}
+
+.contactsMeta a {
+  color: $color-text;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.contactsBlock p {
+  margin: 0;
+  color: $color-muted;
+  max-width: 60ch;
+}
+
+.contactsNote {
+  margin: 1.25rem 0 0;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  background: rgba(250, 204, 21, 0.08);
+  color: #fde68a;
+  max-width: 60ch;
+}
+
+.contactsHelp {
+  margin: 1rem 0 0;
+  color: $color-muted;
+  max-width: 60ch;
+}
+
+.contactsHelp a {
+  color: $color-text;
+}

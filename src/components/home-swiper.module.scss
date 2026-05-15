@@ -1,0 +1,48 @@
+@use "variables" as *;
+
+.wrap {
+  border: 1px solid $color-border;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #101010, #050505);
+  min-height: 260px;
+}
+
+.swiper {
+  height: 100%;
+  min-height: 260px;
+  --swiper-pagination-color: #fafafa;
+  --swiper-pagination-bullet-inactive-color: #525252;
+}
+
+.slide {
+  padding: 2rem 2.25rem 2.75rem;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+}
+
+.slideW {
+  opacity: 0;
+  transition: .56s ease;
+}
+
+.slideW.activeSlide {
+  opacity: 1;
+}
+
+.slideTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.slideText {
+  margin: 0;
+  color: $color-muted;
+  max-width: 36ch;
+  line-height: 1.55;
+}

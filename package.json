@@ -1,0 +1,26 @@
+{
+  "name": "inside-studio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.8",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
+    "next": "^15.1.0",
+    "nodemailer": "^6.9.16",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "swiper": "^11.1.15"
+  },
+  "devDependencies": {
+    "eslint": "^9.16.0",
+    "eslint-config-next": "^15.1.0",
+    "sass": "^1.81.0"
+  }
+}

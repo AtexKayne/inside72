@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "src": "https://sun9-35.userapi.com/s/v1/ig2/lBHEYnwhtmWN2bvC2frck6nP7NxL6f7xcGAIkREEkaLcL0Xmh0Mepmn-32D6bKD8z5W31aYwQ6-lVipox-urwogC.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1536x2048&from=bu&cs=1536x0",
+      "caption": "test",
+      "albumId": "alb-1778848328750",
+      "id": "p-1778848369841",
+      "createdAt": "2026-05-15T12:32:49.841Z"
+    },
+    {
+      "src": "https://sun9-22.userapi.com/s/v1/ig2/A-XNx-SuW_YYoe0kbunCuv-oQtO9ncvwDd2OzJ71azbun-udN2N5iR7woTe3eEhfG8UYv2IF2VlfGosJE0lEtb7x.jpg?quality=96&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427,720x480,1080x720,1280x853,1440x960,2560x1707&from=bu&u=50PzrHiHA3r6qXjQHveKZmSw1gV74-ENA0KRj_bp2Oo&cs=2560x0",
+      "caption": "test",
+      "id": "p-1778819499754",
+      "albumId": "alb-default",
+      "createdAt": "2026-05-15T04:31:39.754Z"
+    },
+    {
+      "id": "ph-1",
+      "src": "https://images.unsplash.com/photo-1508700119012-359e193044c9?w=1200&q=80",
+      "caption": "Занятие в студии",
+      "albumId": "alb-default",
+      "createdAt": "2026-04-20T12:00:00.000Z"
+    },
+    {
+      "id": "ph-2",
+      "src": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80",
+      "caption": "Парный танец",
+      "albumId": "alb-default",
+      "createdAt": "2026-04-18T12:00:00.000Z"
+    }
+  ]
+}

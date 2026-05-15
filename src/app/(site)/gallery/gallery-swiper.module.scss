@@ -1,0 +1,17 @@
+.wrap {
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.swiper {
+  --swiper-navigation-color: #fafafa;
+  --swiper-pagination-color: #fafafa;
+  --swiper-pagination-bullet-inactive-color: #525252;
+}
+
+.img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: #050505;
+}

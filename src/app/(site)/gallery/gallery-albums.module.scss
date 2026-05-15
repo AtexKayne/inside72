@@ -1,0 +1,54 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #262626;
+  background: transparent;
+  color: #a3a3a3;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: #525252;
+    color: #fafafa;
+  }
+}
+
+.tabActive {
+  border-color: #fafafa;
+  color: #fafafa;
+  background: #171717;
+}
+
+.count {
+  font-size: 0.75rem;
+  color: #737373;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #262626;
+}
+
+.tabActive .count {
+  color: #d4d4d4;
+  background: #404040;
+}
+
+.panel {
+  min-height: 200px;
+}

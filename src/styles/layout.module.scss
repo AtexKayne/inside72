@@ -1,0 +1,194 @@
+@use "variables" as *;
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: $header-height;
+  border-bottom: 1px solid $color-border;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.headerInner {
+  @include container;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.logo:hover {
+  text-decoration: none;
+  opacity: 0.88;
+}
+
+.logoImage {
+  width: 48px;
+  height: 48px;
+  display: block;
+  object-fit: contain;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  justify-content: flex-end;
+}
+
+.nav a {
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $color-muted;
+  text-decoration: none;
+}
+
+.nav a:hover,
+.nav a[aria-current="page"] {
+  color: $color-text;
+  text-decoration: none;
+}
+
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: 0;
+  padding: 0.5rem;
+}
+
+.burger span {
+  width: 22px;
+  height: 2px;
+  background: $color-text;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  transform-origin: center;
+}
+
+.burgerOpen span:nth-child(2) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burgerOpen span:nth-child(3) {
+  opacity: 0;
+}
+
+.burgerOpen span:nth-child(4) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 900px) {
+  .nav {
+    display: none;
+  }
+
+  .burger {
+    display: flex;
+  }
+}
+
+.mobileNav {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.98);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.mobileNavOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mobileNavInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  padding: 2rem;
+  width: 100%;
+}
+
+.mobileNav a {
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $color-muted;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.mobileNav a:hover,
+.mobileNav a[aria-current="page"] {
+  color: $color-text;
+}
+
+@media (min-width: 901px) {
+  .mobileNav {
+    display: none;
+  }
+}
+
+.footer {
+  border-top: 1px solid $color-border;
+  padding-block: 3rem 2rem;
+  margin-top: 4rem;
+  background: $color-surface;
+}
+
+.footerInner {
+  @include container;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.footerTitle {
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $color-muted;
+  margin: 0 0 0.75rem;
+}
+
+.footerLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footerLinks a {
+  color: $color-text;
+  font-size: 0.95rem;
+}
+
+.footerBottom {
+  @include container;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $color-border;
+  font-size: 0.85rem;
+  color: $color-muted;
+  text-align: center;
+}

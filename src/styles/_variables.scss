@@ -1,0 +1,18 @@
+$color-bg: #0a0a0a;
+$color-surface: #111111;
+$color-text: #fafafa;
+$color-muted: #a3a3a3;
+$color-border: #262626;
+$font-sans: "Manrope Variable", system-ui, sans-serif;
+$max-width: 1120px;
+$header-height: 72px;
+
+@mixin container {
+  width: min(100% - 2rem, #{$max-width});
+  margin-inline: auto;
+}
+
+@mixin focus-ring {
+  outline: 2px solid $color-text;
+  outline-offset: 2px;
+}
