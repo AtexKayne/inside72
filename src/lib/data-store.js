@@ -1,6 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
 import { deleteBlobStoryVideo } from "@/lib/blob-story";
+import {
+  readStoriesFromBlob,
+  hasBlobStoriesStorage,
+  writeStoriesToBlob,
+} from "@/lib/stories-blob-store";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -167,15 +172,37 @@ export async function deletePhoto(id) {
   return true;
 }
 
+async function readStoriesData() {
+  if (hasBlobStoriesStorage()) {
+    const fromBlob = await readStoriesFromBlob();
+    if (fromBlob.items.length > 0) return fromBlob;
+    const local = await readJson("stories.json", { items: [] });
+    if (local.items.length > 0) {
+      await writeStoriesToBlob(local);
+      return local;
+    }
+    return fromBlob;
+  }
+  return readJson("stories.json", { items: [] });
+}
+
+async function writeStoriesData(data) {
+  if (hasBlobStoriesStorage()) {
+    await writeStoriesToBlob(data);
+    return;
+  }
+  await writeJson("stories.json", data);
+}
+
 export async function getStories() {
-  const data = await readJson("stories.json", { items: [] });
+  const data = await readStoriesData();
   return [...data.items].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }
 
 export async function addStory({ id, title, videoUrl, createdAt, vkId }) {
-  const data = await readJson("stories.json", { items: [] });
+  const data = await readStoriesData();
   const story = {
     id: id || `s-${Date.now()}`,
     title: String(title ?? "").trim() || "Сторис",
@@ -186,7 +213,7 @@ export async function addStory({ id, title, videoUrl, createdAt, vkId }) {
     story.vkId = vkId;
   }
   data.items.unshift(story);
-  await writeJson("stories.json", data);
+  await writeStoriesData(data);
   return story;
 }
 
@@ -194,12 +221,12 @@ export async function deleteStory(id) {
   const storyId = String(id ?? "").trim();
   if (!storyId) return false;
 
-  const data = await readJson("stories.json", { items: [] });
+  const data = await readStoriesData();
   const story = data.items.find((s) => s.id === storyId);
   if (!story) return false;
 
   data.items = data.items.filter((s) => s.id !== storyId);
-  await writeJson("stories.json", data);
+  await writeStoriesData(data);
 
   await deleteBlobStoryVideo(story.videoUrl);
 

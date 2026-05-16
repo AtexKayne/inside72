@@ -29,16 +29,23 @@ export async function POST(request) {
     return NextResponse.json({ error: "Некорректный URL видео" }, { status: 400 });
   }
 
-  const id = `s-${Date.now()}`;
-  const item = await addStory({ id, title: title || "Сторис", videoUrl });
-
   try {
-    revalidatePath("/");
-  } catch {
-    /* ignore if not applicable */
-  }
+    const id = `s-${Date.now()}`;
+    const item = await addStory({ id, title: title || "Сторис", videoUrl });
 
-  return NextResponse.json({ item });
+    try {
+      revalidatePath("/");
+    } catch {
+      /* ignore if not applicable */
+    }
+
+    return NextResponse.json({ item });
+  } catch (err) {
+    console.error("[stories POST]", err);
+    const message =
+      err instanceof Error ? err.message : "Не удалось сохранить сторис";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(request) {
