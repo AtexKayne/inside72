@@ -21,6 +21,7 @@ function StoryPreview({ videoUrl }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    console.log(el);
 
     const playPreview = () => {
       el.currentTime = 0;

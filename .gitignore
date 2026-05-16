@@ -27,3 +27,4 @@ yarn-error.log*
 
 # data uploads (optional local)
 /public/uploads
+/test
