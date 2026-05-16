@@ -1,36 +1,17 @@
-import fs from "fs/promises";
-import path from "path";
+import { isPostgresStorage } from "@/lib/storage/config";
+import * as jsonStore from "@/lib/storage/json-store";
+import * as postgresStore from "@/lib/storage/postgres-store";
 
-const FILE = path.join(process.cwd(), "data", "vk-imported.json");
-
-async function readImported() {
-  try {
-    const raw = await fs.readFile(FILE, "utf-8");
-    const data = JSON.parse(raw);
-    return new Set(Array.isArray(data.ids) ? data.ids : []);
-  } catch {
-    return new Set();
-  }
-}
-
-async function writeImported(ids) {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify({ ids: [...ids] }, null, 2), "utf-8");
-}
+const store = () => (isPostgresStorage() ? postgresStore : jsonStore);
 
 export async function getVkImportedIds() {
-  return readImported();
+  return store().getVkImportedIds();
 }
 
 export async function isVkImported(vkId) {
-  const set = await readImported();
-  return set.has(vkId);
+  return store().isVkImported(vkId);
 }
 
 export async function markVkImported(vkIds) {
-  const set = await readImported();
-  for (const id of vkIds) {
-    if (id) set.add(id);
-  }
-  await writeImported(set);
+  return store().markVkImported(vkIds);
 }
