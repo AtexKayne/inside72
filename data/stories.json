@@ -1,3 +1,16 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "s-1778877503027",
+      "title": "Сторис",
+      "videoUrl": "https://github.com/AtexKayne/inside72/raw/refs/heads/main/public/videos/clip-2.mp4",
+      "createdAt": "2026-05-15T20:38:23.028Z"
+    },
+    {
+      "id": "s-1778877392127",
+      "title": "Сторис",
+      "videoUrl": "https://github.com/AtexKayne/inside72/raw/refs/heads/main/public/videos/clip-1.mp4",
+      "createdAt": "2026-05-15T20:36:32.128Z"
+    }
+  ]
 }

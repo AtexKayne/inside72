@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import styles from "./admin.module.scss";
 
 function vkImportType(tab) {
@@ -22,8 +23,9 @@ export default function AdminHomePage() {
   const [caption, setCaption] = useState("");
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
-  const [storyVideoUrl, setStoryVideoUrl] = useState("");
+  const storyVideoInputRef = useRef(null);
   const [storySaving, setStorySaving] = useState(false);
+  const [storyUploadProgress, setStoryUploadProgress] = useState(null);
   const [editingNewsId, setEditingNewsId] = useState(null);
   const [activeTab, setActiveTab] = useState("news");
   const [msg, setMsg] = useState(null);
@@ -310,17 +312,26 @@ export default function AdminHomePage() {
   async function addStory(e) {
     e.preventDefault();
     setMsg(null);
-    const videoUrl = storyVideoUrl.trim();
-    if (!videoUrl) {
-      setMsg("Укажите ссылку на видео");
+    const file = storyVideoInputRef.current?.files?.[0];
+    if (!file) {
+      setMsg("Выберите видеофайл");
       return;
     }
     setStorySaving(true);
+    setStoryUploadProgress(0);
     try {
+      const pathname = `stories/${Date.now()}-${file.name.replace(/[^\w.\-()а-яА-ЯёЁ ]+/gu, "_")}`;
+      const blob = await upload(pathname, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/stories/upload",
+        multipart: file.size > 4.5 * 1024 * 1024,
+        onUploadProgress: ({ percentage }) => setStoryUploadProgress(percentage),
+      });
+
       const res = await fetch("/api/admin/stories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: storyTitle, videoUrl }),
+        body: JSON.stringify({ title: storyTitle, videoUrl: blob.url }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -328,11 +339,14 @@ export default function AdminHomePage() {
         return;
       }
       setStoryTitle("");
-      setStoryVideoUrl("");
+      if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
       setMsg("Сторис добавлен");
       await load();
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "Ошибка загрузки видео");
     } finally {
       setStorySaving(false);
+      setStoryUploadProgress(null);
     }
   }
 
@@ -682,18 +696,18 @@ export default function AdminHomePage() {
       <section className={styles.card}>
         <h2>Сторис</h2>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Укажите прямую ссылку на видео (MP4/WebM) с внешнего хостинга или импортируйте из VK. Файлы на сервер не загружаются.
+          Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ). Импорт из VK по-прежнему доступен во вкладке VK.
         </p>
         <form onSubmit={addStory}>
           <div className={styles.field}>
-            <label htmlFor="st-url">Ссылка на видео</label>
+            <label htmlFor="st-file">Видеофайл</label>
             <input
-              id="st-url"
-              type="url"
-              value={storyVideoUrl}
-              onChange={(e) => setStoryVideoUrl(e.target.value)}
-              placeholder="https://…"
+              id="st-file"
+              ref={storyVideoInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
               required
+              disabled={storySaving}
             />
           </div>
           <div className={styles.field}>
@@ -706,7 +720,11 @@ export default function AdminHomePage() {
             />
           </div>
           <button className={styles.btn} type="submit" disabled={storySaving}>
-            {storySaving ? "Сохранение…" : "Добавить сторис"}
+            {storySaving
+              ? storyUploadProgress != null
+                ? `Загрузка ${Math.round(storyUploadProgress)}%…`
+                : "Сохранение…"
+              : "Добавить сторис"}
           </button>
         </form>
 

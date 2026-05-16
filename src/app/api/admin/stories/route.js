@@ -22,14 +22,11 @@ export async function POST(request) {
   const videoUrl = String(body.videoUrl ?? "").trim();
 
   if (!videoUrl) {
-    return NextResponse.json({ error: "Укажите ссылку на видео" }, { status: 400 });
+    return NextResponse.json({ error: "Видео не загружено" }, { status: 400 });
   }
 
   if (!isAllowedStoryVideoUrl(videoUrl)) {
-    return NextResponse.json(
-      { error: "Некорректная ссылка. Нужен полный URL (http/https) на видеофайл" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Некорректный URL видео" }, { status: 400 });
   }
 
   const id = `s-${Date.now()}`;

@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { deleteBlobStoryVideo } from "@/lib/blob-story";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -199,6 +200,8 @@ export async function deleteStory(id) {
 
   data.items = data.items.filter((s) => s.id !== storyId);
   await writeJson("stories.json", data);
+
+  await deleteBlobStoryVideo(story.videoUrl);
 
   if (story.videoUrl?.startsWith("/uploads/stories/")) {
     const absPath = path.join(process.cwd(), "public", story.videoUrl.replace(/^\//, ""));
