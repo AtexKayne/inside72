@@ -6,6 +6,9 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 const dataDir = path.join(root, "data");
@@ -21,13 +24,10 @@ if (!dbUrl) {
   process.exit(1);
 }
 
-process.env.POSTGRES_URL = dbUrl;
-
-const { sql } = await import("@vercel/postgres");
-const { drizzle } = await import("drizzle-orm/vercel-postgres");
+const pooled = /:6543\//.test(dbUrl) || dbUrl.includes("pgbouncer=true");
+const sql = postgres(dbUrl, { prepare: !pooled });
 const schema = await import("../src/lib/db/schema.js");
-
-const db = drizzle(sql, { schema: schema });
+const db = drizzle(sql, { schema });
 
 async function readJson(file, fallback) {
   try {
@@ -204,6 +204,8 @@ async function main() {
   console.log(
     `Готово: news=${news.items.length}, albums=${albums.items.length}, photos=${photos.items.length}, stories=${stories.items.length}, vk=${vk.ids.length}`
   );
+
+  await sql.end();
 }
 
 main().catch((err) => {

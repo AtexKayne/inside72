@@ -8,18 +8,19 @@
     "start": "next start",
     "lint": "next lint",
     "db:push": "drizzle-kit push",
-    "db:seed": "node scripts/seed-from-json.mjs"
+    "db:seed": "node scripts/seed-from-json.mjs",
+    "db:migrate-from-neon": "node scripts/migrate-neon-to-supabase.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
     "@vercel/blob": "^2.3.3",
-    "@vercel/postgres": "^0.10.0",
     "@yandex/smart-captcha": "^2.9.1",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.45.2",
     "jose": "^5.9.6",
     "next": "^15.1.0",
     "nodemailer": "^6.9.16",
+    "postgres": "^3.4.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "swiper": "^11.1.15"

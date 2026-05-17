@@ -1,19 +1,37 @@
-import { drizzle } from "drizzle-orm/vercel-postgres";
-import { sql } from "@vercel/postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
+let client;
 let db;
 let migrated = false;
 
+function getConnectionString() {
+  return process.env.POSTGRES_URL || process.env.DATABASE_URL;
+}
+
+function getSqlClient() {
+  if (!client) {
+    const url = getConnectionString();
+    if (!url) {
+      throw new Error("POSTGRES_URL or DATABASE_URL is required");
+    }
+    const pooled = /:6543\//.test(url) || url.includes("pgbouncer=true");
+    client = postgres(url, { prepare: !pooled });
+  }
+  return client;
+}
+
 export function getDb() {
   if (!db) {
-    db = drizzle(sql, { schema });
+    db = drizzle(getSqlClient(), { schema });
   }
   return db;
 }
 
 export async function ensureDbSchema() {
   if (migrated) return;
+  const sql = getSqlClient();
   await sql`
     CREATE TABLE IF NOT EXISTS news (
       id TEXT PRIMARY KEY,
