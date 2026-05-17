@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendTrialEmail } from "@/lib/trial-mail";
 import { sendTrialVkNotify } from "@/lib/trial-vk";
+import { hasPersonalDataConsent } from "@/lib/personal-data-policy";
 import {
   captchaErrorResponse,
   getClientIp,
@@ -20,6 +21,13 @@ export async function POST(request) {
   const email = String(body.email ?? "").trim();
   const comment = String(body.comment ?? "").trim();
   const smartToken = String(body.smartToken ?? "").trim();
+
+  if (!hasPersonalDataConsent(body.personalDataConsent)) {
+    return NextResponse.json(
+      { error: "Необходимо согласие на обработку персональных данных" },
+      { status: 400 },
+    );
+  }
 
   const captchaResult = await verifyYandexSmartCaptcha(smartToken, getClientIp(request));
   if (!captchaResult.ok) {

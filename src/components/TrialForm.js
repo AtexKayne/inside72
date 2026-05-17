@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import pages from "@/styles/pages.module.scss";
+import { PersonalDataConsent } from "@/components/PersonalDataConsent";
 import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
 
 export function TrialForm() {
@@ -11,6 +12,7 @@ export function TrialForm() {
   const [comment, setComment] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState(null);
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,12 +32,24 @@ export function TrialForm() {
       return;
     }
 
+    if (!consent) {
+      setError("Необходимо согласие на обработку персональных данных");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/trial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, comment, smartToken: captchaToken }),
+        body: JSON.stringify({
+          name,
+          phone,
+          email,
+          comment,
+          smartToken: captchaToken,
+          personalDataConsent: true,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -48,6 +62,7 @@ export function TrialForm() {
       setPhone("");
       setEmail("");
       setComment("");
+      setConsent(false);
       resetCaptcha();
     } catch {
       setError("Сеть недоступна. Попробуйте позже.");
@@ -107,12 +122,10 @@ export function TrialForm() {
       />
       {error ? <p className={pages.formError}>{error}</p> : null}
       {ok ? <p className={pages.formOk}>Заявка отправлена. Мы свяжемся с вами.</p> : null}
-      <button className={pages.btn} type="submit" disabled={loading}>
+      <PersonalDataConsent id="trial-consent" checked={consent} onChange={setConsent} />
+      <button className={pages.btn} type="submit" disabled={loading || !consent}>
         {loading ? "Отправка…" : "Отправить заявку"}
       </button>
-      <p style={{ margin: 0, fontSize: "0.85rem", color: "#737373" }}>
-        Нажимая кнопку, вы соглашаетесь с обработкой персональных данных для связи по заявке.
-      </p>
     </form>
   );
 }

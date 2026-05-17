@@ -34,6 +34,7 @@ export function SiteFooter() {
             <Link href="/teachers">Преподаватели</Link>
             <Link href="/arenda">Аренда зала</Link>
             <Link href="/about">О нас</Link>
+            <Link href="/privacy">Политика персональных данных</Link>
             <Link href="/#trial">Запись на пробное</Link>
           </div>
         </div>

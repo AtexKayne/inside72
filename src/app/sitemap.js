@@ -5,12 +5,14 @@ export default async function sitemap() {
   const base = getSiteUrl();
   const news = await getNews();
 
-  const staticUrls = ["", "/news", "/gallery", "/teachers", "/arenda", "/about"].map((path) => ({
-    url: `${base}${path}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly",
-    priority: path === "" ? 1 : 0.7,
-  }));
+  const staticUrls = ["", "/news", "/gallery", "/teachers", "/arenda", "/about", "/privacy"].map(
+    (path) => ({
+      url: `${base}${path}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: path === "" ? 1 : 0.7,
+    }),
+  );
 
   const newsUrls = news.map((n) => ({
     url: `${base}/news/${n.id}`,

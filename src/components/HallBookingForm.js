@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { formatBookingSlot } from "@/lib/hall-calendar";
+import { PersonalDataConsent } from "@/components/PersonalDataConsent";
 import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
 import pages from "@/styles/pages.module.scss";
 import styles from "./hall-rental-calendar.module.scss";
@@ -13,6 +14,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
   const [comment, setComment] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState(null);
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -50,6 +52,11 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
       return;
     }
 
+    if (!consent) {
+      setError("Необходимо согласие на обработку персональных данных");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/hall-booking", {
@@ -64,6 +71,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
           slotStart: slotStart.toISOString(),
           slotEnd: slotEnd.toISOString(),
           smartToken: captchaToken,
+          personalDataConsent: true,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -77,6 +85,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
       setPhone("");
       setEmail("");
       setComment("");
+      setConsent(false);
       resetCaptcha();
     } catch {
       setError("Сеть недоступна. Попробуйте позже.");
@@ -172,12 +181,15 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
               onTokenExpired={() => setCaptchaToken("")}
             />
             {error ? <p className={pages.formError}>{error}</p> : null}
-            <button className={pages.btn} type="submit" disabled={loading}>
+            <PersonalDataConsent
+              id="hall-booking-consent"
+              checked={consent}
+              onChange={setConsent}
+              className={styles.modalConsent}
+            />
+            <button className={pages.btn} type="submit" disabled={loading || !consent}>
               {loading ? "Отправка…" : "Отправить заявку"}
             </button>
-            <p className={styles.modalConsent}>
-              Нажимая кнопку, вы соглашаетесь с обработкой персональных данных для связи по заявке.
-            </p>
           </form>
         )}
       </div>

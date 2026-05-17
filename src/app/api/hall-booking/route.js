@@ -3,6 +3,7 @@ import { formatBookingSlot, HALL_MIN_RENTAL_MINUTES } from "@/lib/hall-calendar"
 import { DEFAULT_HALL_ID, getHallById, isValidHallId } from "@/lib/halls";
 import { sendTrialEmail } from "@/lib/trial-mail";
 import { sendTrialVkNotify } from "@/lib/trial-vk";
+import { hasPersonalDataConsent } from "@/lib/personal-data-policy";
 import {
   captchaErrorResponse,
   getClientIp,
@@ -26,6 +27,13 @@ export async function POST(request) {
   const slotStartRaw = String(body.slotStart ?? "").trim();
   const slotEndRaw = String(body.slotEnd ?? "").trim();
   const smartToken = String(body.smartToken ?? "").trim();
+
+  if (!hasPersonalDataConsent(body.personalDataConsent)) {
+    return NextResponse.json(
+      { error: "Необходимо согласие на обработку персональных данных" },
+      { status: 400 },
+    );
+  }
 
   const captchaResult = await verifyYandexSmartCaptcha(smartToken, getClientIp(request));
   if (!captchaResult.ok) {
