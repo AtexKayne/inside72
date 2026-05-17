@@ -1,0 +1,66 @@
+@use "../../../styles/variables" as *;
+
+.hero {
+  margin-bottom: 2.75rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid $color-border;
+}
+
+.kicker {
+  @include label-caps;
+  margin: 0 0 1rem;
+}
+
+.title {
+  @include display-heading;
+  font-size: clamp(2.25rem, 4.5vw, 3.25rem);
+  margin: 0 0 1rem;
+}
+
+.lead {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: $color-muted;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.count {
+  @include label-caps;
+  font-size: 0.65rem;
+  color: $color-muted-soft;
+}
+
+.empty {
+  margin: 0;
+  padding: 3rem 0;
+  text-align: center;
+  color: $color-muted;
+  font-size: 1rem;
+}
+
+.masonry {
+  columns: 1;
+  column-gap: 1.25rem;
+
+  @media (min-width: 640px) {
+    columns: 2;
+  }
+
+  @media (min-width: 1100px) {
+    columns: 3;
+  }
+}
+
+.masonryItem {
+  break-inside: avoid;
+  margin-bottom: 1.25rem;
+}

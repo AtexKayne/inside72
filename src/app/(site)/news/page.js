@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { NewsImages } from "@/components/NewsImages";
+import { NewsCard } from "@/components/NewsCard";
 import { getNews } from "@/lib/data-store";
 import pages from "@/styles/pages.module.scss";
+import styles from "./news-page.module.scss";
 
 export const revalidate = 30;
 
@@ -19,28 +19,59 @@ function formatDate(iso) {
   }).format(new Date(iso));
 }
 
+function pluralMaterials(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return "материалов";
+  if (mod10 === 1) return "материал";
+  if (mod10 >= 2 && mod10 <= 4) return "материала";
+  return "материалов";
+}
+
 export default async function NewsPage() {
   const items = await getNews();
 
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <h1 className={pages.h2}>Новости</h1>
+        <header className={styles.hero}>
+          <p className={styles.kicker}>Студия Inside</p>
+          <h1 className={styles.title}>Новости</h1>
+          <p className={styles.lead}>
+            Наборы, мастер-классы, отчёты с мероприятий и всё, что происходит в студии.
+          </p>
+          {items.length > 0 ? (
+            <div className={styles.meta}>
+              <span className={styles.count}>
+                {items.length} {pluralMaterials(items.length)}
+              </span>
+            </div>
+          ) : null}
+        </header>
+
         {items.length === 0 ? (
-          <p className={pages.lead}>Пока нет опубликованных новостей.</p>
+          <p className={styles.empty}>Пока нет опубликованных новостей.</p>
+        ) : items.length === 1 ? (
+          <NewsCard item={items[0]} dateLabel={formatDate(items[0].createdAt)} variant="featured" />
         ) : (
-          items.map((n) => (
-            <article key={n.id} className={pages.newsItem}>
-              <time className={pages.newsDate} dateTime={n.createdAt}>
-                {formatDate(n.createdAt)}
-              </time>
-              <NewsImages images={n.images?.slice(0, 1)} linkTo={`/news/${n.id}`} />
-              <h2 className={pages.newsTitle}>
-                <Link href={`/news/${n.id}`}>{n.title}</Link>
-              </h2>
-              <p className={pages.newsExcerpt}>{n.excerpt}</p>
-            </article>
-          ))
+          <>
+            <NewsCard
+              item={items[0]}
+              dateLabel={formatDate(items[0].createdAt)}
+              variant="featured"
+            />
+            <div className={styles.masonry}>
+              {items.slice(1).map((item, i) => (
+                <div key={item.id} className={styles.masonryItem}>
+                  <NewsCard
+                    item={item}
+                    dateLabel={formatDate(item.createdAt)}
+                    index={i}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </section>
