@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const TRIAL_TO = process.env.TRIAL_NOTIFY_TO ?? "asantepler@gmail.com";
+const TRIAL_TO = process.env.TRIAL_NOTIFY_TO ?? "asrezchikov@gmail.com";
 /** Работает без верификации домена в Resend */
 const RESEND_FROM_FALLBACK = "Inside Studio <onboarding@resend.dev>";
 

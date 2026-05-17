@@ -17,7 +17,7 @@ export function isGroupTokenVkError(error) {
   return code === 27 || msg.includes("group auth") || msg.includes("unavailable with group");
 }
 
-function getAccessToken() {
+function getServiceAccessToken() {
   const token = (
     process.env.VK_SERVICE_KEY ||
     process.env.VK_SERVICE_TOKEN ||
@@ -29,9 +29,18 @@ function getAccessToken() {
   return token;
 }
 
-export async function vkCall(method, params = {}) {
+/** Пользовательский токен (scope photos) — для photos.getAlbums / photos.get. */
+export function getUserAccessToken() {
+  const token = (process.env.VK_USER_TOKEN || process.env.VK_USER_ACCESS_TOKEN)?.trim();
+  if (!token) {
+    throw new Error("VK_USER_TOKEN_MISSING");
+  }
+  return token;
+}
+
+async function vkRequest(method, params, accessToken) {
   const url = new URL(`${VK_API}/${method}`);
-  url.searchParams.set("access_token", getAccessToken());
+  url.searchParams.set("access_token", accessToken);
   url.searchParams.set("v", VK_VERSION);
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null) {
@@ -48,6 +57,14 @@ export async function vkCall(method, params = {}) {
     throw new VkApiError(data.error);
   }
   return data.response;
+}
+
+export async function vkCall(method, params = {}) {
+  return vkRequest(method, params, getServiceAccessToken());
+}
+
+export async function vkUserCall(method, params = {}) {
+  return vkRequest(method, params, getUserAccessToken());
 }
 
 let cachedGroupId = null;
@@ -77,6 +94,26 @@ export async function getGroupOwnerId() {
   }
   cachedGroupId = id;
   return -id;
+}
+
+/** owner_id для photos.get* (группа по умолчанию, иначе VK_PHOTOS_OWNER_ID). */
+export async function getPhotosOwnerId() {
+  const raw = process.env.VK_PHOTOS_OWNER_ID?.trim();
+  if (raw) {
+    const n = Number(raw);
+    if (Number.isFinite(n) && n !== 0) {
+      return n < 0 ? n : -n;
+    }
+  }
+  return getGroupOwnerId();
+}
+
+/** @param {{ thumb_src?: string; sizes?: { type: string; url: string; width?: number }[] }} album */
+export function pickAlbumThumbUrl(album) {
+  if (typeof album?.thumb_src === "string" && album.thumb_src) {
+    return album.thumb_src;
+  }
+  return pickLargestPhotoUrl(album?.sizes);
 }
 
 /** @param {{ type: string; url: string; width?: number }[]} sizes */

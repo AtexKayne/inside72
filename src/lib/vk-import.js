@@ -1,11 +1,14 @@
 import {
   getGroupOwnerId,
+  getPhotosOwnerId,
   photoVkId,
+  pickAlbumThumbUrl,
   pickLargestPhotoUrl,
   resolveVideoPlayUrl,
   videoApiId,
   videoVkId,
   vkCall,
+  vkUserCall,
   wallPostVkId,
 } from "@/lib/vk-api";
 import { getVkImportedIds } from "@/lib/vk-import-store";
@@ -210,6 +213,87 @@ export async function fetchVkPhotosPreview(offset = 0, count = 30) {
   const items = collectPhotosFromWall(posts, ownerId, imported);
 
   return { items, hasMore, nextOffset };
+}
+
+function mapVkPhotoItem(photo, ownerId, imported, fallbackCaption = "Фото из VK") {
+  const src = pickLargestPhotoUrl(photo.sizes);
+  if (!src) return null;
+
+  const oid = photo.owner_id ?? ownerId;
+  const vkId = photoVkId(oid, photo.id);
+  const thumb =
+    pickLargestPhotoUrl(photo.sizes?.filter((s) => (s.width || 0) <= 200) ?? photo.sizes) || src;
+
+  return {
+    vkId,
+    type: "photo",
+    src,
+    caption: stripVkMarkup(photo.text) || fallbackCaption,
+    previewUrl: thumb,
+    date: photo.date ? new Date(photo.date * 1000).toISOString() : null,
+    imported: imported.has(vkId),
+  };
+}
+
+/** Список альбомов сообщества (нужен VK_USER_TOKEN). */
+export async function fetchVkAlbumsList() {
+  const ownerId = await getPhotosOwnerId();
+  const data = await vkUserCall("photos.getAlbums", {
+    owner_id: ownerId,
+    need_covers: 1,
+    photo_sizes: 1,
+  });
+
+  const items = (data.items ?? []).map((album) => ({
+    vkAlbumId: String(album.id),
+    title: String(album.title ?? "").trim() || `Альбом ${album.id}`,
+    size: album.size ?? 0,
+    previewUrl: pickAlbumThumbUrl(album) ?? undefined,
+  }));
+
+  return { items, ownerId };
+}
+
+/**
+ * Фото из альбома VK (нужен VK_USER_TOKEN).
+ * @param {string} vkAlbumId
+ * @param {number} offset
+ * @param {number} count
+ */
+export async function fetchVkAlbumPhotosPreview(vkAlbumId, offset = 0, count = 50) {
+  const ownerId = await getPhotosOwnerId();
+  const imported = await getVkImportedIds();
+  const albumId = String(vkAlbumId ?? "").trim();
+  if (!albumId) {
+    throw new Error("VK_ALBUM_ID_REQUIRED");
+  }
+
+  const data = await vkUserCall("photos.get", {
+    owner_id: ownerId,
+    album_id: albumId,
+    offset,
+    count: Math.min(Math.max(1, count), 100),
+    photo_sizes: 1,
+  });
+
+  const items = [];
+  const seen = new Set();
+  for (const photo of data.items ?? []) {
+    const item = mapVkPhotoItem(photo, ownerId, imported);
+    if (!item || seen.has(item.vkId)) continue;
+    seen.add(item.vkId);
+    items.push(item);
+  }
+
+  const returned = data.items?.length ?? 0;
+  const pageSize = Math.min(Math.max(1, count), 100);
+
+  return {
+    items,
+    vkAlbumId: albumId,
+    hasMore: returned >= pageSize,
+    nextOffset: offset + returned,
+  };
 }
 
 /**

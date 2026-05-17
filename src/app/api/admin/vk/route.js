@@ -4,6 +4,8 @@ import { isAdminRequest } from "@/lib/admin-session";
 import { addNews, addPhoto, addStory } from "@/lib/data-store";
 import { isGroupTokenVkError, VkApiError } from "@/lib/vk-api";
 import {
+  fetchVkAlbumPhotosPreview,
+  fetchVkAlbumsList,
   fetchVkNewsPreview,
   fetchVkPhotosPreview,
   fetchVkVideosPreview,
@@ -12,7 +14,11 @@ import {
 import { assertPostgresStorage, StorageNotConfiguredError } from "@/lib/storage/config";
 import { isVkImported, markVkImported } from "@/lib/vk-import-store";
 
-const TYPES = new Set(["news", "photos", "videos"]);
+const TYPES = new Set(["news", "photos", "videos", "albums", "album-photos"]);
+
+const USER_TOKEN_HINT =
+  "Для импорта из альбомов VK нужен пользовательский токен: vk.com/apps → ваше приложение → «Создать токен» " +
+  "(права photos; для долгой работы — offline). Укажите VK_USER_TOKEN в .env и перезапустите сервер.";
 
 const GROUP_TOKEN_HINT =
   "Ключ сообщества (из «Управление → Работа с API») не подходит для импорта. " +
@@ -20,6 +26,12 @@ const GROUP_TOKEN_HINT =
   "Укажите его в .env как VK_SERVICE_KEY=… и перезапустите сервер.";
 
 function vkErrorResponse(err) {
+  if (err?.message === "VK_USER_TOKEN_MISSING") {
+    return NextResponse.json({ error: USER_TOKEN_HINT }, { status: 503 });
+  }
+  if (err?.message === "VK_ALBUM_ID_REQUIRED") {
+    return NextResponse.json({ error: "Укажите vkAlbumId альбома VK" }, { status: 400 });
+  }
   if (err?.message === "VK_TOKEN_MISSING") {
     return NextResponse.json(
       {
@@ -58,7 +70,10 @@ export async function GET(request) {
   const count = Math.min(50, Math.max(1, Number(searchParams.get("count")) || 20));
 
   if (!TYPES.has(type)) {
-    return NextResponse.json({ error: "Неверный тип: news, photos или videos" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Неверный тип: news, photos, videos, albums или album-photos" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -67,13 +82,25 @@ export async function GET(request) {
       result = await fetchVkNewsPreview(offset, count);
     } else if (type === "photos") {
       result = await fetchVkPhotosPreview(offset, count);
-    } else {
+    } else if (type === "videos") {
       result = await fetchVkVideosPreview(offset, count);
+    } else if (type === "albums") {
+      result = await fetchVkAlbumsList();
+    } else {
+      const vkAlbumId = searchParams.get("vkAlbumId")?.trim();
+      if (!vkAlbumId) {
+        return NextResponse.json({ error: "Укажите vkAlbumId" }, { status: 400 });
+      }
+      result = await fetchVkAlbumPhotosPreview(vkAlbumId, offset, count);
     }
+
+    const albumsPage =
+      result?.ownerId != null ? `vk.com/albums${result.ownerId}` : "vk.com/albums-222803928";
 
     return NextResponse.json({
       type,
       community: "vk.com/inside_dance72",
+      ...(type === "albums" || type === "album-photos" ? { albumsPage } : {}),
       ...result,
     });
   } catch (err) {
