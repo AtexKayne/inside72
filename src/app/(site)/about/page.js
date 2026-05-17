@@ -1,6 +1,6 @@
 import { SiteContacts } from "@/components/SiteContacts";
 import pages from "@/styles/pages.module.scss";
-import Link from "next/link";
+import { TrialCtaLink } from "@/components/TrialCtaLink";
 
 export const metadata = {
   title: "О нас",
@@ -22,8 +22,8 @@ export default function AboutPage() {
             Занятия проходят в центре Тюмени — 200 м от ЦУМа. Группы для начинающих стартуют каждый месяц.
           </p>
           
-          <strong style={{ display: "block", color: "#fafafa" }}>У нас ты:</strong>
-          <ul style={{ marginTop: "0",color: "#a3a3a3" }}>
+          <strong>У нас ты:</strong>
+          <ul>
             <li>Научишься танцевать с разными людьми — без зажатости и стресса.</li>
             <li>Быстро вырастешь в танце — если захочешь, даже до соревнований. С нами затанцует любой, проверено.</li>
             <li>Попадёшь в тусовку, где не только танцуют, но и вместе растут, поддерживают друг друга и создают вместе драйвовые проекты.</li>
@@ -33,7 +33,10 @@ export default function AboutPage() {
             Через 3 месяца — ты уже танцуешь и кайфуешь от себя.
             Опыт в танцах не нужен. Затанцевать с нуля абсолютно реально, мы сами так начинали.
 
-            Начни танцевать с нами — <Link href="/#trial"><span style={{ color: "#fafafa" }}>запишись на ближайший открытый урок</span></Link>
+            Начни танцевать с нами —{" "}
+            <TrialCtaLink className={pages.proseLink}>
+              запишись на ближайший открытый урок
+            </TrialCtaLink>
           </p>
         </div>
 

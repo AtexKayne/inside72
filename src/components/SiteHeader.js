@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTrialModal } from "@/contexts/TrialModalContext";
 import logoImage from "../../public/logo.jpg";
 import layout from "@/styles/layout.module.scss";
 
@@ -13,11 +14,11 @@ const links = [
   { href: "/teachers", label: "Преподаватели" },
   { href: "/arenda", label: "Аренда зала" },
   { href: "/about", label: "О нас" },
-  { href: "/#trial", label: "Пробное" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const { openModal } = useTrialModal();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,11 @@ export function SiteHeader() {
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  function openTrial() {
+    setOpen(false);
+    openModal();
+  }
 
   return (
     <>
@@ -56,6 +62,9 @@ export function SiteHeader() {
                 {l.label}
               </Link>
             ))}
+            <button type="button" className={layout.navTrialBtn} onClick={openModal}>
+              Пробное
+            </button>
           </nav>
           <button
             type="button"
@@ -87,6 +96,9 @@ export function SiteHeader() {
               {l.label}
             </Link>
           ))}
+          <button type="button" className={layout.mobileNavTrialBtn} onClick={openTrial}>
+            Пробное
+          </button>
         </div>
       </div>
     </>

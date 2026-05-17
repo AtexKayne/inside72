@@ -1,7 +1,9 @@
+@use "../../../styles/variables" as *;
+
 .root {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .tabs {
@@ -14,39 +16,43 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #262626;
+  padding: 0.55rem 1.1rem;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border;
   background: transparent;
-  color: #a3a3a3;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  color: $color-muted;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: border-color $transition-fast, color $transition-fast, background $transition-fast;
 
   &:hover {
-    border-color: #525252;
-    color: #fafafa;
+    border-color: $color-border-strong;
+    color: $color-text;
   }
 }
 
 .tabActive {
-  border-color: #fafafa;
-  color: #fafafa;
-  background: #171717;
+  border-color: $color-text;
+  color: $color-text;
+  background: $color-surface;
 }
 
 .count {
-  font-size: 0.75rem;
-  color: #737373;
+  font-size: 0.7rem;
+  color: $color-muted-soft;
   padding: 0.1rem 0.45rem;
-  border-radius: 999px;
-  background: #262626;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .tabActive .count {
-  color: #d4d4d4;
-  background: #404040;
+  color: $color-muted;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .panel {

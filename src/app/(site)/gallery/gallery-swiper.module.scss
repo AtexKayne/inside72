@@ -1,17 +1,22 @@
+@use "../../../styles/variables" as *;
+
 .wrap {
   max-width: 900px;
   margin-inline: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  overflow: hidden;
 }
 
 .swiper {
-  --swiper-navigation-color: #fafafa;
-  --swiper-pagination-color: #fafafa;
-  --swiper-pagination-bullet-inactive-color: #525252;
+  --swiper-navigation-color: #{$color-text};
+  --swiper-pagination-color: #{$color-text};
+  --swiper-pagination-bullet-inactive-color: #{$color-muted-soft};
 }
 
 .img {
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  background: #050505;
+  background: $color-bg;
 }

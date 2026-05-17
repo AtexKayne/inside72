@@ -1,0 +1,63 @@
+@use "../styles/variables" as *;
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.dialog {
+  position: relative;
+  width: min(28rem, 100%);
+  max-height: min(90vh, 44rem);
+  overflow-y: auto;
+  padding: 1.5rem 1.35rem 1.35rem;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.75);
+}
+
+.close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-muted;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color $transition-fast, background $transition-fast;
+
+  &:hover:not(:disabled) {
+    color: $color-text;
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.title {
+  margin: 0 2rem 0.5rem 0;
+  font-family: $font-sans;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0 0 1.25rem;
+  color: $color-muted;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  max-width: 42ch;
+}

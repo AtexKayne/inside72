@@ -1,11 +1,11 @@
 @use "variables" as *;
 
 .section {
-  padding-block: 4rem;
+  padding-block: 5.5rem;
 }
 
 .sectionTight {
-  padding-block: 2.5rem;
+  padding-block: 3rem;
 }
 
 .inner {
@@ -14,27 +14,41 @@
 
 .promoBanner {
   margin-top: 200px;
-  padding-block: 0 2rem;
+  padding-block: 0 3rem;
 }
 
 .promoBannerImage {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: $radius-md;
   border: 1px solid $color-border;
 }
 
 .hero {
-  padding-block: 3rem;
-  border-bottom: 1px solid $color-border;
+  padding-block: 4rem 5.5rem;
+  @include hairline-bottom;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 80% 50% at 50% -20%,
+      rgba(255, 255, 255, 0.03),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
 }
 
 .heroGrid {
+  position: relative;
   display: grid;
-  gap: 2.5rem;
+  gap: 3.5rem;
   align-items: center;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1.05fr 0.95fr;
 }
 
 @media (max-width: 900px) {
@@ -44,115 +58,129 @@
 }
 
 .kicker {
-  font-size: 0.8rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: $color-muted;
-  margin: 0 0 1rem;
+  @include label-caps;
+  margin: 0 0 1.25rem;
 }
 
 .title {
-  font-size: clamp(2.25rem, 4vw, 3.25rem);
-  line-height: 1.1;
-  font-weight: 700;
-  margin: 0 0 1rem;
-  letter-spacing: -0.02em;
+  @include display-heading;
+  font-size: clamp(2.75rem, 5.5vw, 4.25rem);
+  margin: 0 0 1.25rem;
 }
 
 .lead {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 400;
   color: $color-muted;
-  max-width: 36ch;
+  max-width: 38ch;
+  line-height: 1.7;
 }
 
 .ctaRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 0.75rem 1rem;
+  margin-top: 2.5rem;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.85rem 1.35rem;
-  border-radius: 999px;
+  padding: 0.95rem 1.75rem;
+  border-radius: $radius-sm;
   border: 1px solid $color-text;
   background: $color-text;
   color: $color-bg;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: $font-sans;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   text-decoration: none;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    background $transition-fast,
+    color $transition-fast,
+    border-color $transition-fast,
+    opacity $transition-fast;
 }
 
 .btn:hover:not(:disabled) {
   text-decoration: none;
-  opacity: 0.92;
-  transform: translateY(-1px);
+  background: transparent;
+  color: $color-text;
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
-  transform: none;
 }
 
 .btnGhost {
   background: transparent;
   color: $color-text;
-}
+  border-color: $color-border-strong;
 
-.btnGhost:hover {
-  background: $color-text;
-  color: $color-bg;
+  &:hover:not(:disabled) {
+    border-color: $color-text;
+    background: transparent;
+    color: $color-text;
+  }
 }
 
 .cardGrid {
   display: grid;
-  gap: 1.25rem;
+  gap: 1px;
   overflow: hidden;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  background: $color-border;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
 }
 
 .card {
-  border: 1px solid $color-border;
-  border-radius: 12px;
-  padding: 1.25rem;
-  background: linear-gradient(160deg, #141414, #0c0c0c);
-}
+  padding: 2rem 1.75rem;
+  background: $color-bg;
+  transition: background $transition-fast;
 
-.card h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.05rem;
-}
+  &:hover {
+    background: $color-surface;
+  }
 
-.card p {
-  margin: 0;
-  color: $color-muted;
-  font-size: 0.95rem;
+  h3 {
+    margin: 0 0 0.65rem;
+    font-family: $font-sans;
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
 }
 
 .h2 {
-  font-size: clamp(1.6rem, 2.5vw, 2rem);
-  margin: 0 0 1.5rem;
-  letter-spacing: -0.02em;
+  @include display-heading;
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  margin: 0 0 2.5rem;
 }
 
 .h3 {
-  font-size: 1.1rem;
-  margin: 2rem 0 0.75rem;
-  letter-spacing: -0.01em;
+  font-family: $font-sans;
+  font-size: 1.35rem;
+  font-weight: 500;
+  margin: 2.5rem 0 1rem;
   color: $color-text;
 }
 
 .newsItem {
-  border-bottom: 1px solid $color-border;
-  padding-block: 1.5rem;
+  @include hairline-bottom;
+  padding-block: 2rem;
 }
 
 .newsItem:first-of-type {
@@ -162,11 +190,14 @@
 .backLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   color: $color-muted;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: color $transition-fast;
 
   &:hover {
     color: $color-text;
@@ -180,34 +211,35 @@
 }
 
 .newsDate {
-  font-size: 0.8rem;
-  color: $color-muted;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  @include label-caps;
+  font-size: 0.68rem;
 }
 
 .newsTitle {
-  margin: 0.35rem 0 0.5rem;
-  font-size: 1.25rem;
+  margin: 0.5rem 0 0.65rem;
+  font-family: $font-sans;
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .newsExcerpt {
   margin: 0;
   color: $color-muted;
+  line-height: 1.65;
 }
 
 .newsMedia {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin: 1rem 0 0;
+  gap: 1.25rem;
+  margin: 1.25rem 0 0;
   max-width: min(100%, 36rem);
 
   img {
     width: auto;
     max-width: 100%;
     height: auto;
-    border-radius: 12px;
+    border-radius: $radius-md;
     border: 1px solid $color-border;
   }
 }
@@ -217,12 +249,12 @@
 
   &:hover {
     text-decoration: none;
-    opacity: 0.92;
+    opacity: 0.88;
   }
 }
 
 .gallerySwiper {
-  border-radius: 12px;
+  border-radius: $radius-md;
   overflow: hidden;
   border: 1px solid $color-border;
 }
@@ -232,92 +264,129 @@
 }
 
 .caption {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
   color: $color-muted;
+  letter-spacing: 0.02em;
 }
 
 .form {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   max-width: 480px;
 }
 
 .field label {
   display: block;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: $color-muted;
-  margin-bottom: 0.35rem;
+  @include label-caps;
+  margin-bottom: 0.5rem;
 }
 
 .field input,
 .field textarea {
   width: 100%;
-  padding: 0.75rem 0.9rem;
-  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  border-radius: $radius-sm;
   border: 1px solid $color-border;
-  background: #050505;
+  background: $color-bg-elevated;
+  transition: border-color $transition-fast, background $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: $color-border-strong;
+    background: $color-surface;
+  }
 }
 
 .field textarea {
-  min-height: 120px;
+  min-height: 130px;
   resize: vertical;
 }
 
 .formError {
-  color: #fca5a5;
-  font-size: 0.9rem;
+  color: $color-text;
+  font-size: 0.88rem;
+  opacity: 0.75;
 }
 
 .formOk {
-  color: #bbf7d0;
-  font-size: 0.9rem;
+  color: $color-muted;
+  font-size: 0.88rem;
 }
 
 .prose {
-  max-width: 65ch;
+  max-width: 62ch;
 }
 
 .prose p {
   color: $color-muted;
+  line-height: 1.75;
 }
 
 .prose ul {
-  margin: 0 0 1rem;
+  margin: 0 0 1.25rem;
   padding-left: 1.25rem;
   color: $color-muted;
 }
 
 .prose li + li {
-  margin-top: 0.35rem;
+  margin-top: 0.4rem;
 }
 
 .prose a {
   color: $color-text;
   text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.prose strong {
+  display: block;
+  color: $color-text;
+  font-family: $font-sans;
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-top: 1.5rem;
+}
+
+.proseLink {
+  color: $color-text;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+button.proseLink {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: inherit;
 }
 
 .consent {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.85rem;
   margin: 0;
   cursor: pointer;
   user-select: none;
 
   &:hover .consentBox {
-    border-color: color-mix(in srgb, $color-muted 55%, $color-border);
+    border-color: $color-border-strong;
   }
 }
 
 .consentControl {
   position: relative;
   flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-top: 0.12rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.2rem;
 }
 
 .consentInput {
@@ -337,24 +406,23 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  border-radius: 6px;
-  border: 1px solid $color-border;
-  background: #050505;
+  border-radius: 2px;
+  border: 1px solid $color-border-strong;
+  background: $color-bg-elevated;
   color: $color-bg;
   pointer-events: none;
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    opacity 0.15s ease;
+    border-color $transition-fast,
+    background-color $transition-fast;
 
   svg {
-    width: 0.7rem;
+    width: 0.65rem;
     height: auto;
     opacity: 0;
     transform: scale(0.65);
     transition:
-      opacity 0.15s ease,
-      transform 0.15s ease;
+      opacity $transition-fast,
+      transform $transition-fast;
   }
 }
 
@@ -372,13 +440,9 @@
   }
 }
 
-.consentInput:checked:hover + .consentBox {
-  opacity: 0.9;
-}
-
 .consentText {
-  font-size: 0.85rem;
-  line-height: 1.45;
+  font-size: 0.82rem;
+  line-height: 1.55;
   color: $color-muted;
 
   a {
@@ -393,78 +457,89 @@
 }
 
 .timeline {
-  border-left: 1px solid $color-border;
-  padding-left: 1.25rem;
+  border-left: 1px solid $color-border-strong;
+  padding-left: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .timelineItem strong {
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  font-family: $font-sans;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 
 .timelineItem span {
   color: $color-muted;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .contacts {
-  margin-top: 3rem;
-  padding-top: 3rem;
-  border-top: 1px solid $color-border;
+  margin-top: 4rem;
+  padding-top: 4rem;
+  @include hairline-top;
 }
 
 .contactsLead {
-  margin: 0 0 1.5rem;
+  margin: 0 0 2rem;
   color: $color-muted;
   max-width: 55ch;
+  line-height: 1.7;
 }
 
 .contactsMeta {
   display: grid;
-  gap: 1.25rem;
-  margin: 0 0 1.5rem;
+  gap: 1.5rem;
+  margin: 0 0 2rem;
 }
 
 .contactsMeta dt {
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: $color-muted;
-  margin-bottom: 0.35rem;
+  @include label-caps;
+  margin-bottom: 0.4rem;
 }
 
 .contactsMeta dd {
   margin: 0;
   color: $color-text;
+  font-size: 1rem;
 }
 
 .contactsMeta a {
   color: $color-text;
   text-decoration: underline;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.25em;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.75;
+  }
 }
 
 .contactsBlock p {
   margin: 0;
   color: $color-muted;
   max-width: 60ch;
+  line-height: 1.7;
 }
 
 .contactsNote {
-  margin: 1.25rem 0 0;
-  padding: 0.9rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  background: rgba(250, 204, 21, 0.08);
-  color: #fde68a;
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.15rem;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border-strong;
+  background: rgba(255, 255, 255, 0.03);
+  color: $color-muted;
   max-width: 60ch;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .contactsHelp {
-  margin: 1rem 0 0;
+  margin: 1.25rem 0 0;
   color: $color-muted;
   max-width: 60ch;
 }
@@ -474,65 +549,74 @@
 }
 
 .teachersHero {
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
 }
 
 .teachersHeroImage {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: $radius-md;
   border: 1px solid $color-border;
 }
 
 .teachersValues {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 65ch;
-  margin-bottom: 3rem;
+  gap: 1.25rem;
+  max-width: 62ch;
+  margin-bottom: 4rem;
 
   p {
     margin: 0;
     color: $color-muted;
-    line-height: 1.6;
+    line-height: 1.75;
+    font-size: 1.02rem;
   }
 }
 
 .teachersGrid {
   display: grid;
-  gap: 2.5rem;
-  margin-bottom: 2.5rem;
+  gap: 1px;
+  margin-bottom: 3rem;
+  background: $color-border;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .teachersGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
   }
 }
 
 .teacherCard {
-  display: grid;
-  gap: 1.25rem;
-  border: 1px solid $color-border;
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(160deg, #141414, #0c0c0c);
+  background: $color-bg;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-surface;
+  }
 }
 
-@media (min-width: 520px) {
+@media (min-width: 640px) {
   .teacherCard {
-    grid-template-columns: minmax(140px, 0.42fr) 1fr;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: flex-start;
   }
 }
 
 .teacherPhoto {
+  flex: 0 0 auto;
   margin: 0;
+  width: 100%;
   aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #0a0a0a;
+  background: $color-bg-elevated;
 
   img {
     display: block;
@@ -543,22 +627,35 @@
   }
 }
 
+@media (min-width: 640px) {
+  .teacherPhoto {
+    width: 200px;
+    flex-shrink: 0;
+  }
+}
+
 .teacherBody {
-  padding: 1.25rem 1.25rem 1.5rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .teacherBody {
+    padding: 1.5rem 1.75rem 1.75rem 1.25rem;
+  }
 }
 
 .teacherRole {
-  margin: 0 0 0.35rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: $color-muted;
+  @include label-caps;
+  margin: 0 0 0.5rem;
 }
 
 .teacherName {
-  margin: 0 0 1rem;
-  font-size: 1.35rem;
-  letter-spacing: -0.02em;
+  margin: 0 0 1.15rem;
+  font-family: $font-sans;
+  font-size: 1.65rem;
+  font-weight: 500;
 }
 
 .teacherBio {
@@ -566,18 +663,19 @@
   padding-left: 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
 
   li {
     color: $color-muted;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.92rem;
+    line-height: 1.6;
   }
 }
 
 .teachersOutro {
   margin: 0;
-  max-width: 65ch;
+  max-width: 62ch;
   color: $color-muted;
-  line-height: 1.6;
+  line-height: 1.75;
+  font-size: 1.02rem;
 }

@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import styles from "./admin.module.scss";
 
-function vkImportType(tab) {
-  return tab === "stories" ? "videos" : tab;
-}
-
 export default function AdminHomePage() {
   const router = useRouter();
   const [news, setNews] = useState([]);
@@ -35,7 +31,6 @@ export default function AdminHomePage() {
   const [vkHasMore, setVkHasMore] = useState(false);
   const [vkLoading, setVkLoading] = useState(false);
   const [vkImporting, setVkImporting] = useState(false);
-  const [vkAlbumId, setVkAlbumId] = useState("");
 
   async function load() {
     const [n, p, a, s] = await Promise.all([
@@ -49,7 +44,6 @@ export default function AdminHomePage() {
     if (a.items) {
       setAlbums(a.items);
       setAlbumId((prev) => prev || a.items[0]?.id || "");
-      setVkAlbumId((prev) => prev || a.items[0]?.id || "");
     }
     if (s.items) setStories(s.items);
   }
@@ -96,8 +90,6 @@ export default function AdminHomePage() {
     }
     setActiveTab(id);
   }
-
-  const vkTab = vkImportType(activeTab);
 
   async function saveNews(e) {
     e.preventDefault();
@@ -236,9 +228,7 @@ export default function AdminHomePage() {
     setVkLoading(true);
     try {
       const offset = append ? vkOffset : 0;
-      const res = await fetch(
-        `/api/admin/vk?type=${vkTab}&offset=${offset}&count=${vkTab === "news" ? 20 : 30}`
-      );
+      const res = await fetch(`/api/admin/vk?type=news&offset=${offset}&count=20`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setMsg(typeof data.error === "string" ? data.error : "Ошибка загрузки из VK");
@@ -275,10 +265,6 @@ export default function AdminHomePage() {
       setMsg("Отметьте элементы для импорта");
       return;
     }
-    if (vkTab === "photos" && !vkAlbumId) {
-      setMsg("Выберите альбом для фотографий");
-      return;
-    }
     setMsg(null);
     setVkImporting(true);
     try {
@@ -286,8 +272,7 @@ export default function AdminHomePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: vkTab,
-          albumId: vkTab === "photos" ? vkAlbumId : undefined,
+          type: "news",
           items: selected,
         }),
       });
@@ -391,44 +376,23 @@ export default function AdminHomePage() {
         ))}
       </div>
 
+      {activeTab === "news" ? (
       <section className={styles.card}>
         <h2>Импорт из VK</h2>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Загрузка постов, фото и видео из сообщества{" "}
+          Загрузка постов из сообщества{" "}
           <a href="https://vk.com/inside_dance72" target="_blank" rel="noopener noreferrer">
             vk.com/inside_dance72
           </a>
           . Нужен{" "}
           <strong>сервисный ключ приложения VK</strong> в <code>VK_SERVICE_KEY</code> (не ключ
-          сообщества). Фото и видео подтягиваются из постов на стене группы. Создайте приложение на{" "}
+          сообщества). Создайте приложение на{" "}
           <a href="https://vk.com/apps?act=manage" target="_blank" rel="noopener noreferrer">
             vk.com/apps
           </a>
           , в настройках скопируйте «Сервисный ключ доступа».
         </p>
-        <p className={styles.vkImportHint}>
-          {activeTab === "news"
-            ? "Импорт постов как новостей"
-            : activeTab === "photos"
-              ? "Импорт фотографий из постов"
-              : "Импорт видео как сторис"}
-        </p>
-        {vkTab === "photos" ? (
-          <div className={styles.field} style={{ marginTop: "1rem" }}>
-            <label htmlFor="vk-album">Альбом на сайте</label>
-            <select
-              id="vk-album"
-              value={vkAlbumId}
-              onChange={(e) => setVkAlbumId(e.target.value)}
-            >
-              {albums.map((alb) => (
-                <option key={alb.id} value={alb.id}>
-                  {alb.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
+        <p className={styles.vkImportHint}>Импорт постов как новостей</p>
         <div className={styles.vkActions}>
           <button
             type="button"
@@ -504,6 +468,7 @@ export default function AdminHomePage() {
           </button>
         ) : null}
       </section>
+      ) : null}
 
       {activeTab === "news" ? (
       <section className={styles.card}>
@@ -696,7 +661,7 @@ export default function AdminHomePage() {
       <section className={styles.card}>
         <h2>Сторис</h2>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ). Импорт из VK по-прежнему доступен во вкладке VK.
+          Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ).
         </p>
         <form onSubmit={addStory}>
           <div className={styles.field}>

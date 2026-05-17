@@ -8,7 +8,7 @@ import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
 import { useCaptchaRequired } from "@/hooks/useCaptchaRequired";
 import { isRuPhoneComplete } from "@/lib/phone-mask";
 
-export function TrialForm() {
+export function TrialForm({ idPrefix = "trial" }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -85,11 +85,11 @@ export function TrialForm() {
   }
 
   return (
-    <form id="trial" className={pages.form} onSubmit={onSubmit}>
+    <form className={pages.form} onSubmit={onSubmit}>
       <div className={pages.field}>
-        <label htmlFor="trial-name">Имя</label>
+        <label htmlFor={`${idPrefix}-name`}>Имя</label>
         <input
-          id="trial-name"
+          id={`${idPrefix}-name`}
           name="name"
           autoComplete="name"
           required
@@ -99,13 +99,13 @@ export function TrialForm() {
         />
       </div>
       <div className={pages.field}>
-        <label htmlFor="trial-phone">Телефон</label>
-        <PhoneInput id="trial-phone" value={phone} onChange={setPhone} required />
+        <label htmlFor={`${idPrefix}-phone`}>Телефон</label>
+        <PhoneInput id={`${idPrefix}-phone`} value={phone} onChange={setPhone} required />
       </div>
       <div className={pages.field}>
-        <label htmlFor="trial-email">Email (необязательно)</label>
+        <label htmlFor={`${idPrefix}-email`}>Email (необязательно)</label>
         <input
-          id="trial-email"
+          id={`${idPrefix}-email`}
           name="email"
           type="email"
           autoComplete="email"
@@ -114,9 +114,9 @@ export function TrialForm() {
         />
       </div>
       <div className={pages.field}>
-        <label htmlFor="trial-comment">Комментарий</label>
+        <label htmlFor={`${idPrefix}-comment`}>Комментарий</label>
         <textarea
-          id="trial-comment"
+          id={`${idPrefix}-comment`}
           name="comment"
           value={comment}
           placeholder="Например: удобнее связаться в Telegram или WhatsApp, ссылка на ВК или другую соцсеть"
@@ -132,7 +132,7 @@ export function TrialForm() {
       ) : null}
       {error ? <p className={pages.formError}>{error}</p> : null}
       {ok ? <p className={pages.formOk}>Заявка отправлена. Мы свяжемся с вами.</p> : null}
-      <PersonalDataConsent id="trial-consent" checked={consent} onChange={setConsent} />
+      <PersonalDataConsent id={`${idPrefix}-consent`} checked={consent} onChange={setConsent} />
       <button className={pages.btn} type="submit" disabled={!canSubmit}>
         {loading ? "Отправка…" : "Отправить заявку"}
       </button>

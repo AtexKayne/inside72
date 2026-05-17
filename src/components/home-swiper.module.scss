@@ -2,31 +2,31 @@
 
 .wrap {
   border: 1px solid $color-border;
-  border-radius: 16px;
+  border-radius: $radius-md;
   overflow: hidden;
-  background: linear-gradient(145deg, #101010, #050505);
-  min-height: 260px;
+  @include surface-elevated;
+  min-height: 280px;
 }
 
 .swiper {
   height: 100%;
-  min-height: 260px;
-  --swiper-pagination-color: #fafafa;
-  --swiper-pagination-bullet-inactive-color: #525252;
+  min-height: 280px;
+  --swiper-pagination-color: #{$color-text};
+  --swiper-pagination-bullet-inactive-color: #{$color-muted-soft};
+  --swiper-pagination-bullet-inactive-opacity: 0.5;
 }
 
 .slide {
-  padding: 2rem 2.25rem 2.75rem;
-  min-height: 260px;
+  padding: 2.5rem 2.5rem 3rem;
+  min-height: 280px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-
 }
 
 .slideW {
   opacity: 0;
-  transition: .56s ease;
+  transition: opacity 0.56s $ease-out;
 }
 
 .slideW.activeSlide {
@@ -34,15 +34,17 @@
 }
 
 .slideTitle {
-  margin: 0 0 0.75rem;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  margin: 0 0 0.85rem;
+  font-family: $font-sans;
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .slideText {
   margin: 0;
   color: $color-muted;
   max-width: 36ch;
-  line-height: 1.55;
+  line-height: 1.65;
+  font-size: 0.95rem;
 }

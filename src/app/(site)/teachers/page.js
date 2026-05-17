@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrialCta } from "@/components/TrialCta";
 import {
   teachers,
   teachersIntro,
@@ -67,9 +68,7 @@ export default function TeachersPage() {
         <p className={pages.teachersOutro}>{teachersOutro}</p>
 
         <div className={pages.ctaRow} style={{ marginTop: "2.5rem" }}>
-          <Link className={pages.btn} href="/#trial">
-            Записаться на пробное
-          </Link>
+          <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
           <Link
             className={`${pages.btn} ${pages.btnGhost}`}
             href="https://vk.me/inside_dance72"

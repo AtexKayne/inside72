@@ -1,18 +1,109 @@
-$color-bg: #0a0a0a;
-$color-surface: #111111;
-$color-text: #fafafa;
-$color-muted: #a3a3a3;
-$color-border: #262626;
+// Premium monochrome palette
+$color-bg: #050505;
+$color-bg-elevated: #0a0a0a;
+$color-surface: #0f0f0f;
+$color-surface-hover: #141414;
+$color-text: #f5f5f5;
+$color-muted: #8a8a8a;
+$color-muted-soft: #6b6b6b;
+$color-border: rgba(255, 255, 255, 0.08);
+$color-border-strong: rgba(255, 255, 255, 0.14);
+$color-accent: #ffffff;
+
 $font-sans: "Manrope Variable", system-ui, sans-serif;
-$max-width: 1120px;
-$header-height: 72px;
+
+$max-width: 1200px;
+$header-height: 80px;
+
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+
+$ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+$transition-fast: 0.2s $ease-out;
+$transition-base: 0.35s $ease-out;
 
 @mixin container {
-  width: min(100% - 2rem, #{$max-width});
+  width: min(100% - 2.5rem, #{$max-width});
   margin-inline: auto;
 }
 
 @mixin focus-ring {
-  outline: 2px solid $color-text;
-  outline-offset: 2px;
+  outline: 1px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 3px;
+}
+
+@mixin surface {
+  background: $color-surface;
+  border: 1px solid $color-border;
+}
+
+@mixin surface-elevated {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 40%,
+    transparent 100%
+  );
+  border: 1px solid $color-border;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 24px 48px -24px rgba(0, 0, 0, 0.6);
+}
+
+@mixin display-heading {
+  font-family: $font-sans;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+@mixin label-caps {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: $color-muted;
+}
+
+@mixin hairline-top {
+  border-top: 1px solid $color-border;
+}
+
+@mixin hairline-bottom {
+  border-bottom: 1px solid $color-border;
+}
+
+@mixin scrollbar($size: 6px) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+
+  &::-webkit-scrollbar {
+    width: $size;
+    height: $size;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color $transition-fast;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.26);
+  }
+
+  &::-webkit-scrollbar-thumb:active {
+    background-color: rgba(255, 255, 255, 0.34);
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }

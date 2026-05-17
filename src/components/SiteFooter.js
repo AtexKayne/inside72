@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrialCtaLink } from "@/components/TrialCtaLink";
 import { siteContacts } from "@/lib/site-contacts";
 import layout from "@/styles/layout.module.scss";
 
@@ -8,7 +9,7 @@ export function SiteFooter() {
       <div className={layout.footerInner}>
         <div>
           <p className={layout.footerTitle}>Студия</p>
-          <p style={{ margin: 0, color: "#a3a3a3", maxWidth: "32ch" }}>
+          <p className={layout.footerBrand}>
             Inside — танцевальная студия хастла. Чёрно-белая эстетика, внимание к технике и музыке.
           </p>
         </div>
@@ -16,10 +17,8 @@ export function SiteFooter() {
           <p className={layout.footerTitle}>Контакты</p>
           <div className={layout.footerLinks}>
             <a href={`tel:${siteContacts.phone.tel}`}>{siteContacts.phone.display}</a>
-            <span style={{ color: "#a3a3a3", fontSize: "0.95rem" }}>
-              {siteContacts.address.line}
-            </span>
-            <span style={{ color: "#a3a3a3", fontSize: "0.95rem" }}>{siteContacts.hours}</span>
+            <span className={layout.footerMeta}>{siteContacts.address.line}</span>
+            <span className={layout.footerMeta}>{siteContacts.hours}</span>
             <a href={siteContacts.vk.url} target="_blank" rel="noopener noreferrer">
               ВКонтакте
             </a>
@@ -34,7 +33,7 @@ export function SiteFooter() {
             <Link href="/teachers">Преподаватели</Link>
             <Link href="/arenda">Аренда зала</Link>
             <Link href="/about">О нас</Link>
-            <Link href="/#trial">Запись на пробное</Link>
+            <TrialCtaLink className={layout.footerTrialLink}>Запись на пробное</TrialCtaLink>
           </div>
         </div>
         <div>

@@ -17,8 +17,10 @@ $hours-count: 13;
 
 .heading {
   margin: 0 0 0.75rem;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
+  font-family: $font-sans;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .hallTabs {
@@ -33,18 +35,20 @@ $hours-count: 13;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.5rem 1.1rem;
-  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  border-radius: $radius-sm;
   border: 1px solid $color-border;
   background: transparent;
   color: $color-muted;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  transition: border-color $transition-fast, color $transition-fast, background $transition-fast;
 
   &:hover {
-    border-color: #525252;
+    border-color: $color-border-strong;
     color: $color-text;
   }
 }
@@ -56,24 +60,25 @@ $hours-count: 13;
 .hallTabBadge {
   padding: 0.12rem 0.45rem;
   border-radius: 999px;
-  border: 1px solid rgba(250, 204, 21, 0.45);
-  background: rgba(250, 204, 21, 0.12);
-  color: #fde68a;
+  border: 1px solid $color-border-strong;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-muted;
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .hallTabActive {
   border-color: $color-text;
   color: $color-text;
-  background: #171717;
+  background: $color-surface;
 
   .hallTabBadge {
-    border-color: rgba(250, 204, 21, 0.55);
-    background: rgba(250, 204, 21, 0.18);
-    color: #fef08a;
+    border-color: $color-border-strong;
+    background: rgba(255, 255, 255, 0.1);
+    color: $color-text;
   }
 }
 
@@ -164,22 +169,22 @@ $hours-count: 13;
 
 .alert {
   margin: 0 0 0.85rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid rgba(248, 113, 113, 0.35);
-  background: rgba(127, 29, 29, 0.25);
-  color: #fecaca;
-  font-size: 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border-strong;
+  background: rgba(255, 255, 255, 0.04);
+  color: $color-text;
+  font-size: 0.88rem;
 }
 
 .alertMuted {
   margin: 0 0 0.85rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  background: rgba(250, 204, 21, 0.08);
-  color: #fde68a;
-  font-size: 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.02);
+  color: $color-muted;
+  font-size: 0.88rem;
 }
 
 .calendarScroll {
@@ -326,7 +331,7 @@ $hours-count: 13;
 }
 
 .slotSelectedInvalid {
-  background: rgba(248, 113, 113, 0.18);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .selectionBlock {
@@ -344,8 +349,8 @@ $hours-count: 13;
   left: 2px;
   right: 2px;
   border-radius: 6px;
-  background: rgba(248, 113, 113, 0.15);
-  border: 1px dashed rgba(248, 113, 113, 0.55);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed $color-border-strong;
   pointer-events: none;
 }
 

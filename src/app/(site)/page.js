@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { HomeHeroSwiper } from "@/components/HomeHeroSwiper";
 import { SiteStories } from "@/components/SiteStories";
-import { TrialForm } from "@/components/TrialForm";
+import { TrialCta } from "@/components/TrialCta";
 import { getStories } from "@/lib/data-store";
 import pages from "@/styles/pages.module.scss";
 import bannerImage from "../../../public/banner-tanec-vnutri.png";
@@ -43,9 +43,7 @@ export default async function HomePage() {
               уверенность на танцполе.
             </p>
             <div className={pages.ctaRow}>
-              <Link className={pages.btn} href="/#trial">
-                Записаться на пробное
-              </Link>
+              <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
               <Link className={`${pages.btn} ${pages.btnGhost}`} href="/about">
                 О студии
               </Link>
@@ -75,13 +73,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className={pages.section} id="trial">
+      <section className={pages.section}>
         <div className={pages.inner}>
           <h2 className={pages.h2}>Пробное занятие</h2>
           <p className={pages.lead} style={{ marginBottom: "1.5rem" }}>
-            Оставьте заявку — мы ответим и подберём удобное время. Заявка уходит на почту студии.
+            Первое занятие — знакомство со студией, преподавателем и форматом. Оставьте заявку, и мы
+            подберём удобное время.
           </p>
-          <TrialForm />
+          <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
         </div>
       </section>
     </>
