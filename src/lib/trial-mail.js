@@ -1,6 +1,22 @@
 import nodemailer from "nodemailer";
 
 const TRIAL_TO = process.env.TRIAL_NOTIFY_TO ?? "asantepler@gmail.com";
+/** Работает без верификации домена в Resend */
+const RESEND_FROM_FALLBACK = "Inside Studio <onboarding@resend.dev>";
+
+function isResendSafeFrom(from) {
+  if (!from) return false;
+  if (from.includes("@inside72.ru")) return false;
+  if (/@gmail\.com|@googlemail\.com/i.test(from)) return false;
+  return true;
+}
+
+function resolveResendFrom(explicit) {
+  if (isResendSafeFrom(explicit)) return explicit;
+  const env = process.env.RESEND_FROM?.trim();
+  if (isResendSafeFrom(env)) return env;
+  return RESEND_FROM_FALLBACK;
+}
 
 function createSmtpTransport() {
   const host = process.env.SMTP_HOST;
@@ -25,10 +41,7 @@ async function sendViaResend({ from, subject, text, replyTo }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, reason: "not_configured" };
 
-  const fromAddress = from ?? process.env.RESEND_FROM ?? process.env.SMTP_FROM;
-  if (!fromAddress) {
-    return { ok: false, reason: "missing_from", error: new Error("RESEND_FROM or SMTP_FROM is required") };
-  }
+  const fromAddress = resolveResendFrom(from);
 
   const payload = {
     from: fromAddress,
@@ -77,26 +90,23 @@ async function sendViaSmtp({ from, subject, text, replyTo }) {
  * @param {{ subject: string, text: string, replyTo?: string }} mail
  */
 export async function sendTrialEmail(mail) {
-  const from = process.env.RESEND_FROM ?? process.env.SMTP_FROM ?? process.env.SMTP_USER;
-  const payload = { from, ...mail };
+  const payload = { ...mail };
 
   if (process.env.RESEND_API_KEY) {
     const resend = await sendViaResend(payload);
-    if (resend.ok) return resend;
-    console.error("trial mail resend error", resend.error);
-    // Не уходим в SMTP при ошибке конфигурации Resend (нет FROM, неверифицированный домен).
-    if (resend.reason !== "api_error") return resend;
-    if (!createSmtpTransport()) return resend;
+    if (!resend.ok) console.error("trial mail resend error", resend.error);
+    return resend;
   }
 
-  const smtp = await sendViaSmtp(payload);
+  const from = process.env.SMTP_FROM ?? process.env.SMTP_USER;
+  const smtp = await sendViaSmtp({ from, ...payload });
   if (smtp.ok) return smtp;
   if (smtp.reason === "not_configured") {
     return {
       ok: false,
       reason: "not_configured",
       error: new Error(
-        "Укажите RESEND_API_KEY и RESEND_FROM (рекомендуется на Vercel) или SMTP_HOST, SMTP_USER, SMTP_PASS.",
+        "Укажите RESEND_API_KEY (на Vercel → Environment Variables) или SMTP_HOST, SMTP_USER, SMTP_PASS.",
       ),
     };
   }
