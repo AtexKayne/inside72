@@ -1,51 +1,33 @@
-import ical from "node-ical";
 import {
   getHallIcalUrl,
   HALL_CALENDAR_ID,
   sanitizeHallEvent,
 } from "@/lib/hall-calendar";
+import { parseIcsEvents } from "@/lib/ics";
 
-function collectIcalEvents(data) {
-  const raw = [];
-
-  for (const item of Object.values(data)) {
-    if (item.type !== "VEVENT" || !item.start) continue;
-
-    const end =
-      item.end ??
-      (item.duration
-        ? new Date(item.start.getTime() + item.duration.toMilliseconds())
-        : null);
-    if (!end) continue;
-
-    raw.push({ start: item.start, end });
-
-    if (item.recurrences) {
-      for (const rec of Object.values(item.recurrences)) {
-        if (!rec.start) continue;
-        const recEnd =
-          rec.end ??
-          (rec.duration
-            ? new Date(rec.start.getTime() + rec.duration.toMilliseconds())
-            : null);
-        if (recEnd) raw.push({ start: rec.start, end: recEnd });
-      }
-    }
-  }
-
-  return raw
-    .map(sanitizeHallEvent)
-    .filter(Boolean);
-}
+const FETCH_HEADERS = {
+  "User-Agent": "InsideStudio/1.0 (+https://www.inside72.ru)",
+  Accept: "text/calendar, text/plain, */*",
+};
 
 async function fetchFromIcal() {
   const url = getHallIcalUrl();
-  const res = await fetch(url, { next: { revalidate: 300 } });
-  if (!res.ok) return null;
+  const res = await fetch(url, {
+    next: { revalidate: 300 },
+    headers: FETCH_HEADERS,
+  });
+
+  if (!res.ok) {
+    console.warn("[hall-calendar] iCal HTTP", res.status, url);
+    return null;
+  }
 
   const text = await res.text();
-  const data = await ical.parseICS(text);
-  return collectIcalEvents(data);
+  const parsed = parseIcsEvents(text);
+
+  return parsed
+    .map((event) => sanitizeHallEvent(event))
+    .filter(Boolean);
 }
 
 async function fetchFromGoogleApi(timeMin, timeMax) {
@@ -67,7 +49,10 @@ async function fetchFromGoogleApi(timeMin, timeMax) {
     { next: { revalidate: 300 } },
   );
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.warn("[hall-calendar] Google API HTTP", res.status);
+    return null;
+  }
 
   const data = await res.json();
   if (!Array.isArray(data.items)) return [];
@@ -104,20 +89,28 @@ function filterByRange(events, timeMin, timeMax) {
 
 /** Загрузка занятости: iCal → Google Calendar API. */
 export async function fetchHallCalendarEvents(timeMin, timeMax) {
-  const icalEvents = await fetchFromIcal();
-  if (icalEvents) {
-    return {
-      events: filterByRange(icalEvents, timeMin, timeMax),
-      source: "ical",
-    };
+  try {
+    const icalEvents = await fetchFromIcal();
+    if (icalEvents !== null) {
+      return {
+        events: filterByRange(icalEvents, timeMin, timeMax),
+        source: "ical",
+      };
+    }
+  } catch (err) {
+    console.error("[hall-calendar] iCal parse failed:", err);
   }
 
-  const googleEvents = await fetchFromGoogleApi(timeMin, timeMax);
-  if (googleEvents !== null) {
-    return {
-      events: googleEvents,
-      source: "google",
-    };
+  try {
+    const googleEvents = await fetchFromGoogleApi(timeMin, timeMax);
+    if (googleEvents !== null) {
+      return {
+        events: googleEvents,
+        source: "google",
+      };
+    }
+  } catch (err) {
+    console.error("[hall-calendar] Google API failed:", err);
   }
 
   return { events: [], source: null };

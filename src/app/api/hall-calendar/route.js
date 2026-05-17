@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { addDays, startOfWeekMonday } from "@/lib/hall-calendar";
 import { fetchHallCalendarEvents } from "@/lib/hall-calendar-fetch";
 
+export const runtime = "nodejs";
 export const revalidate = 300;
 
 export async function GET(request) {
@@ -26,11 +27,16 @@ export async function GET(request) {
       source,
       range: { from: timeMin, to: timeMax },
     });
-  } catch {
-    return NextResponse.json({
-      events: [],
-      source: null,
-      range: { from: timeMin, to: timeMax },
-    });
+  } catch (err) {
+    console.error("[hall-calendar] route error:", err);
+    return NextResponse.json(
+      {
+        events: [],
+        source: null,
+        range: { from: timeMin, to: timeMax },
+        error: "calendar_unavailable",
+      },
+      { status: 200 },
+    );
   }
 }

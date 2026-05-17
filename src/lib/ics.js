@@ -99,10 +99,16 @@ export function parseIcsEvents(icsText) {
     if (!prop) continue;
 
     if (prop.key === "DTSTART") {
-      current.start = parseIcsDate(prop.value, prop.params.TZID);
+      current.start = parseIcsDate(
+        prop.value,
+        prop.params.VALUE === "DATE" ? null : prop.params.TZID,
+      );
     }
     if (prop.key === "DTEND") {
-      current.end = parseIcsDate(prop.value, prop.params.TZID);
+      current.end = parseIcsDate(
+        prop.value,
+        prop.params.VALUE === "DATE" ? null : prop.params.TZID,
+      );
     }
   }
 
