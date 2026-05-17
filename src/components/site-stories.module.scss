@@ -73,20 +73,22 @@ $stories-collapse-amount: 5.875rem;
   opacity: 0.85;
 }
 
+$row-inset: 1.25rem;
+
 .row {
-  display: flex;
-  gap: calc(1rem - var(--stories-collapse) * 0.35rem);
-  overflow: hidden;
-  overflow-x: auto;
+  overflow: visible;
   padding-bottom: calc(0.35rem - var(--stories-collapse) * 0.35rem);
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  @include scrollbar(4px);
+  margin-inline: calc(-1 * #{$row-inset});
+  padding-inline: $row-inset;
+}
+
+.slide {
+  width: var(--story-size);
+  margin-right: calc(1rem - var(--stories-collapse) * 0.35rem);
+  height: auto;
 }
 
 .storyBtn {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
   position: relative;
   display: flex;
   align-items: center;

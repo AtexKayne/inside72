@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode } from "swiper/modules";
+import "swiper/css";
 import styles from "./site-stories.module.scss";
 import logoImage from "../../public/logo.jpg";
 
@@ -150,23 +153,38 @@ export function SiteStories({ items = [] }) {
           >
         <div className={styles.inner}>
           <div className={styles.collapseInner}>
-            <div className={styles.row}>
+            <Swiper
+              className={styles.row}
+              modules={[FreeMode]}
+              slidesPerView="auto"
+              freeMode={{
+                enabled: true,
+                momentum: true,
+                momentumRatio: 0.8,
+                momentumVelocityRatio: 0.8,
+              }}
+              speed={400}
+              grabCursor
+              watchOverflow
+              touchStartPreventDefault={false}
+            >
               {items.map((story, index) => (
-                <button
-                  key={story.id}
-                  type="button"
-                  className={styles.storyBtn}
-                  onClick={() => setOpenIndex(index)}
-                  aria-label={`Открыть сторис: ${story.title}`}
-                >
-                  <span className={styles.ring} aria-hidden>
-                    <span className={styles.ringInner}>
-                      <StoryPreview videoUrl={story.videoUrl} />
+                <SwiperSlide key={story.id} className={styles.slide}>
+                  <button
+                    type="button"
+                    className={styles.storyBtn}
+                    onClick={() => setOpenIndex(index)}
+                    aria-label={`Открыть сторис: ${story.title}`}
+                  >
+                    <span className={styles.ring} aria-hidden>
+                      <span className={styles.ringInner}>
+                        <StoryPreview videoUrl={story.videoUrl} />
+                      </span>
                     </span>
-                  </span>
-                </button>
+                  </button>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         </div>
           </section>

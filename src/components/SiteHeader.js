@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTrialModal } from "@/contexts/TrialModalContext";
-import logoImage from "../../public/logo.jpg";
 import layout from "@/styles/layout.module.scss";
 
 const links = [
@@ -43,14 +42,8 @@ export function SiteHeader() {
     <>
       <header className={layout.header}>
         <div className={layout.headerInner}>
-          <Link href="/" className={layout.logo}>
-            <img
-              src={logoImage.src}
-              alt="Inside — студия танца"
-              width={48}
-              height={48}
-              className={layout.logoImage}
-            />
+          <Link href="/" className={layout.logo} aria-label="Inside — студия танца">
+            INSIDE
           </Link>
           <nav className={layout.nav} aria-label="Основная навигация">
             {links.map((l) => (
