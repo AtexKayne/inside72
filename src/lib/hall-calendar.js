@@ -1,12 +1,21 @@
-export const HALL_CALENDAR_ID = "inside.dance72@gmail.com";
+export const HALL_CALENDAR_ID = "asantepler@gmail.com";
+
 export const HALL_CALENDAR_TIMEZONE = "Asia/Yekaterinburg";
+
 export const HALL_OPEN_HOUR = 9;
 export const HALL_CLOSE_HOUR = 22;
 export const BUSY_LABEL = "Занято";
 
-export const HALL_ICAL_URL = `https://calendar.google.com/calendar/ical/${encodeURIComponent(
-  HALL_CALENDAR_ID,
-)}/public/basic.ics`;
+const DEFAULT_ICAL_URL =
+  "https://calendar.google.com/calendar/ical/asantepler%40gmail.com/public/basic.ics";
+
+export function getHallIcalUrl() {
+  const fromEnv = process.env.HALL_ICAL_URL?.trim();
+  return fromEnv || DEFAULT_ICAL_URL;
+}
+
+/** @deprecated используйте getHallIcalUrl */
+export const HALL_ICAL_URL = DEFAULT_ICAL_URL;
 
 /** Событие календаря без названия (приватность аренды). */
 export function sanitizeHallEvent(raw) {

@@ -22,9 +22,13 @@ function parseIcsDate(value, tzid) {
     const mm = v.slice(11, 13);
     const ss = v.slice(13, 15);
     const offset =
-      tzid === "Asia/Yekaterinburg" || tzid === "Asia/Yekaterinburg Standard Time"
+      tzid === "Asia/Yekaterinburg" ||
+      tzid === "Asia/Yekaterinburg Standard Time" ||
+      tzid === "Asia/Tashkent"
         ? YEKATERINBURG_OFFSET
-        : "";
+        : tzid === "Europe/Moscow"
+          ? "+03:00"
+          : "";
     return new Date(`${y}-${m}-${d}T${hh}:${mm}:${ss}${offset}`);
   }
 

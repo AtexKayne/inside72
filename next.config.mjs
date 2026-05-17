@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["node-ical"],
   images: {
     unoptimized: true,
     remotePatterns: [
