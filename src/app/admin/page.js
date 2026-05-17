@@ -23,7 +23,11 @@ export default function AdminHomePage() {
   const storyVideoInputRef = useRef(null);
   const [storySaving, setStorySaving] = useState(false);
   const [storyUploadProgress, setStoryUploadProgress] = useState(null);
+  const [dragStoryId, setDragStoryId] = useState(null);
+  const [storyDropTarget, setStoryDropTarget] = useState(null);
+  const [storyOrderSaving, setStoryOrderSaving] = useState(false);
   const [editingNewsId, setEditingNewsId] = useState(null);
+  const [editingStoryId, setEditingStoryId] = useState(null);
   const [activeTab, setActiveTab] = useState("news");
   const [msg, setMsg] = useState(null);
   const [vkItems, setVkItems] = useState([]);
@@ -82,9 +86,27 @@ export default function AdminHomePage() {
     setVkHasMore(false);
   }
 
+  function resetStoryForm() {
+    setEditingStoryId(null);
+    setStoryTitle("");
+    setStoryVideoUrl("");
+    if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
+  }
+
+  function startEditStory(item) {
+    setEditingStoryId(item.id);
+    setStoryTitle(item.title);
+    setStoryVideoUrl(item.videoUrl);
+    setMsg(null);
+    if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
+  }
+
   function switchTab(id) {
     if (activeTab === "news" && id !== "news" && editingNewsId) {
       resetNewsForm();
+    }
+    if (activeTab === "stories" && id !== "stories" && editingStoryId) {
+      resetStoryForm();
     }
     if (id !== activeTab) {
       resetVkPreview();
@@ -147,8 +169,60 @@ export default function AdminHomePage() {
     await load();
   }
 
+  async function saveStoryOrder(orderedIds, previousStories) {
+    setStoryOrderSaving(true);
+    try {
+      const res = await fetch("/api/admin/stories", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: orderedIds }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setStories(previousStories);
+        setMsg(typeof data.error === "string" ? data.error : "Не удалось сохранить порядок");
+        return;
+      }
+      if (data.items) setStories(data.items);
+    } catch {
+      setStories(previousStories);
+      setMsg("Не удалось сохранить порядок");
+    } finally {
+      setStoryOrderSaving(false);
+    }
+  }
+
+  function reorderStoriesByDrag(fromId, toId, position = "before") {
+    if (!fromId || fromId === toId || storyOrderSaving) return;
+    const previousStories = stories;
+    const next = [...stories];
+    const fromIndex = next.findIndex((s) => s.id === fromId);
+    let insertIndex = next.findIndex((s) => s.id === toId);
+    if (fromIndex < 0 || insertIndex < 0) return;
+
+    if (position === "after") insertIndex += 1;
+    const [moved] = next.splice(fromIndex, 1);
+    if (fromIndex < insertIndex) insertIndex -= 1;
+    next.splice(insertIndex, 0, moved);
+    setStories(next);
+    setStoryDropTarget(null);
+    void saveStoryOrder(
+      next.map((s) => s.id),
+      previousStories
+    );
+  }
+
+  function handleStoryDragOver(e, targetId) {
+    e.preventDefault();
+    if (!dragStoryId || dragStoryId === targetId) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setStoryDropTarget({ id: targetId, position });
+  }
+
   async function removeStory(id, storyLabel) {
     if (!window.confirm(`Удалить сторис «${storyLabel}»?`)) return;
+    if (editingStoryId === id) resetStoryForm();
     setMsg(null);
     const res = await fetch("/api/admin/stories", {
       method: "DELETE",
@@ -295,19 +369,23 @@ export default function AdminHomePage() {
     }
   }
 
-  async function addStory(e) {
+  async function saveStory(e) {
     e.preventDefault();
     setMsg(null);
     const file = storyVideoInputRef.current?.files?.[0];
     const url = storyVideoUrl.trim();
-    if (!file && !url) {
+    const isEditing = Boolean(editingStoryId);
+
+    if (!isEditing && !file && !url) {
       setMsg("Выберите видеофайл или укажите прямую ссылку");
       return;
     }
+
     setStorySaving(true);
     setStoryUploadProgress(null);
     try {
-      let videoUrl = url;
+      const currentStory = isEditing ? stories.find((s) => s.id === editingStoryId) : null;
+      let videoUrl;
       if (file) {
         setStoryUploadProgress(0);
         const pathname = `stories/${Date.now()}-${file.name.replace(/[^\w.\-()а-яА-ЯёЁ ]+/gu, "_")}`;
@@ -318,22 +396,30 @@ export default function AdminHomePage() {
           onUploadProgress: ({ percentage }) => setStoryUploadProgress(percentage),
         });
         videoUrl = blob.url;
+      } else if (url && (!isEditing || url !== currentStory?.videoUrl)) {
+        videoUrl = url;
       }
 
       const res = await fetch("/api/admin/stories", {
-        method: "POST",
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: storyTitle, videoUrl }),
+        body: JSON.stringify(
+          isEditing
+            ? {
+                id: editingStoryId,
+                title: storyTitle,
+                ...(videoUrl != null ? { videoUrl } : {}),
+              }
+            : { title: storyTitle, videoUrl }
+        ),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setMsg(typeof data.error === "string" ? data.error : "Ошибка сохранения");
         return;
       }
-      setStoryTitle("");
-      setStoryVideoUrl("");
-      if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
-      setMsg("Сторис добавлен");
+      resetStoryForm();
+      setMsg(isEditing ? "Сторис обновлён" : "Сторис добавлен");
       await load();
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Ошибка загрузки видео");
@@ -387,20 +473,12 @@ export default function AdminHomePage() {
       {activeTab === "news" ? (
       <section className={styles.card}>
         <h2>Импорт из VK</h2>
-        <p className={styles.muted} style={{ marginTop: 0 }}>
-          Загрузка постов из сообщества{" "}
+        <p className={styles.vkImportHint}>
+          Импорт постов как новостей из сообщества{" "}
           <a href="https://vk.com/inside_dance72" target="_blank" rel="noopener noreferrer">
             vk.com/inside_dance72
           </a>
-          . Нужен{" "}
-          <strong>сервисный ключ приложения VK</strong> в <code>VK_SERVICE_KEY</code> (не ключ
-          сообщества). Создайте приложение на{" "}
-          <a href="https://vk.com/apps?act=manage" target="_blank" rel="noopener noreferrer">
-            vk.com/apps
-          </a>
-          , в настройках скопируйте «Сервисный ключ доступа».
         </p>
-        <p className={styles.vkImportHint}>Импорт постов как новостей</p>
         <div className={styles.vkActions}>
           <button
             type="button"
@@ -667,14 +745,15 @@ export default function AdminHomePage() {
 
       {activeTab === "stories" ? (
       <section className={styles.card}>
-        <h2>Сторис</h2>
+        <h2>{editingStoryId ? "Редактирование сторис" : "Новый сторис"}</h2>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ) или вставьте прямую ссылку
-          (https). Достаточно одного способа; при выборе файла ссылка игнорируется.
+          {editingStoryId
+            ? "Измените подпись или замените видео (новый файл или URL). Если видео не трогать — останется текущее."
+            : "Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ) или вставьте прямую ссылку (https). Достаточно одного способа; при выборе файла ссылка игнорируется."}
         </p>
-        <form onSubmit={addStory}>
+        <form onSubmit={saveStory}>
           <div className={styles.field}>
-            <label htmlFor="st-file">Видеофайл</label>
+            <label htmlFor="st-file">Видеофайл{editingStoryId ? " (заменить)" : ""}</label>
             <input
               id="st-file"
               ref={storyVideoInputRef}
@@ -684,7 +763,7 @@ export default function AdminHomePage() {
             />
           </div>
           <div className={styles.field}>
-            <label htmlFor="st-url">URL видео</label>
+            <label htmlFor="st-url">URL видео{editingStoryId ? " (заменить)" : ""}</label>
             <input
               id="st-url"
               type="url"
@@ -703,22 +782,101 @@ export default function AdminHomePage() {
               placeholder="Например: Пробный урок"
             />
           </div>
-          <button className={styles.btn} type="submit" disabled={storySaving}>
-            {storySaving
-              ? storyUploadProgress != null
-                ? `Загрузка ${Math.round(storyUploadProgress)}%…`
-                : "Сохранение…"
-              : "Добавить сторис"}
-          </button>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+            <button className={styles.btn} type="submit" disabled={storySaving}>
+              {storySaving
+                ? storyUploadProgress != null
+                  ? `Загрузка ${Math.round(storyUploadProgress)}%…`
+                  : "Сохранение…"
+                : editingStoryId
+                  ? "Сохранить"
+                  : "Добавить сторис"}
+            </button>
+            {editingStoryId ? (
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnGhost}`}
+                style={{ marginLeft: 0 }}
+                onClick={resetStoryForm}
+                disabled={storySaving}
+              >
+                Отмена
+              </button>
+            ) : null}
+          </div>
         </form>
 
         <div className={styles.subsection}>
           <h3>Загруженные сторис</h3>
-          <ul className={styles.list}>
-            {stories.map((x) => (
-              <li key={x.id}>
-                <div className={styles.listRow}>
-                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+          {stories.length > 1 ? (
+            <p className={styles.muted} style={{ marginTop: 0 }}>
+              Схватите элемент за ручку <span className={styles.storyDragHint}>⠿</span> и перетащите.
+              Порядок в списке совпадает с главной (слева направо).
+              {storyOrderSaving ? " Сохранение порядка…" : ""}
+            </p>
+          ) : null}
+          <ul className={`${styles.list} ${styles.storySortList}`}>
+            {stories.map((x, index) => {
+              const dropBefore =
+                storyDropTarget?.id === x.id && storyDropTarget.position === "before";
+              const dropAfter =
+                storyDropTarget?.id === x.id && storyDropTarget.position === "after";
+              return (
+                <li
+                  key={x.id}
+                  className={[
+                    styles.storySortItem,
+                    dragStoryId === x.id ? styles.storySortItemDragging : "",
+                    editingStoryId === x.id ? styles.storySortItemEditing : "",
+                    dropBefore ? styles.storySortItemDropBefore : "",
+                    dropAfter ? styles.storySortItemDropAfter : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onDragOver={(e) => handleStoryDragOver(e, x.id)}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      setStoryDropTarget((prev) => (prev?.id === x.id ? null : prev));
+                    }
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragStoryId) {
+                      reorderStoriesByDrag(
+                        dragStoryId,
+                        x.id,
+                        storyDropTarget?.id === x.id ? storyDropTarget.position : "before"
+                      );
+                    }
+                    setDragStoryId(null);
+                    setStoryDropTarget(null);
+                  }}
+                >
+                  <div className={styles.listRow}>
+                    <div className={styles.storySortMain}>
+                      <button
+                        type="button"
+                        className={styles.storyDragHandle}
+                        draggable={!storyOrderSaving && !editingStoryId}
+                        disabled={storyOrderSaving}
+                        aria-label={`Перетащить сторис «${x.title}», позиция ${index + 1}`}
+                        onDragStart={(e) => {
+                          setDragStoryId(x.id);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", x.id);
+                          const row = e.currentTarget.closest("li");
+                          if (row) e.dataTransfer.setDragImage(row, 48, 48);
+                        }}
+                        onDragEnd={() => {
+                          setDragStoryId(null);
+                          setStoryDropTarget(null);
+                        }}
+                      >
+                        <span className={styles.storySortIndex}>{index + 1}</span>
+                        <span className={styles.storyDragGrip} aria-hidden>
+                          ⠿
+                        </span>
+                      </button>
                     <video
                       src={x.videoUrl}
                       muted
@@ -739,17 +897,30 @@ export default function AdminHomePage() {
                       <div className={styles.muted}>{x.videoUrl}</div>
                       <div className={styles.muted}>{new Date(x.createdAt).toLocaleString("ru-RU")}</div>
                     </div>
+                    </div>
+                    <div className={styles.listActions}>
+                      <button
+                        type="button"
+                        className={`${styles.btn} ${styles.btnGhost} ${styles.btnSmall}`}
+                        style={{ marginLeft: 0 }}
+                        onClick={() => startEditStory(x)}
+                        disabled={storyOrderSaving || storySaving}
+                      >
+                        Редактировать
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
+                        onClick={() => removeStory(x.id, x.title)}
+                        disabled={storyOrderSaving || storySaving}
+                      >
+                        Удалить
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
-                    onClick={() => removeStory(x.id, x.title)}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>

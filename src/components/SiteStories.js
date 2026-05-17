@@ -21,7 +21,6 @@ function StoryPreview({ videoUrl }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    console.log(el);
 
     const playPreview = () => {
       el.currentTime = 0;
@@ -38,16 +37,20 @@ function StoryPreview({ videoUrl }) {
   }, [videoUrl]);
 
   return (
-    <video
-      ref={ref}
-      poster={logoImage.src}
-      className={styles.preview}
-      src={videoUrl}
-      muted
-      loop
-      aria-hidden
-      {...VIDEO_PROPS}
-    />
+    <>
+      <video
+        ref={ref}
+        className={styles.preview}
+        src={videoUrl}
+        muted
+        loop
+        aria-hidden
+        {...VIDEO_PROPS}
+      />
+      <span className={styles.previewLogo} aria-hidden>
+        <img src={logoImage.src} alt="" />
+      </span>
+    </>
   );
 }
 
@@ -182,42 +185,44 @@ export function SiteStories({ items = [] }) {
           }}
         >
           <div className={styles.overlayInner}>
-            <button type="button" className={styles.close} onClick={close} aria-label="Закрыть">
-              ×
-            </button>
-            {openIndex > 0 ? (
-              <button
-                type="button"
-                className={`${styles.nav} ${styles.navPrev}`}
-                aria-label="Предыдущее"
-                onClick={() => setOpenIndex((i) => (i !== null ? i - 1 : i))}
-              >
-                ‹
+            <div className={styles.videoFrame}>
+              <button type="button" className={styles.close} onClick={close} aria-label="Закрыть">
+                ×
               </button>
-            ) : (
-              <span className={`${styles.nav} ${styles.navPrev} ${styles.navHidden}`} aria-hidden />
-            )}
-            {openIndex < items.length - 1 ? (
-              <button
-                type="button"
-                className={`${styles.nav} ${styles.navNext}`}
-                aria-label="Следующее"
-                onClick={() => setOpenIndex((i) => (i !== null ? i + 1 : i))}
-              >
-                ›
-              </button>
-            ) : (
-              <span className={`${styles.nav} ${styles.navNext} ${styles.navHidden}`} aria-hidden />
-            )}
-            <video
-              ref={videoRef}
-              key={active.id}
-              className={styles.video}
-              src={active.videoUrl}
-              controls
-              controlsList="nodownload"
-              {...VIDEO_PROPS}
-            />
+              {openIndex > 0 ? (
+                <button
+                  type="button"
+                  className={`${styles.nav} ${styles.navPrev}`}
+                  aria-label="Предыдущее"
+                  onClick={() => setOpenIndex((i) => (i !== null ? i - 1 : i))}
+                >
+                  ‹
+                </button>
+              ) : (
+                <span className={`${styles.nav} ${styles.navPrev} ${styles.navHidden}`} aria-hidden />
+              )}
+              {openIndex < items.length - 1 ? (
+                <button
+                  type="button"
+                  className={`${styles.nav} ${styles.navNext}`}
+                  aria-label="Следующее"
+                  onClick={() => setOpenIndex((i) => (i !== null ? i + 1 : i))}
+                >
+                  ›
+                </button>
+              ) : (
+                <span className={`${styles.nav} ${styles.navNext} ${styles.navHidden}`} aria-hidden />
+              )}
+              <video
+                ref={videoRef}
+                key={active.id}
+                className={styles.video}
+                src={active.videoUrl}
+                controls
+                controlsList="nodownload"
+                {...VIDEO_PROPS}
+              />
+            </div>
             <p className={styles.storyTitle}>{active.title}</p>
           </div>
         </div>

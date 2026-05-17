@@ -76,5 +76,16 @@ export async function ensureDbSchema() {
     )
   `;
   await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
+  await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
+  await sql`
+    UPDATE stories AS s
+    SET sort_order = sub.rn
+    FROM (
+      SELECT id, (ROW_NUMBER() OVER (ORDER BY created_at DESC) - 1)::int AS rn
+      FROM stories
+      WHERE sort_order IS NULL
+    ) AS sub
+    WHERE s.id = sub.id AND s.sort_order IS NULL
+  `;
   migrated = true;
 }

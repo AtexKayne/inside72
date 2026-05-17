@@ -86,6 +86,7 @@ async function ensureSchema() {
     )
   `;
   await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
+  await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
 }
 
 function newsImagesJson(item) {
@@ -163,7 +164,8 @@ async function upsertPhotos(items) {
 }
 
 async function upsertStories(items) {
-  for (const item of items) {
+  for (let index = 0; index < items.length; index += 1) {
+    const item = items[index];
     await db
       .insert(schema.stories)
       .values({
@@ -171,6 +173,7 @@ async function upsertStories(items) {
         title: item.title,
         videoUrl: item.videoUrl,
         vkId: item.vkId || null,
+        sortOrder: item.sortOrder ?? index,
         createdAt: new Date(item.createdAt),
       })
       .onConflictDoUpdate({
@@ -179,6 +182,7 @@ async function upsertStories(items) {
           title: item.title,
           videoUrl: item.videoUrl,
           vkId: item.vkId || null,
+          sortOrder: item.sortOrder ?? index,
         },
       });
   }

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const news = pgTable("news", {
   id: text("id").primaryKey(),
@@ -31,6 +31,7 @@ export const stories = pgTable("stories", {
   title: text("title").notNull(),
   videoUrl: text("video_url").notNull(),
   vkId: text("vk_id"),
+  sortOrder: integer("sort_order"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 

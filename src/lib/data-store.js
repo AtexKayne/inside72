@@ -69,3 +69,11 @@ export async function addStory(fields) {
 export async function deleteStory(id) {
   return store().deleteStory(id);
 }
+
+export async function updateStory(id, fields) {
+  return store().updateStory(id, fields);
+}
+
+export async function reorderStories(orderedIds) {
+  return store().reorderStories(orderedIds);
+}

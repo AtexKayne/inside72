@@ -1,9 +1,10 @@
 import fs from "fs/promises";
 import path from "path";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { deleteBlobStoryVideo } from "@/lib/blob-story";
 import { ensureDbSchema, getDb } from "@/lib/db";
 import * as tables from "@/lib/db/schema";
+import { sortStoriesItems } from "@/lib/story-order";
 
 export const DEFAULT_ALBUM_ID = "alb-default";
 
@@ -67,6 +68,7 @@ function mapStory(row) {
     title: row.title,
     videoUrl: row.videoUrl,
     createdAt: toIso(row.createdAt),
+    ...(row.sortOrder != null ? { sortOrder: row.sortOrder } : {}),
     ...(row.vkId ? { vkId: row.vkId } : {}),
   };
 }
@@ -199,20 +201,100 @@ export async function deletePhoto(id) {
 }
 
 export async function getStories() {
-  const rows = await (await db()).select().from(tables.stories).orderBy(desc(tables.stories.createdAt));
-  return rows.map(mapStory);
+  const rows = await (await db())
+    .select()
+    .from(tables.stories)
+    .orderBy(asc(tables.stories.sortOrder), desc(tables.stories.createdAt));
+  return sortStoriesItems(rows.map(mapStory));
 }
 
 export async function addStory({ id, title, videoUrl, createdAt, vkId }) {
+  const database = await db();
+  const existing = await database
+    .select({ id: tables.stories.id, sortOrder: tables.stories.sortOrder })
+    .from(tables.stories);
+
+  for (const row of existing) {
+    await database
+      .update(tables.stories)
+      .set({ sortOrder: (row.sortOrder ?? 0) + 1 })
+      .where(eq(tables.stories.id, row.id));
+  }
+
   const story = {
     id: id || `s-${Date.now()}`,
     title: String(title ?? "").trim() || "Сторис",
     videoUrl: String(videoUrl ?? "").trim(),
     vkId: vkId || null,
+    sortOrder: 0,
     createdAt: new Date(createdAt || Date.now()),
   };
-  await (await db()).insert(tables.stories).values(story);
+  await database.insert(tables.stories).values(story);
   return mapStory(story);
+}
+
+export async function reorderStories(orderedIds) {
+  const ids = orderedIds.map((id) => String(id ?? "").trim()).filter(Boolean);
+  if (ids.length === 0) {
+    throw new Error("EMPTY_ORDER");
+  }
+
+  const database = await db();
+  const rows = await database.select({ id: tables.stories.id }).from(tables.stories);
+  if (ids.length !== rows.length) {
+    throw new Error("ORDER_MISMATCH");
+  }
+
+  const known = new Set(rows.map((r) => r.id));
+  for (const id of ids) {
+    if (!known.has(id)) {
+      throw new Error("STORY_NOT_FOUND");
+    }
+  }
+
+  for (let index = 0; index < ids.length; index += 1) {
+    await database
+      .update(tables.stories)
+      .set({ sortOrder: index })
+      .where(eq(tables.stories.id, ids[index]));
+  }
+
+  return getStories();
+}
+
+export async function updateStory(id, { title, videoUrl }) {
+  const storyId = String(id ?? "").trim();
+  if (!storyId) return null;
+
+  const database = await db();
+  const [existing] = await database
+    .select()
+    .from(tables.stories)
+    .where(eq(tables.stories.id, storyId));
+  if (!existing) return null;
+
+  const prevUrl = existing.videoUrl;
+  const nextUrl = videoUrl != null ? String(videoUrl).trim() : prevUrl;
+  const patch = {
+    title: title != null ? String(title).trim() || "Сторис" : existing.title,
+    videoUrl: nextUrl,
+  };
+
+  await database.update(tables.stories).set(patch).where(eq(tables.stories.id, storyId));
+
+  if (nextUrl !== prevUrl) {
+    await deleteBlobStoryVideo(prevUrl);
+    if (prevUrl?.startsWith("/uploads/stories/")) {
+      const absPath = path.join(process.cwd(), "public", prevUrl.replace(/^\//, ""));
+      try {
+        await fs.unlink(absPath);
+      } catch {
+        /* file may already be missing */
+      }
+    }
+  }
+
+  return mapStory({ ...existing, ...patch });
 }
 
 export async function deleteStory(id) {

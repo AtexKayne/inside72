@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { deleteBlobStoryVideo } from "@/lib/blob-story";
+import { sortStoriesItems } from "@/lib/story-order";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -172,7 +173,7 @@ export async function deletePhoto(id) {
 
 export async function getStories() {
   const data = await readJson("stories.json", { items: [] });
-  return sortByCreatedAtDesc(data.items);
+  return sortStoriesItems(data.items);
 }
 
 export async function addStory({ id, title, videoUrl, createdAt, vkId }) {
@@ -182,13 +183,78 @@ export async function addStory({ id, title, videoUrl, createdAt, vkId }) {
     title: String(title ?? "").trim() || "Сторис",
     videoUrl: String(videoUrl ?? "").trim(),
     createdAt: createdAt || new Date().toISOString(),
+    sortOrder: 0,
   };
   if (vkId) {
     story.vkId = vkId;
   }
+  data.items = data.items.map((item) => ({
+    ...item,
+    sortOrder: (item.sortOrder ?? 0) + 1,
+  }));
   data.items.unshift(story);
   await writeJson("stories.json", data);
   return story;
+}
+
+export async function reorderStories(orderedIds) {
+  const ids = orderedIds.map((id) => String(id ?? "").trim()).filter(Boolean);
+  if (ids.length === 0) {
+    throw new Error("EMPTY_ORDER");
+  }
+
+  const data = await readJson("stories.json", { items: [] });
+  if (ids.length !== data.items.length) {
+    throw new Error("ORDER_MISMATCH");
+  }
+
+  const byId = new Map(data.items.map((item) => [item.id, item]));
+  for (const id of ids) {
+    if (!byId.has(id)) {
+      throw new Error("STORY_NOT_FOUND");
+    }
+  }
+
+  data.items = ids.map((id, index) => ({
+    ...byId.get(id),
+    sortOrder: index,
+  }));
+  await writeJson("stories.json", data);
+  return sortStoriesItems(data.items);
+}
+
+export async function updateStory(id, { title, videoUrl }) {
+  const storyId = String(id ?? "").trim();
+  if (!storyId) return null;
+
+  const data = await readJson("stories.json", { items: [] });
+  const idx = data.items.findIndex((s) => s.id === storyId);
+  if (idx === -1) return null;
+
+  const item = data.items[idx];
+  const prevUrl = item.videoUrl;
+  const nextUrl = videoUrl != null ? String(videoUrl).trim() : prevUrl;
+  const updated = {
+    ...item,
+    title: title != null ? String(title).trim() || "Сторис" : item.title,
+    videoUrl: nextUrl,
+  };
+  data.items[idx] = updated;
+  await writeJson("stories.json", data);
+
+  if (nextUrl !== prevUrl) {
+    await deleteBlobStoryVideo(prevUrl);
+    if (prevUrl?.startsWith("/uploads/stories/")) {
+      const absPath = path.join(process.cwd(), "public", prevUrl.replace(/^\//, ""));
+      try {
+        await fs.unlink(absPath);
+      } catch {
+        /* file may already be missing */
+      }
+    }
+  }
+
+  return updated;
 }
 
 export async function deleteStory(id) {
