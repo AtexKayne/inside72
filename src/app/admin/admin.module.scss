@@ -10,9 +10,34 @@
   margin-inline: auto;
 }
 
+.topBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
 .title {
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
+}
+
+.siteNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  font-size: 0.85rem;
+
+  a {
+    color: #a3a3a3;
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: #fafafa;
+    }
+  }
 }
 
 .lead {

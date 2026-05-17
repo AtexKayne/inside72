@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { isAdminRequest } from "@/lib/admin-session";
 import { addNews, deleteNews, getNews, updateNews } from "@/lib/data-store";
+import { isPhotoUrlLike, normalizePhotoUrl } from "@/lib/photo-url-rows";
+
+function parseNewsImages(body) {
+  const url = normalizePhotoUrl(body.imageUrl);
+  if (!url) return { images: [] };
+  if (!isPhotoUrlLike(url)) {
+    return { error: "Укажите корректную ссылку на фото (http или https)" };
+  }
+  return { images: [url] };
+}
 
 function revalidateNews() {
   try {
@@ -28,12 +38,21 @@ export async function POST(request) {
   const title = String(body.title ?? "").trim();
   const excerpt = String(body.excerpt ?? "").trim();
   const bodyText = String(body.body ?? "").trim();
+  const parsedImages = parseNewsImages(body);
+  if (parsedImages.error) {
+    return NextResponse.json({ error: parsedImages.error }, { status: 400 });
+  }
 
   if (!title || !excerpt || !bodyText) {
     return NextResponse.json({ error: "Заполните заголовок, краткое описание и текст" }, { status: 400 });
   }
 
-  const item = await addNews({ title, excerpt, body: bodyText });
+  const item = await addNews({
+    title,
+    excerpt,
+    body: bodyText,
+    ...(parsedImages.images.length ? { images: parsedImages.images } : {}),
+  });
   revalidateNews();
   return NextResponse.json({ item });
 }
@@ -48,6 +67,10 @@ export async function PATCH(request) {
   const title = String(body.title ?? "").trim();
   const excerpt = String(body.excerpt ?? "").trim();
   const bodyText = String(body.body ?? "").trim();
+  const parsedImages = parseNewsImages(body);
+  if (parsedImages.error) {
+    return NextResponse.json({ error: parsedImages.error }, { status: 400 });
+  }
 
   if (!id) {
     return NextResponse.json({ error: "Укажите id новости" }, { status: 400 });
@@ -56,7 +79,12 @@ export async function PATCH(request) {
     return NextResponse.json({ error: "Заполните заголовок, краткое описание и текст" }, { status: 400 });
   }
 
-  const item = await updateNews(id, { title, excerpt, body: bodyText });
+  const item = await updateNews(id, {
+    title,
+    excerpt,
+    body: bodyText,
+    images: parsedImages.images,
+  });
   if (!item) {
     return NextResponse.json({ error: "Новость не найдена" }, { status: 404 });
   }

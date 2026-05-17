@@ -8,6 +8,7 @@ import {
   finalizePhotoUrlRows,
   parsePastedPhotoUrls,
 } from "@/lib/photo-url-rows";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import styles from "./admin.module.scss";
@@ -21,6 +22,7 @@ export default function AdminHomePage() {
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [body, setBody] = useState("");
+  const [newsImageUrl, setNewsImageUrl] = useState("");
   const [albumTitle, setAlbumTitle] = useState("");
   const [photoUrlRows, setPhotoUrlRows] = useState(() => [createPhotoUrlRow("")]);
   const [photoSaving, setPhotoSaving] = useState(false);
@@ -86,6 +88,7 @@ export default function AdminHomePage() {
     setTitle("");
     setExcerpt("");
     setBody("");
+    setNewsImageUrl("");
   }
 
   function startEditNews(item) {
@@ -94,6 +97,7 @@ export default function AdminHomePage() {
     setTitle(item.title);
     setExcerpt(item.excerpt);
     setBody(item.body);
+    setNewsImageUrl(item.images?.[0] ?? "");
     setMsg(null);
   }
 
@@ -135,7 +139,7 @@ export default function AdminHomePage() {
   async function saveNews(e) {
     e.preventDefault();
     setMsg(null);
-    const payload = { title, excerpt, body };
+    const payload = { title, excerpt, body, imageUrl: newsImageUrl };
     const res = await fetch("/api/admin/news", {
       method: editingNewsId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -606,23 +610,26 @@ export default function AdminHomePage() {
 
   return (
     <div className={styles.inner}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <h1 className={styles.title} style={{ margin: 0 }}>
-          Админка
-        </h1>
+      <div className={styles.topBar}>
         <div>
-          <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => logout()}>
-            Выйти
-          </button>
+          <h1 className={styles.title}>Админка</h1>
+          <nav className={styles.siteNav} aria-label="Переходы на сайт">
+            <Link href="/">На главную</Link>
+            {activeTab === "news" ? (
+              <Link href="/news" target="_blank" rel="noopener noreferrer">
+                Раздел «Новости»
+              </Link>
+            ) : null}
+            {activeTab === "photos" ? (
+              <Link href="/gallery" target="_blank" rel="noopener noreferrer">
+                Раздел «Галерея»
+              </Link>
+            ) : null}
+          </nav>
         </div>
+        <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => logout()}>
+          Выйти
+        </button>
       </div>
       {msg ? <p className={styles.muted}>{msg}</p> : null}
 
@@ -742,6 +749,17 @@ export default function AdminHomePage() {
           <div className={styles.field}>
             <label htmlFor="n-excerpt">Кратко (для списка и SEO)</label>
             <input id="n-excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} required />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="n-image">Ссылка на фотографию</label>
+            <input
+              id="n-image"
+              type="url"
+              inputMode="url"
+              value={newsImageUrl}
+              onChange={(e) => setNewsImageUrl(e.target.value)}
+              placeholder="https://…"
+            />
           </div>
           <div className={styles.field}>
             <label htmlFor="n-body">Текст</label>

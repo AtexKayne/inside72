@@ -100,7 +100,7 @@ export async function addNews(item) {
   return mapNews(news);
 }
 
-export async function updateNews(id, { title, excerpt, body }) {
+export async function updateNews(id, { title, excerpt, body, images }) {
   const newsId = String(id ?? "").trim();
   if (!newsId) return null;
 
@@ -114,6 +114,12 @@ export async function updateNews(id, { title, excerpt, body }) {
     body: String(body ?? existing.body).trim(),
     updatedAt: new Date(),
   };
+  if (images !== undefined) {
+    const urls = Array.isArray(images)
+      ? images.filter((u) => typeof u === "string" && u.trim()).map((u) => u.trim())
+      : [];
+    updated.images = urls.length ? JSON.stringify(urls) : null;
+  }
   await database.update(tables.news).set(updated).where(eq(tables.news.id, newsId));
 
   return mapNews({ ...existing, ...updated });

@@ -51,7 +51,7 @@ export async function addNews(item) {
   return news;
 }
 
-export async function updateNews(id, { title, excerpt, body }) {
+export async function updateNews(id, { title, excerpt, body, images }) {
   const newsId = String(id ?? "").trim();
   if (!newsId) return null;
 
@@ -67,6 +67,16 @@ export async function updateNews(id, { title, excerpt, body }) {
     body: String(body ?? item.body).trim(),
     updatedAt: new Date().toISOString(),
   };
+  if (images !== undefined) {
+    const urls = Array.isArray(images)
+      ? images.filter((u) => typeof u === "string" && u.trim()).map((u) => u.trim())
+      : [];
+    if (urls.length) {
+      updated.images = urls;
+    } else {
+      delete updated.images;
+    }
+  }
   data.items[idx] = updated;
   await writeJson("news.json", data);
   return updated;
