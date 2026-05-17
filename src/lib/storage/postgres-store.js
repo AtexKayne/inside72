@@ -16,13 +16,27 @@ function toIso(date) {
   return date instanceof Date ? date.toISOString() : new Date(date).toISOString();
 }
 
+function parseNewsImages(raw) {
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return undefined;
+    const urls = parsed.filter((u) => typeof u === "string" && u.trim());
+    return urls.length ? urls : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function mapNews(row) {
+  const images = parseNewsImages(row.images);
   return {
     id: row.id,
     title: row.title,
     excerpt: row.excerpt,
     body: row.body,
     createdAt: toIso(row.createdAt),
+    ...(images ? { images } : {}),
     ...(row.vkId ? { vkId: row.vkId } : {}),
     ...(row.updatedAt ? { updatedAt: toIso(row.updatedAt) } : {}),
   };
@@ -63,11 +77,16 @@ export async function getNews() {
 }
 
 export async function addNews(item) {
+  const images =
+    Array.isArray(item.images) && item.images.length
+      ? JSON.stringify(item.images.filter((u) => typeof u === "string" && u.trim()))
+      : null;
   const news = {
     id: `n-${Date.now()}`,
     title: item.title,
     excerpt: item.excerpt,
     body: item.body,
+    images,
     vkId: item.vkId || null,
     createdAt: new Date(item.createdAt || Date.now()),
     updatedAt: null,

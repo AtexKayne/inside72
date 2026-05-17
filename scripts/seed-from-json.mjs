@@ -81,10 +81,17 @@ async function ensureSchema() {
       vk_id TEXT PRIMARY KEY
     )
   `;
+  await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
+}
+
+function newsImagesJson(item) {
+  if (!Array.isArray(item.images) || !item.images.length) return null;
+  return JSON.stringify(item.images.filter((u) => typeof u === "string" && u.trim()));
 }
 
 async function upsertNews(items) {
   for (const item of items) {
+    const images = newsImagesJson(item);
     await db
       .insert(schema.news)
       .values({
@@ -92,6 +99,7 @@ async function upsertNews(items) {
         title: item.title,
         excerpt: item.excerpt,
         body: item.body,
+        images,
         vkId: item.vkId || null,
         createdAt: new Date(item.createdAt),
         updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
@@ -102,6 +110,7 @@ async function upsertNews(items) {
           title: item.title,
           excerpt: item.excerpt,
           body: item.body,
+          images,
           vkId: item.vkId || null,
           updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
         },

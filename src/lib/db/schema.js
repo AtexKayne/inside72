@@ -5,6 +5,7 @@ export const news = pgTable("news", {
   title: text("title").notNull(),
   excerpt: text("excerpt").notNull(),
   body: text("body").notNull(),
+  images: text("images"),
   vkId: text("vk_id"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }),

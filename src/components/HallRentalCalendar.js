@@ -21,11 +21,12 @@ import {
   startOfWeekMonday,
   ymdInTz,
 } from "@/lib/hall-calendar";
-import { DEFAULT_HALL_ID, getHallById, HALLS } from "@/lib/halls";
+import { DEFAULT_HALL_ID, getHallById, HALLS, isHallComingSoon } from "@/lib/halls";
 import { HallBookingForm } from "@/components/HallBookingForm";
 import styles from "./hall-rental-calendar.module.scss";
 
 const SLOTS = getHallSlots();
+const GESTURE_THRESHOLD_PX = 8;
 
 function isSameWeek(a, b) {
   return ymdInTz(startOfWeekMonday(a)) === ymdInTz(startOfWeekMonday(b));
@@ -50,6 +51,8 @@ export function HallRentalCalendar({ compact = false }) {
   const [dragSelect, setDragSelect] = useState(null);
   const [selectionError, setSelectionError] = useState(null);
   const dragSelectRef = useRef(null);
+  const pendingPointerRef = useRef(null);
+  const eventsRef = useRef(events);
 
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
   const weekLabel = useMemo(() => formatWeekRange(weekStart), [weekStart]);
@@ -95,6 +98,10 @@ export function HallRentalCalendar({ compact = false }) {
     dragSelectRef.current = dragSelect;
   }, [dragSelect]);
 
+  useEffect(() => {
+    eventsRef.current = events;
+  }, [events]);
+
   const commitRange = useCallback(
     (ymd, slotA, slotB) => {
       const range = slotRangeWithMinRental(ymd, slotA, slotB, events);
@@ -111,26 +118,6 @@ export function HallRentalCalendar({ compact = false }) {
     },
     [events],
   );
-
-  const finishDrag = useCallback(() => {
-    const sel = dragSelectRef.current;
-    if (!sel) return;
-    commitRange(sel.ymd, sel.anchorSlot, sel.focusSlot);
-    setDragSelect(null);
-  }, [commitRange]);
-
-  useEffect(() => {
-    if (!dragSelect) return;
-    function onPointerUp() {
-      finishDrag();
-    }
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerUp);
-    return () => {
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointercancel", onPointerUp);
-    };
-  }, [dragSelect, finishDrag]);
 
   useEffect(() => {
     if (!selectionError) return;
@@ -164,23 +151,83 @@ export function HallRentalCalendar({ compact = false }) {
 
   function handleDayPointerDown(e, ymd) {
     if (loading || e.button !== 0) return;
-    const slotIndex = slotAtPointer(e.currentTarget, e.clientY);
+    const el = e.currentTarget;
+    const slotIndex = slotAtPointer(el, e.clientY);
     if (slotIndex == null || !isSlotFree(ymd, slotIndex)) return;
 
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setBookingSlot(null);
-    setSelectionError(null);
-    setDragSelect({ ymd, anchorSlot: slotIndex, focusSlot: slotIndex });
-  }
+    const state = {
+      ymd,
+      anchorSlot: slotIndex,
+      startX: e.clientX,
+      startY: e.clientY,
+      pointerId: e.pointerId,
+      el,
+      mode: null,
+    };
+    pendingPointerRef.current = state;
 
-  function handleDayPointerMove(e, ymd) {
-    const sel = dragSelectRef.current;
-    if (!sel || sel.ymd !== ymd) return;
-    const slotIndex = slotAtPointer(e.currentTarget, e.clientY);
-    if (slotIndex == null || sel.focusSlot === slotIndex) return;
-    if (!isSlotRangeFree(events, ymd, sel.anchorSlot, slotIndex)) return;
-    setDragSelect({ ...sel, focusSlot: slotIndex });
+    function cleanup() {
+      pendingPointerRef.current = null;
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      if (el.hasPointerCapture(state.pointerId)) {
+        try {
+          el.releasePointerCapture(state.pointerId);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
+    function onPointerMove(ev) {
+      if (ev.pointerId !== state.pointerId) return;
+      const dx = Math.abs(ev.clientX - state.startX);
+      const dy = Math.abs(ev.clientY - state.startY);
+
+      if (!state.mode) {
+        if (dx < GESTURE_THRESHOLD_PX && dy < GESTURE_THRESHOLD_PX) return;
+        if (dx > dy) {
+          state.mode = "scroll";
+          cleanup();
+          return;
+        }
+        state.mode = "select";
+        ev.preventDefault();
+        el.setPointerCapture(ev.pointerId);
+        setBookingSlot(null);
+        setSelectionError(null);
+        setDragSelect({ ymd: state.ymd, anchorSlot: state.anchorSlot, focusSlot: state.anchorSlot });
+      }
+
+      if (state.mode !== "select") return;
+      ev.preventDefault();
+      const nextSlot = slotAtPointer(el, ev.clientY);
+      if (nextSlot == null) return;
+      const sel = dragSelectRef.current;
+      if (!sel || sel.ymd !== state.ymd) return;
+      if (sel.focusSlot === nextSlot) return;
+      if (!isSlotRangeFree(eventsRef.current, state.ymd, sel.anchorSlot, nextSlot)) return;
+      setDragSelect({ ...sel, focusSlot: nextSlot });
+    }
+
+    function onPointerUp(ev) {
+      if (ev.pointerId !== state.pointerId) return;
+      if (state.mode === "select") {
+        const sel = dragSelectRef.current;
+        if (sel) {
+          commitRange(sel.ymd, sel.anchorSlot, sel.focusSlot);
+        }
+        setDragSelect(null);
+      } else if (!state.mode) {
+        commitRange(state.ymd, state.anchorSlot, state.anchorSlot);
+      }
+      cleanup();
+    }
+
+    window.addEventListener("pointermove", onPointerMove, { passive: false });
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
   }
 
   function getSelectionPreview(ymd) {
@@ -198,25 +245,33 @@ export function HallRentalCalendar({ compact = false }) {
     <div className={`${styles.wrap} ${compact ? styles.wrapCompact : ""}`}>
       <h2 className={styles.heading}>Календарь записи</h2>
 
-      <div className={styles.hallTabs} role="tablist" aria-label="Выбор зала">
-        {HALLS.map((hall) => (
-          <button
-            key={hall.id}
-            type="button"
-            role="tab"
-            aria-selected={activeHallId === hall.id}
-            className={`${styles.hallTab} ${activeHallId === hall.id ? styles.hallTabActive : ""}`}
-            onClick={() => switchHall(hall.id)}
-          >
-            {hall.label}
-          </button>
-        ))}
-      </div>
-
       <p className={styles.hint}>
         Выделите интервал от 1 часа (шаг 30 минут): зажмите и протяните в одном дне или кликните слот — подставится
         соседний свободный получасовой интервал. Занято — «{BUSY_LABEL}».
       </p>
+
+      <div className={styles.hallTabs} role="tablist" aria-label="Выбор зала">
+        {HALLS.map((hall) => {
+          const comingSoon = isHallComingSoon(hall);
+          return (
+            <button
+              key={hall.id}
+              type="button"
+              role="tab"
+              disabled={comingSoon}
+              aria-selected={activeHallId === hall.id}
+              className={`${styles.hallTab} ${activeHallId === hall.id ? styles.hallTabActive : ""}`}
+              onClick={() => switchHall(hall.id)}
+              title={comingSoon ? "Запись во 2-й зал — с 1 июня" : undefined}
+            >
+              <span className={styles.hallTabLabel}>{hall.label}</span>
+              {comingSoon ? (
+                <span className={styles.hallTabBadge}>с 1 июня</span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
 
       <div className={styles.legend}>
         <span className={styles.legendItem}>
@@ -276,6 +331,8 @@ export function HallRentalCalendar({ compact = false }) {
         </p>
       ) : null}
 
+      <p className={styles.calendarScrollHint}>Смахните календарь влево‑вправо, чтобы увидеть все дни</p>
+
       <div className={styles.calendarScroll}>
         <div
           className={styles.calendar}
@@ -322,7 +379,6 @@ export function HallRentalCalendar({ compact = false }) {
                   key={ymd}
                   className={styles.dayColumn}
                   onPointerDown={(e) => handleDayPointerDown(e, ymd)}
-                  onPointerMove={(e) => handleDayPointerMove(e, ymd)}
                 >
                   <div className={styles.dayGrid}>
                     {SLOTS.map((slot) => {

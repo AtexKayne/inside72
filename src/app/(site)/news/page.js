@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NewsImages } from "@/components/NewsImages";
 import { getNews } from "@/lib/data-store";
 import pages from "@/styles/pages.module.scss";
 
@@ -33,6 +34,7 @@ export default async function NewsPage() {
               <time className={pages.newsDate} dateTime={n.createdAt}>
                 {formatDate(n.createdAt)}
               </time>
+              <NewsImages images={n.images?.slice(0, 1)} linkTo={`/news/${n.id}`} />
               <h2 className={pages.newsTitle}>
                 <Link href={`/news/${n.id}`}>{n.title}</Link>
               </h2>

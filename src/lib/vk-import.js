@@ -36,6 +36,23 @@ function postHasOnlyMedia(post) {
   return atts.length > 0;
 }
 
+/** Прямые URL фотографий из вложений поста (порядок как в VK). */
+function collectPhotoUrlsFromPost(post) {
+  const urls = [];
+  const seen = new Set();
+
+  for (const att of post.attachments ?? []) {
+    if (att.type !== "photo" || !att.photo) continue;
+
+    const src = pickLargestPhotoUrl(att.photo.sizes);
+    if (!src || seen.has(src)) continue;
+    seen.add(src);
+    urls.push(src);
+  }
+
+  return urls;
+}
+
 async function fetchWallPosts(offset, count) {
   const ownerId = await getGroupOwnerId();
   const wall = await vkCall("wall.get", {
@@ -165,12 +182,15 @@ export async function fetchVkNewsPreview(offset = 0, count = 20) {
     if (!text) continue;
 
     const vkId = wallPostVkId(ownerId, post.id);
+    const images = collectPhotoUrlsFromPost(post);
     items.push({
       vkId,
       type: "news",
       title: firstLine(text),
       excerpt: excerptFrom(text),
       body: text,
+      images: images.length ? images : undefined,
+      previewUrl: images[0] ?? undefined,
       date: post.date ? new Date(post.date * 1000).toISOString() : null,
       imported: imported.has(vkId),
     });

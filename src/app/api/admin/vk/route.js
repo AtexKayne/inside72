@@ -133,11 +133,20 @@ export async function POST(request) {
           errors.push({ vkId, error: "Неполные данные новости" });
           continue;
         }
+        const images = (Array.isArray(raw.images) ? raw.images : [])
+          .map((u) => String(u ?? "").trim())
+          .filter(Boolean);
+        const allowedImages = images.filter((url) => isAllowedVkMediaUrl(url));
+        if (images.length > 0 && allowedImages.length === 0) {
+          errors.push({ vkId, error: "Недопустимые URL изображений" });
+          continue;
+        }
         await addNews({
           title,
           excerpt,
           body: bodyText,
           vkId,
+          images: allowedImages.length ? allowedImages : undefined,
           createdAt: raw.date ? String(raw.date) : undefined,
         });
         try {

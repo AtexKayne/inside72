@@ -56,5 +56,6 @@ export async function ensureDbSchema() {
       vk_id TEXT PRIMARY KEY
     )
   `;
+  await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
   migrated = true;
 }

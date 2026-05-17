@@ -146,6 +146,26 @@
   padding-top: 0;
 }
 
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: $color-muted;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: $color-text;
+  }
+}
+
+.backLinkIcon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
 .newsDate {
   font-size: 0.8rem;
   color: $color-muted;
@@ -161,6 +181,31 @@
 .newsExcerpt {
   margin: 0;
   color: $color-muted;
+}
+
+.newsMedia {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem 0 0;
+  max-width: min(100%, 36rem);
+
+  img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid $color-border;
+  }
+}
+
+.newsMediaLink {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+    opacity: 0.92;
+  }
 }
 
 .gallerySwiper {

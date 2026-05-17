@@ -41,6 +41,9 @@ export async function addNews(item) {
   if (item.vkId) {
     news.vkId = item.vkId;
   }
+  if (Array.isArray(item.images) && item.images.length) {
+    news.images = item.images.filter((u) => typeof u === "string" && u.trim());
+  }
   data.items.unshift(news);
   await writeJson("news.json", data);
   return news;

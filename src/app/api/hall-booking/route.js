@@ -3,6 +3,11 @@ import { formatBookingSlot, HALL_MIN_RENTAL_MINUTES } from "@/lib/hall-calendar"
 import { DEFAULT_HALL_ID, getHallById, isValidHallId } from "@/lib/halls";
 import { sendTrialEmail } from "@/lib/trial-mail";
 import { sendTrialVkNotify } from "@/lib/trial-vk";
+import {
+  captchaErrorResponse,
+  getClientIp,
+  verifyYandexSmartCaptcha,
+} from "@/lib/yandex-smartcaptcha";
 
 export async function POST(request) {
   let body;
@@ -20,6 +25,13 @@ export async function POST(request) {
   const hall = isValidHallId(hallIdRaw) ? getHallById(hallIdRaw) : getHallById(DEFAULT_HALL_ID);
   const slotStartRaw = String(body.slotStart ?? "").trim();
   const slotEndRaw = String(body.slotEnd ?? "").trim();
+  const smartToken = String(body.smartToken ?? "").trim();
+
+  const captchaResult = await verifyYandexSmartCaptcha(smartToken, getClientIp(request));
+  if (!captchaResult.ok) {
+    const { status, error } = captchaErrorResponse(captchaResult);
+    return NextResponse.json({ error }, { status });
+  }
 
   if (name.length < 2) {
     return NextResponse.json({ error: "Укажите имя" }, { status: 400 });
