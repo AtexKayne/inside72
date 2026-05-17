@@ -3,7 +3,8 @@
 $z-transition: 200;
 $duration-cover: 0.55s;
 $duration-reveal: 0.5s;
-$duration-spin: 1.35s;
+$duration-loader-spin: 1.5s;
+$circle-circumference: 228.762; // 2π × 36.4 (viewBox units)
 $line-width: 1px;
 
 .overlay {
@@ -17,6 +18,10 @@ $line-width: 1px;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
+
+  @media (min-width: 901px) {
+    --motif-size: min(88vmin, 720px);
+  }
 
   &.overlayDone {
     display: none;
@@ -33,47 +38,65 @@ $line-width: 1px;
 
 .motif {
   position: relative;
-  width: min(72vmin, 380px);
+  width: min(62vmin, 300px);
   aspect-ratio: 1;
+
+  @media (min-width: 901px) {
+    z-index: 1;
+    width: var(--motif-size);
+    overflow: visible;
+  }
 }
 
 .circleSvg {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
   transform-origin: center;
 }
 
-.circle {
+.circle,
+.arc {
   fill: none;
   stroke: $color-text;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  shape-rendering: geometricPrecision;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
   opacity: 0.92;
 }
 
+.covering .circle {
+  stroke-dasharray: $circle-circumference 0;
+  stroke-dashoffset: $circle-circumference;
+}
+
 .line {
-  position: fixed;
+  position: absolute;
+  z-index: 0;
   width: $line-width;
+  margin-left: -0.5px;
   background: $color-text;
   opacity: 0.92;
   transform: scaleY(0);
   will-change: transform;
 }
 
+// Proportions from logo viewBox (100×100): x=31 / x=70, segment lengths 72.8% / 74.6%
 .lineLeft {
   left: 31%;
   bottom: 0;
-  height: 50vh;
+  height: 72.8%;
   transform-origin: center bottom;
 }
 
 .lineRight {
   left: 70%;
   top: 0;
-  height: 50vh;
+  height: 74.6%;
   transform-origin: center top;
 }
 
@@ -92,44 +115,37 @@ $line-width: 1px;
   }
 }
 
-// —— Hold full cover while the route updates ——
+// —— Hold cover while the route updates ——
 .covered {
-  .circle {
-    stroke-dashoffset: 0;
-    opacity: 0.92;
-  }
-
   .lineLeft,
   .lineRight {
     opacity: 0.92;
-    transform: scaleY(2.15);
+    transform: scaleY(1);
   }
 }
 
-// —— Infinite spin while waiting for the new page ——
+// —— Loading: solid arc path pulses; SVG rotates around viewBox center ——
 .loading {
   .circleSvg {
-    animation: spinCircle $duration-spin linear infinite;
+    animation: loaderRotate $duration-loader-spin linear infinite;
   }
 }
 
 // —— Reveal: lines retract, circle fades ——
 .revealing {
   .circleSvg {
-    animation: spinCircle $duration-spin linear infinite;
+    animation: loaderRotate $duration-loader-spin linear infinite;
   }
 
-  .circle {
+  .arc {
     animation: fadeCircle $duration-reveal $ease-out forwards;
   }
 
   .lineLeft {
-    transform: scaleY(1);
     animation: shrinkLineLeft $duration-reveal $ease-out forwards;
   }
 
   .lineRight {
-    transform: scaleY(1);
     animation: shrinkLineRight $duration-reveal $ease-out forwards;
   }
 }
@@ -138,10 +154,7 @@ $line-width: 1px;
   animation: fadeOverlay $duration-reveal $ease-out forwards;
 }
 
-@keyframes spinCircle {
-  from {
-    transform: rotate(0deg);
-  }
+@keyframes loaderRotate {
   to {
     transform: rotate(360deg);
   }
@@ -149,7 +162,7 @@ $line-width: 1px;
 
 @keyframes drawCircle {
   0% {
-    stroke-dashoffset: 1;
+    stroke-dashoffset: $circle-circumference;
     opacity: 0;
   }
   18% {
@@ -169,7 +182,7 @@ $line-width: 1px;
     transform: scaleY(0.42);
   }
   100% {
-    transform: scaleY(2.15);
+    transform: scaleY(1);
   }
 }
 
@@ -181,13 +194,13 @@ $line-width: 1px;
     transform: scaleY(0.42);
   }
   100% {
-    transform: scaleY(2.15);
+    transform: scaleY(1);
   }
 }
 
 @keyframes shrinkLineLeft {
   0% {
-    transform: scaleY(2.15);
+    transform: scaleY(1);
     opacity: 0.92;
   }
   100% {
@@ -198,7 +211,7 @@ $line-width: 1px;
 
 @keyframes shrinkLineRight {
   0% {
-    transform: scaleY(2.15);
+    transform: scaleY(1);
     opacity: 0.92;
   }
   100% {
@@ -209,11 +222,9 @@ $line-width: 1px;
 
 @keyframes fadeCircle {
   0% {
-    stroke-dashoffset: 0;
     opacity: 0.92;
   }
   100% {
-    stroke-dashoffset: 0;
     opacity: 0;
   }
 }
@@ -242,7 +253,7 @@ $line-width: 1px;
 
   .loading .circleSvg,
   .revealing .circleSvg {
-    animation-duration: 0.01ms;
+    animation: none;
   }
 
   .revealing.overlayActive {

@@ -1,6 +1,12 @@
 "use client";
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
+import {
+  describeArc,
+  LOADER_PULSE_MS,
+  LOADER_SWEEP_MAX,
+  LOADER_SWEEP_MIN,
+} from "@/lib/page-transition-arc";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./page-transition.module.scss";
@@ -34,6 +40,7 @@ export function PageTransition() {
   const [phase, setPhase] = useState("idle");
   const pendingHref = useRef(null);
   const busy = useRef(false);
+  const arcRef = useRef(null);
 
   const startTransition = useCallback(
     (href) => {
@@ -113,7 +120,6 @@ export function PageTransition() {
     return () => window.clearTimeout(timer);
   }, [phase]);
 
-  // Unlock after the overlay is removed from the layout tree (next paint).
   useEffect(() => {
     if (phase !== "idle") return;
     let raf1 = 0;
@@ -125,6 +131,33 @@ export function PageTransition() {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "covered" && phase !== "revealing") return;
+    const arc = arcRef.current;
+    if (!arc) return;
+
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches || phase === "revealing") {
+      arc.setAttribute("d", describeArc(LOADER_SWEEP_MAX));
+      return;
+    }
+
+    let raf = 0;
+    const start = performance.now();
+
+    const tick = (now) => {
+      const t = ((now - start) % LOADER_PULSE_MS) / LOADER_PULSE_MS;
+      const pulse = Math.sin(t * Math.PI);
+      const sweep =
+        LOADER_SWEEP_MIN + (LOADER_SWEEP_MAX - LOADER_SWEEP_MIN) * pulse;
+      arc.setAttribute("d", describeArc(sweep));
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [phase]);
 
   useEffect(() => {
@@ -141,6 +174,8 @@ export function PageTransition() {
   if (pathname?.startsWith("/admin")) return null;
 
   const active = phase !== "idle";
+  const showDrawCircle = phase === "covering";
+  const showArc = phase === "covered" || phase === "revealing";
 
   return (
     <div
@@ -159,18 +194,21 @@ export function PageTransition() {
       aria-live="polite"
     >
       <div className={styles.motif}>
+        <span className={`${styles.line} ${styles.lineLeft}`} aria-hidden />
+        <span className={`${styles.line} ${styles.lineRight}`} aria-hidden />
         <svg className={styles.circleSvg} viewBox="0 0 100 100" aria-hidden>
-          <circle
-            className={styles.circle}
-            cx="50"
-            cy="50"
-            r="36.4"
-            pathLength="1"
-          />
+          {showDrawCircle && (
+            <circle className={styles.circle} cx="50" cy="50" r="36.4" />
+          )}
+          {showArc && (
+            <path
+              ref={arcRef}
+              className={styles.arc}
+              d={describeArc(LOADER_SWEEP_MAX)}
+            />
+          )}
         </svg>
       </div>
-      <span className={`${styles.line} ${styles.lineLeft}`} aria-hidden />
-      <span className={`${styles.line} ${styles.lineRight}`} aria-hidden />
     </div>
   );
 }

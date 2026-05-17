@@ -39,7 +39,7 @@ export default async function GalleryPage() {
   ).length;
 
   return (
-    <section className={pages.section}>
+    <section className={`${pages.section} ${styles.gallerySection}`}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
           <p className={pages.pageKicker}>Студия Inside</p>

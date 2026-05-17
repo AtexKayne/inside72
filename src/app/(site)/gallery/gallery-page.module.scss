@@ -1,5 +1,11 @@
 @use "../../../styles/variables" as *;
 
+.gallerySection {
+  @media (max-width: 899px) {
+    overflow-x: clip;
+  }
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
