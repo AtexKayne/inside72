@@ -4,7 +4,6 @@ $z-transition: 200;
 $duration-cover: 0.55s;
 $duration-reveal: 0.5s;
 $duration-loader-spin: 1.5s;
-$circle-circumference: 228.762; // 2π × 36.4 (viewBox units)
 $line-width: 1px;
 
 .overlay {
@@ -57,7 +56,6 @@ $line-width: 1px;
   transform-origin: center;
 }
 
-.circle,
 .arc {
   fill: none;
   stroke: $color-text;
@@ -67,11 +65,6 @@ $line-width: 1px;
   stroke-linecap: butt;
   stroke-linejoin: round;
   opacity: 0.92;
-}
-
-.covering .circle {
-  stroke-dasharray: $circle-circumference 0;
-  stroke-dashoffset: $circle-circumference;
 }
 
 .line {
@@ -100,10 +93,11 @@ $line-width: 1px;
   transform-origin: center top;
 }
 
-// —— Cover: logo assembles, lines sweep to full height ——
+// —— Cover: arc draws from top, lines sweep to full height ——
 .covering {
-  .circle {
-    animation: drawCircle $duration-cover $ease-out forwards;
+  .arc {
+    opacity: 0;
+    animation: fadeArcIn $duration-cover $ease-out forwards;
   }
 
   .lineLeft {
@@ -160,16 +154,14 @@ $line-width: 1px;
   }
 }
 
-@keyframes drawCircle {
+@keyframes fadeArcIn {
   0% {
-    stroke-dashoffset: $circle-circumference;
     opacity: 0;
   }
   18% {
     opacity: 0.92;
   }
   100% {
-    stroke-dashoffset: 0;
     opacity: 0.92;
   }
 }
@@ -244,10 +236,14 @@ $line-width: 1px;
 @media (prefers-reduced-motion: reduce) {
   .covering,
   .revealing {
-    .circle,
+    .arc,
     .lineLeft,
     .lineRight {
       animation-duration: 0.01ms;
+    }
+
+    .arc {
+      opacity: 0.92;
     }
   }
 

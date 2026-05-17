@@ -2,10 +2,11 @@
 
 import { lockScroll, unlockScroll } from "@/lib/scroll-lock";
 import {
+  COVER_SWEEP_MAX,
   describeArc,
-  LOADER_PULSE_MS,
-  LOADER_SWEEP_MAX,
-  LOADER_SWEEP_MIN,
+  easeOutCubic,
+  LOADER_CYCLE_MS,
+  loaderSweepForCycle,
 } from "@/lib/page-transition-arc";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -41,6 +42,11 @@ export function PageTransition() {
   const pendingHref = useRef(null);
   const busy = useRef(false);
   const arcRef = useRef(null);
+  const phaseRef = useRef(phase);
+
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   const startTransition = useCallback(
     (href) => {
@@ -133,31 +139,52 @@ export function PageTransition() {
     };
   }, [phase]);
 
+  // Cover: arc 0→360; covered: empty→fill loop (one rAF, no phase gap).
   useEffect(() => {
-    if (phase !== "covered" && phase !== "revealing") return;
+    if (phase !== "covering") return;
+
     const arc = arcRef.current;
     if (!arc) return;
 
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches || phase === "revealing") {
-      arc.setAttribute("d", describeArc(LOADER_SWEEP_MAX));
+    if (mq.matches) {
+      arc.setAttribute("d", describeArc(COVER_SWEEP_MAX));
       return;
     }
 
+    arc.setAttribute("d", describeArc(0));
+
     let raf = 0;
-    const start = performance.now();
+    const sessionStart = performance.now();
 
     const tick = (now) => {
-      const t = ((now - start) % LOADER_PULSE_MS) / LOADER_PULSE_MS;
-      const pulse = Math.sin(t * Math.PI);
-      const sweep =
-        LOADER_SWEEP_MIN + (LOADER_SWEEP_MAX - LOADER_SWEEP_MIN) * pulse;
-      arc.setAttribute("d", describeArc(sweep));
-      raf = requestAnimationFrame(tick);
+      const p = phaseRef.current;
+      if (p === "idle" || p === "revealing") return;
+
+      const elapsed = now - sessionStart;
+
+      if (p === "covering") {
+        const t = Math.min(elapsed / COVER_MS, 1);
+        arc.setAttribute("d", describeArc(COVER_SWEEP_MAX * easeOutCubic(t)));
+      } else if (p === "covered") {
+        const loaderElapsed = elapsed - COVER_MS;
+        const t = (loaderElapsed % LOADER_CYCLE_MS) / LOADER_CYCLE_MS;
+        arc.setAttribute("d", describeArc(loaderSweepForCycle(t)));
+      }
+
+      if (p === "covering" || p === "covered") {
+        raf = requestAnimationFrame(tick);
+      }
     };
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "revealing") return;
+    const arc = arcRef.current;
+    if (arc) arc.setAttribute("d", describeArc(COVER_SWEEP_MAX));
   }, [phase]);
 
   useEffect(() => {
@@ -174,8 +201,7 @@ export function PageTransition() {
   if (pathname?.startsWith("/admin")) return null;
 
   const active = phase !== "idle";
-  const showDrawCircle = phase === "covering";
-  const showArc = phase === "covered" || phase === "revealing";
+  const showArc = active;
 
   return (
     <div
@@ -197,15 +223,8 @@ export function PageTransition() {
         <span className={`${styles.line} ${styles.lineLeft}`} aria-hidden />
         <span className={`${styles.line} ${styles.lineRight}`} aria-hidden />
         <svg className={styles.circleSvg} viewBox="0 0 100 100" aria-hidden>
-          {showDrawCircle && (
-            <circle className={styles.circle} cx="50" cy="50" r="36.4" />
-          )}
           {showArc && (
-            <path
-              ref={arcRef}
-              className={styles.arc}
-              d={describeArc(LOADER_SWEEP_MAX)}
-            />
+            <path ref={arcRef} className={styles.arc} d={describeArc(0)} />
           )}
         </svg>
       </div>
