@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { sortPhotosItems } from "@/lib/gallery-order";
 import { GallerySwiper } from "./GallerySwiper";
 import pages from "@/styles/pages.module.scss";
 import g from "./gallery-albums.module.scss";
@@ -15,7 +16,7 @@ export function GalleryAlbums({ albums, photos }) {
     return albums
       .map((album) => ({
         ...album,
-        photos: byAlbum.get(album.id) ?? [],
+        photos: sortPhotosItems(byAlbum.get(album.id) ?? []),
       }))
       .filter((a) => a.photos.length > 0);
   }, [albums, photos]);

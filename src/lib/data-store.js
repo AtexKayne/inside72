@@ -46,6 +46,10 @@ export async function deleteAlbum(id) {
   return store().deleteAlbum(id);
 }
 
+export async function reorderAlbums(orderedIds) {
+  return store().reorderAlbums(orderedIds);
+}
+
 export async function getPhotos() {
   return store().getPhotos();
 }
@@ -56,6 +60,10 @@ export async function addPhoto(item) {
 
 export async function deletePhoto(id) {
   return store().deletePhoto(id);
+}
+
+export async function reorderPhotos(albumId, orderedIds) {
+  return store().reorderPhotos(albumId, orderedIds);
 }
 
 export async function getStories() {

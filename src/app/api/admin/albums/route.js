@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { isAdminRequest } from "@/lib/admin-session";
-import { addAlbum, deleteAlbum, getAlbums } from "@/lib/data-store";
+import { addAlbum, deleteAlbum, getAlbums, reorderAlbums } from "@/lib/data-store";
 
 function revalidateGallery() {
   try {
@@ -40,6 +40,34 @@ export async function POST(request) {
       return NextResponse.json({ error: "Укажите название альбома" }, { status: 400 });
     }
     throw e;
+  }
+}
+
+export async function PATCH(request) {
+  if (!(await isAdminRequest())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+
+  if (!Array.isArray(body.ids)) {
+    return NextResponse.json({ error: "Укажите ids — порядок альбомов" }, { status: 400 });
+  }
+
+  try {
+    const items = await reorderAlbums(body.ids);
+    revalidateGallery();
+    return NextResponse.json({ items });
+  } catch (err) {
+    const code = err instanceof Error ? err.message : "";
+    if (code === "EMPTY_ORDER") {
+      return NextResponse.json({ error: "Укажите порядок альбомов" }, { status: 400 });
+    }
+    if (code === "ORDER_MISMATCH" || code === "ALBUM_NOT_FOUND") {
+      return NextResponse.json({ error: "Некорректный список альбомов" }, { status: 400 });
+    }
+    console.error("[albums PATCH reorder]", err);
+    return NextResponse.json({ error: "Не удалось сохранить порядок" }, { status: 500 });
   }
 }
 

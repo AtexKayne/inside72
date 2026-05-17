@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { deleteBlobStoryVideo } from "@/lib/blob-story";
+import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
 import { sortStoriesItems } from "@/lib/story-order";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -86,7 +87,7 @@ export async function deleteNews(id) {
 
 export async function getAlbums() {
   const data = await readJson("albums.json", { items: [] });
-  return sortByCreatedAtDesc(data.items);
+  return sortAlbumsItems(data.items);
 }
 
 export async function getAlbumById(id) {
@@ -96,9 +97,13 @@ export async function getAlbumById(id) {
 
 export async function addAlbum({ title }) {
   const data = await readJson("albums.json", { items: [] });
+  for (const a of data.items) {
+    a.sortOrder = (a.sortOrder ?? 0) + 1;
+  }
   const album = {
     id: `alb-${Date.now()}`,
     title: String(title ?? "").trim(),
+    sortOrder: 0,
     createdAt: new Date().toISOString(),
   };
   if (!album.title) {
@@ -107,6 +112,32 @@ export async function addAlbum({ title }) {
   data.items.unshift(album);
   await writeJson("albums.json", data);
   return album;
+}
+
+export async function reorderAlbums(orderedIds) {
+  const ids = orderedIds.map((id) => String(id ?? "").trim()).filter(Boolean);
+  if (ids.length === 0) {
+    throw new Error("EMPTY_ORDER");
+  }
+
+  const data = await readJson("albums.json", { items: [] });
+  if (ids.length !== data.items.length) {
+    throw new Error("ORDER_MISMATCH");
+  }
+
+  const byId = new Map(data.items.map((a) => [a.id, a]));
+  for (const id of ids) {
+    if (!byId.has(id)) {
+      throw new Error("ALBUM_NOT_FOUND");
+    }
+  }
+
+  data.items = ids.map((id, index) => ({
+    ...byId.get(id),
+    sortOrder: index,
+  }));
+  await writeJson("albums.json", data);
+  return sortAlbumsItems(data.items);
 }
 
 export async function deleteAlbum(id) {
@@ -133,7 +164,14 @@ export async function getPhotos() {
     ...p,
     albumId: p.albumId || DEFAULT_ALBUM_ID,
   }));
-  return sortByCreatedAtDesc(items);
+  const albums = await getAlbums();
+  const byAlbum = new Map();
+  for (const photo of items) {
+    const list = byAlbum.get(photo.albumId) ?? [];
+    list.push(photo);
+    byAlbum.set(photo.albumId, list);
+  }
+  return albums.flatMap((album) => sortPhotosItems(byAlbum.get(album.id) ?? []));
 }
 
 export async function addPhoto(item) {
@@ -144,10 +182,16 @@ export async function addPhoto(item) {
   }
 
   const data = await readJson("photos.json", { items: [] });
+  for (const p of data.items) {
+    if (p.albumId === albumId) {
+      p.sortOrder = (p.sortOrder ?? 0) + 1;
+    }
+  }
   const photo = {
     ...item,
     albumId,
     id: `p-${Date.now()}`,
+    sortOrder: 0,
     createdAt: item.createdAt || new Date().toISOString(),
   };
   if (item.vkId) {
@@ -156,6 +200,46 @@ export async function addPhoto(item) {
   data.items.unshift(photo);
   await writeJson("photos.json", data);
   return photo;
+}
+
+export async function reorderPhotos(albumId, orderedIds) {
+  const aid = String(albumId ?? "").trim();
+  if (!aid) {
+    throw new Error("EMPTY_ALBUM");
+  }
+
+  const ids = orderedIds.map((id) => String(id ?? "").trim()).filter(Boolean);
+  if (ids.length === 0) {
+    throw new Error("EMPTY_ORDER");
+  }
+
+  const data = await readJson("photos.json", { items: [] });
+  const inAlbum = data.items.filter((p) => (p.albumId || DEFAULT_ALBUM_ID) === aid);
+  if (ids.length !== inAlbum.length) {
+    throw new Error("ORDER_MISMATCH");
+  }
+
+  const byId = new Map(inAlbum.map((p) => [p.id, p]));
+  for (const id of ids) {
+    if (!byId.has(id)) {
+      throw new Error("PHOTO_NOT_FOUND");
+    }
+  }
+
+  const orderMap = new Map(ids.map((id, index) => [id, index]));
+  for (const p of data.items) {
+    if ((p.albumId || DEFAULT_ALBUM_ID) === aid && orderMap.has(p.id)) {
+      p.sortOrder = orderMap.get(p.id);
+    }
+  }
+
+  await writeJson("photos.json", data);
+  return sortPhotosItems(
+    data.items.map((p) => ({
+      ...p,
+      albumId: p.albumId || DEFAULT_ALBUM_ID,
+    }))
+  );
 }
 
 export async function deletePhoto(id) {

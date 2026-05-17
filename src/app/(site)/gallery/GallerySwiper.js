@@ -25,8 +25,10 @@ export function GallerySwiper({ items }) {
           <SwiperSlide key={p.id}>
             <figure className={pages.figure}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.src} alt={p.caption} className={g.img} sizes="100vw" loading="lazy" />
-              <figcaption className={pages.caption}>{p.caption}</figcaption>
+              <img src={p.src} alt="" className={g.img} sizes="100vw" loading="lazy" />
+              {p.caption ? (
+                <figcaption className={pages.caption}>{p.caption}</figcaption>
+              ) : null}
             </figure>
           </SwiperSlide>
         ))}

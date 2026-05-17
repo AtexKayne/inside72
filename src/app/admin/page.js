@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { sortPhotosItems } from "@/lib/gallery-order";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import styles from "./admin.module.scss";
@@ -16,7 +17,6 @@ export default function AdminHomePage() {
   const [body, setBody] = useState("");
   const [albumTitle, setAlbumTitle] = useState("");
   const [src, setSrc] = useState("");
-  const [caption, setCaption] = useState("");
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
   const [storyVideoUrl, setStoryVideoUrl] = useState("");
@@ -36,15 +36,17 @@ export default function AdminHomePage() {
   const [vkHasMore, setVkHasMore] = useState(false);
   const [vkLoading, setVkLoading] = useState(false);
   const [vkImporting, setVkImporting] = useState(false);
-  const [vkAlbums, setVkAlbums] = useState([]);
-  const [vkAlbumsLoading, setVkAlbumsLoading] = useState(false);
-  const [vkActiveVkAlbumId, setVkActiveVkAlbumId] = useState(null);
-  const [vkPhotoItems, setVkPhotoItems] = useState([]);
-  const [vkPhotoSelected, setVkPhotoSelected] = useState(() => new Set());
-  const [vkPhotoOffset, setVkPhotoOffset] = useState(0);
-  const [vkPhotoHasMore, setVkPhotoHasMore] = useState(false);
-  const [vkPhotoLoading, setVkPhotoLoading] = useState(false);
-  const [vkPhotoImporting, setVkPhotoImporting] = useState(false);
+  const [dragAlbumId, setDragAlbumId] = useState(null);
+  const [albumDropTarget, setAlbumDropTarget] = useState(null);
+  const [albumOrderSaving, setAlbumOrderSaving] = useState(false);
+  const [dragPhotoId, setDragPhotoId] = useState(null);
+  const [photoDropTarget, setPhotoDropTarget] = useState(null);
+  const [photoOrderSaving, setPhotoOrderSaving] = useState(false);
+
+  const photosInAlbum = useMemo(() => {
+    if (!albumId) return [];
+    return sortPhotosItems(photos.filter((p) => p.albumId === albumId));
+  }, [photos, albumId]);
 
   async function load() {
     const [n, p, a, s] = await Promise.all([
@@ -95,15 +97,6 @@ export default function AdminHomePage() {
     setVkHasMore(false);
   }
 
-  function resetVkAlbumImport() {
-    setVkAlbums([]);
-    setVkActiveVkAlbumId(null);
-    setVkPhotoItems([]);
-    setVkPhotoSelected(new Set());
-    setVkPhotoOffset(0);
-    setVkPhotoHasMore(false);
-  }
-
   function resetStoryForm() {
     setEditingStoryId(null);
     setStoryTitle("");
@@ -128,7 +121,6 @@ export default function AdminHomePage() {
     }
     if (id !== activeTab) {
       resetVkPreview();
-      resetVkAlbumImport();
     }
     setActiveTab(id);
   }
@@ -171,8 +163,8 @@ export default function AdminHomePage() {
     await load();
   }
 
-  async function removePhoto(id, photoCaption) {
-    if (!window.confirm(`Удалить фото «${photoCaption}»?`)) return;
+  async function removePhoto(id) {
+    if (!window.confirm("Удалить это фото?")) return;
     setMsg(null);
     const res = await fetch("/api/admin/photos", {
       method: "DELETE",
@@ -237,6 +229,112 @@ export default function AdminHomePage() {
     const rect = e.currentTarget.getBoundingClientRect();
     const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
     setStoryDropTarget({ id: targetId, position });
+  }
+
+  async function saveAlbumOrder(orderedIds, previousAlbums) {
+    setAlbumOrderSaving(true);
+    try {
+      const res = await fetch("/api/admin/albums", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: orderedIds }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAlbums(previousAlbums);
+        setMsg(typeof data.error === "string" ? data.error : "Не удалось сохранить порядок альбомов");
+        return;
+      }
+      if (data.items) setAlbums(data.items);
+    } catch {
+      setAlbums(previousAlbums);
+      setMsg("Не удалось сохранить порядок альбомов");
+    } finally {
+      setAlbumOrderSaving(false);
+    }
+  }
+
+  function reorderAlbumsByDrag(fromId, toId, position = "before") {
+    if (!fromId || fromId === toId || albumOrderSaving) return;
+    const previousAlbums = albums;
+    const next = [...albums];
+    const fromIndex = next.findIndex((a) => a.id === fromId);
+    let insertIndex = next.findIndex((a) => a.id === toId);
+    if (fromIndex < 0 || insertIndex < 0) return;
+
+    if (position === "after") insertIndex += 1;
+    const [moved] = next.splice(fromIndex, 1);
+    if (fromIndex < insertIndex) insertIndex -= 1;
+    next.splice(insertIndex, 0, moved);
+    setAlbums(next);
+    setAlbumDropTarget(null);
+    void saveAlbumOrder(
+      next.map((a) => a.id),
+      previousAlbums
+    );
+  }
+
+  function handleAlbumDragOver(e, targetId) {
+    e.preventDefault();
+    if (!dragAlbumId || dragAlbumId === targetId) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setAlbumDropTarget({ id: targetId, position });
+  }
+
+  async function savePhotoOrder(targetAlbumId, orderedIds, previousPhotos) {
+    setPhotoOrderSaving(true);
+    try {
+      const res = await fetch("/api/admin/photos", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ albumId: targetAlbumId, ids: orderedIds }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPhotos(previousPhotos);
+        setMsg(typeof data.error === "string" ? data.error : "Не удалось сохранить порядок фото");
+        return;
+      }
+      if (data.items) setPhotos(data.items);
+    } catch {
+      setPhotos(previousPhotos);
+      setMsg("Не удалось сохранить порядок фото");
+    } finally {
+      setPhotoOrderSaving(false);
+    }
+  }
+
+  function reorderPhotosByDrag(fromId, toId, position = "before") {
+    if (!albumId || !fromId || fromId === toId || photoOrderSaving) return;
+    const inAlbum = photosInAlbum;
+    const previousPhotos = photos;
+    const next = [...inAlbum];
+    const fromIndex = next.findIndex((p) => p.id === fromId);
+    let insertIndex = next.findIndex((p) => p.id === toId);
+    if (fromIndex < 0 || insertIndex < 0) return;
+
+    if (position === "after") insertIndex += 1;
+    const [moved] = next.splice(fromIndex, 1);
+    if (fromIndex < insertIndex) insertIndex -= 1;
+    next.splice(insertIndex, 0, moved);
+
+    const other = photos.filter((p) => p.albumId !== albumId);
+    setPhotos([...other, ...next]);
+    setPhotoDropTarget(null);
+    void savePhotoOrder(
+      albumId,
+      next.map((p) => p.id),
+      previousPhotos
+    );
+  }
+
+  function handlePhotoDragOver(e, targetId) {
+    e.preventDefault();
+    if (!dragPhotoId || dragPhotoId === targetId) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+    setPhotoDropTarget({ id: targetId, position });
   }
 
   async function removeStory(id, storyLabel) {
@@ -304,16 +402,21 @@ export default function AdminHomePage() {
     const res = await fetch("/api/admin/photos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ src, caption, albumId }),
+      body: JSON.stringify({ src, albumId }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       setMsg(typeof data.error === "string" ? data.error : "Ошибка");
       return;
     }
+    const added = data.added ?? 1;
+    const errCount = data.errors?.length ?? 0;
     setSrc("");
-    setCaption("");
-    setMsg("Фото добавлено");
+    setMsg(
+      added === 1
+        ? "Фото добавлено"
+        : `Добавлено фото: ${added}` + (errCount ? `, пропущено: ${errCount}` : "")
+    );
     await load();
   }
 
@@ -385,131 +488,6 @@ export default function AdminHomePage() {
       await loadVkPreview(false);
     } finally {
       setVkImporting(false);
-    }
-  }
-
-  async function loadVkAlbums() {
-    setMsg(null);
-    setVkAlbumsLoading(true);
-    try {
-      const res = await fetch("/api/admin/vk?type=albums");
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setMsg(typeof data.error === "string" ? data.error : "Ошибка загрузки альбомов VK");
-        return;
-      }
-      const list = data.items ?? [];
-      setVkAlbums(list);
-      setVkPhotoItems([]);
-      setVkPhotoSelected(new Set());
-      setVkPhotoOffset(0);
-      setVkPhotoHasMore(false);
-      if (list.length === 0) {
-        setVkActiveVkAlbumId(null);
-        setMsg("В VK нет доступных альбомов");
-        return;
-      }
-      const firstId = list[0].vkAlbumId;
-      setVkActiveVkAlbumId(firstId);
-      await loadVkAlbumPhotos(false, firstId);
-    } finally {
-      setVkAlbumsLoading(false);
-    }
-  }
-
-  async function loadVkAlbumPhotos(append = false, vkAlbumId = vkActiveVkAlbumId) {
-    if (!vkAlbumId) return;
-    setMsg(null);
-    setVkPhotoLoading(true);
-    try {
-      const offset = append ? vkPhotoOffset : 0;
-      const res = await fetch(
-        `/api/admin/vk?type=album-photos&vkAlbumId=${encodeURIComponent(vkAlbumId)}&offset=${offset}&count=50`
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setMsg(typeof data.error === "string" ? data.error : "Ошибка загрузки фото из VK");
-        return;
-      }
-      const next = data.items ?? [];
-      setVkPhotoItems(append ? (prev) => [...prev, ...next] : next);
-      setVkPhotoOffset(data.nextOffset ?? offset + next.length);
-      setVkPhotoHasMore(Boolean(data.hasMore));
-      if (!append) setVkPhotoSelected(new Set());
-    } finally {
-      setVkPhotoLoading(false);
-    }
-  }
-
-  async function selectVkAlbum(vkAlbumId) {
-    if (vkAlbumId === vkActiveVkAlbumId) return;
-    setVkActiveVkAlbumId(vkAlbumId);
-    setVkPhotoItems([]);
-    setVkPhotoSelected(new Set());
-    setVkPhotoOffset(0);
-    setVkPhotoHasMore(false);
-    await loadVkAlbumPhotos(false, vkAlbumId);
-  }
-
-  function toggleVkPhotoItem(vkId, disabled) {
-    if (disabled) return;
-    setVkPhotoSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(vkId)) next.delete(vkId);
-      else next.add(vkId);
-      return next;
-    });
-  }
-
-  function selectAllVkPhotos() {
-    const ids = vkPhotoItems.filter((x) => !x.imported).map((x) => x.vkId);
-    setVkPhotoSelected(new Set(ids));
-  }
-
-  async function importVkAlbumPhotos() {
-    const selected = vkPhotoItems.filter((x) => vkPhotoSelected.has(x.vkId));
-    if (selected.length === 0) {
-      setMsg("Отметьте фото для импорта");
-      return;
-    }
-    if (!albumId) {
-      setMsg("Выберите альбом на сайте, куда добавить фото");
-      return;
-    }
-    setMsg(null);
-    setVkPhotoImporting(true);
-    try {
-      const res = await fetch("/api/admin/vk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "photos",
-          albumId,
-          items: selected.map((x) => ({
-            vkId: x.vkId,
-            src: x.src,
-            caption: x.caption,
-            date: x.date,
-          })),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setMsg(typeof data.error === "string" ? data.error : "Ошибка импорта");
-        return;
-      }
-      const errCount = data.errors?.length ?? 0;
-      setMsg(
-        `Импортировано: ${data.imported ?? 0}, пропущено (уже были): ${data.skipped ?? 0}` +
-          (errCount ? `, ошибок: ${errCount}` : "")
-      );
-      setVkPhotoSelected(new Set());
-      await load();
-      if (vkActiveVkAlbumId) {
-        await loadVkAlbumPhotos(false, vkActiveVkAlbumId);
-      }
-    } finally {
-      setVkPhotoImporting(false);
     }
   }
 
@@ -773,127 +751,6 @@ export default function AdminHomePage() {
         <h2>Фотографии</h2>
 
         <div className={styles.subsection}>
-          <h3>Импорт из VK</h3>
-          <p className={styles.vkImportHint}>
-            Альбомы сообщества{" "}
-            <a href="https://vk.com/albums-222803928" target="_blank" rel="noopener noreferrer">
-              vk.com/albums-222803928
-            </a>
-            . Нужен пользовательский токен <code>VK_USER_TOKEN</code> в .env (права{" "}
-            <code>photos</code>).
-          </p>
-          <div className={styles.field}>
-            <label htmlFor="vk-import-album">Альбом на сайте для импорта</label>
-            <select
-              id="vk-import-album"
-              value={albumId}
-              onChange={(e) => setAlbumId(e.target.value)}
-              required
-            >
-              {albums.map((alb) => (
-                <option key={alb.id} value={alb.id}>
-                  {alb.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.vkActions}>
-            <button
-              type="button"
-              className={styles.btn}
-              disabled={vkAlbumsLoading || vkPhotoLoading}
-              onClick={() => loadVkAlbums()}
-            >
-              {vkAlbumsLoading ? "Загрузка альбомов…" : "Загрузить альбомы VK"}
-            </button>
-            {vkPhotoItems.length > 0 ? (
-              <>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles.btnGhost}`}
-                  onClick={selectAllVkPhotos}
-                >
-                  Выбрать все новые
-                </button>
-                <button
-                  type="button"
-                  className={styles.btn}
-                  disabled={vkPhotoImporting || vkPhotoSelected.size === 0}
-                  onClick={() => importVkAlbumPhotos()}
-                >
-                  {vkPhotoImporting ? "Импорт…" : `Импортировать (${vkPhotoSelected.size})`}
-                </button>
-              </>
-            ) : null}
-          </div>
-          {vkAlbums.length > 0 ? (
-            <div className={styles.vkTabs} role="tablist" aria-label="Альбомы VK">
-              {vkAlbums.map((alb) => (
-                <button
-                  key={alb.vkAlbumId}
-                  type="button"
-                  role="tab"
-                  aria-selected={vkActiveVkAlbumId === alb.vkAlbumId}
-                  className={vkActiveVkAlbumId === alb.vkAlbumId ? styles.vkTabActive : styles.vkTab}
-                  onClick={() => selectVkAlbum(alb.vkAlbumId)}
-                >
-                  {alb.title}
-                  <span className={styles.muted}> ({alb.size})</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-          {vkPhotoItems.length > 0 ? (
-            <ul className={styles.vkList}>
-              {vkPhotoItems.map((item) => {
-                const checked = vkPhotoSelected.has(item.vkId);
-                const disabled = item.imported;
-                return (
-                  <li key={item.vkId} className={disabled ? styles.vkItemImported : undefined}>
-                    <label className={styles.vkItemLabel}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        disabled={disabled}
-                        onChange={() => toggleVkPhotoItem(item.vkId, disabled)}
-                      />
-                      {item.previewUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={item.previewUrl} alt="" className={styles.vkThumb} />
-                      ) : (
-                        <span className={styles.vkThumbPlaceholder} aria-hidden />
-                      )}
-                      <span className={styles.vkItemText}>
-                        <strong>
-                          {item.caption || item.vkId}
-                          {disabled ? " (уже на сайте)" : ""}
-                        </strong>
-                        {item.date ? (
-                          <span className={styles.muted}>
-                            {new Date(item.date).toLocaleString("ru-RU")}
-                          </span>
-                        ) : null}
-                      </span>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-          {vkPhotoHasMore ? (
-            <button
-              type="button"
-              className={`${styles.btn} ${styles.btnGhost}`}
-              style={{ marginTop: "1rem" }}
-              disabled={vkPhotoLoading}
-              onClick={() => loadVkAlbumPhotos(true)}
-            >
-              Загрузить ещё фото
-            </button>
-          ) : null}
-        </div>
-
-        <div className={styles.subsection}>
           <h3>Альбомы</h3>
           <form onSubmit={addAlbum}>
           <div className={styles.field}>
@@ -910,13 +767,89 @@ export default function AdminHomePage() {
             Добавить альбом
           </button>
         </form>
-        <ul className={styles.list} style={{ marginTop: "1.5rem" }}>
-          {albums.map((alb) => {
+        {albums.length > 1 ? (
+          <p className={styles.muted} style={{ marginTop: "1.25rem", marginBottom: 0 }}>
+            Схватите элемент за ручку <span className={styles.storyDragHint}>⠿</span> и перетащите.
+            Порядок альбомов совпадает с вкладками на странице «Галерея».
+            {albumOrderSaving ? " Сохранение порядка…" : ""}
+          </p>
+        ) : null}
+        <ul
+          className={`${styles.list} ${albums.length > 1 ? styles.storySortList : ""}`}
+          style={{ marginTop: albums.length > 1 ? "0.75rem" : "1.5rem" }}
+        >
+          {albums.map((alb, index) => {
             const count = photos.filter((p) => p.albumId === alb.id).length;
+            const dropBefore =
+              albumDropTarget?.id === alb.id && albumDropTarget.position === "before";
+            const dropAfter =
+              albumDropTarget?.id === alb.id && albumDropTarget.position === "after";
             return (
-              <li key={alb.id}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
-                  <div>
+              <li
+                key={alb.id}
+                className={[
+                  albums.length > 1 ? styles.storySortItem : "",
+                  dragAlbumId === alb.id ? styles.storySortItemDragging : "",
+                  dropBefore ? styles.storySortItemDropBefore : "",
+                  dropAfter ? styles.storySortItemDropAfter : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onDragOver={albums.length > 1 ? (e) => handleAlbumDragOver(e, alb.id) : undefined}
+                onDragLeave={
+                  albums.length > 1
+                    ? (e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget)) {
+                          setAlbumDropTarget((prev) => (prev?.id === alb.id ? null : prev));
+                        }
+                      }
+                    : undefined
+                }
+                onDrop={
+                  albums.length > 1
+                    ? (e) => {
+                        e.preventDefault();
+                        if (dragAlbumId) {
+                          reorderAlbumsByDrag(
+                            dragAlbumId,
+                            alb.id,
+                            albumDropTarget?.id === alb.id ? albumDropTarget.position : "before"
+                          );
+                        }
+                        setDragAlbumId(null);
+                        setAlbumDropTarget(null);
+                      }
+                    : undefined
+                }
+              >
+                <div className={styles.listRow}>
+                  {albums.length > 1 ? (
+                    <button
+                      type="button"
+                      className={styles.storyDragHandle}
+                      style={{ minHeight: 56 }}
+                      draggable={!albumOrderSaving}
+                      disabled={albumOrderSaving}
+                      aria-label={`Перетащить альбом «${alb.title}», позиция ${index + 1}`}
+                      onDragStart={(e) => {
+                        setDragAlbumId(alb.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", alb.id);
+                        const row = e.currentTarget.closest("li");
+                        if (row) e.dataTransfer.setDragImage(row, 48, 28);
+                      }}
+                      onDragEnd={() => {
+                        setDragAlbumId(null);
+                        setAlbumDropTarget(null);
+                      }}
+                    >
+                      <span className={styles.storySortIndex}>{index + 1}</span>
+                      <span className={styles.storyDragGrip} aria-hidden>
+                        ⠿
+                      </span>
+                    </button>
+                  ) : null}
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     {alb.title}
                     <div className={styles.muted}>
                       {count} фото · {new Date(alb.createdAt).toLocaleString("ru-RU")}
@@ -925,8 +858,9 @@ export default function AdminHomePage() {
                   {albums.length > 1 ? (
                     <button
                       type="button"
-                      className={`${styles.btn} ${styles.btnDanger}`}
+                      className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
                       onClick={() => removeAlbum(alb.id, alb.title)}
+                      disabled={albumOrderSaving}
                     >
                       Удалить
                     </button>
@@ -941,7 +875,7 @@ export default function AdminHomePage() {
         <div className={styles.subsection}>
           <h3>Добавить фото</h3>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Вставьте прямую ссылку на изображение (https). Файлы можно загрузить на облако и вставить URL.
+          Вставьте прямые ссылки на изображения (https): по одной на строку или через запятую.
         </p>
         <form onSubmit={addPhoto}>
           <div className={styles.field}>
@@ -960,18 +894,15 @@ export default function AdminHomePage() {
             </select>
           </div>
           <div className={styles.field}>
-            <label htmlFor="p-src">URL картинки</label>
-            <input
+            <label htmlFor="p-src">Ссылки на картинки</label>
+            <textarea
               id="p-src"
               value={src}
               onChange={(e) => setSrc(e.target.value)}
               required
-              placeholder="https://…"
+              rows={6}
+              placeholder={"https://…/photo1.jpg\nhttps://…/photo2.jpg"}
             />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="p-cap">Подпись</label>
-            <input id="p-cap" value={caption} onChange={(e) => setCaption(e.target.value)} required />
           </div>
           <button className={styles.btn} type="submit">
             Добавить фото
@@ -980,22 +911,108 @@ export default function AdminHomePage() {
         </div>
 
         <div className={styles.subsection}>
-          <h3>Все фотографии</h3>
-          <ul className={styles.list}>
-            {photos.map((x) => {
-              const alb = albums.find((a) => a.id === x.albumId);
+          <h3>Фотографии в альбоме</h3>
+          {photosInAlbum.length > 1 ? (
+            <p className={styles.muted} style={{ marginTop: 0 }}>
+              Схватите за ручку <span className={styles.storyDragHint}>⠿</span> и перетащите. Порядок
+              совпадает с каруселью на сайте. Альбом выбирается в форме выше.
+              {photoOrderSaving ? " Сохранение порядка…" : ""}
+            </p>
+          ) : null}
+          <ul className={`${styles.list} ${photosInAlbum.length > 1 ? styles.storySortList : ""}`}>
+            {photosInAlbum.map((x, index) => {
+              const dropBefore =
+                photoDropTarget?.id === x.id && photoDropTarget.position === "before";
+              const dropAfter =
+                photoDropTarget?.id === x.id && photoDropTarget.position === "after";
               return (
-                <li key={x.id}>
+                <li
+                  key={x.id}
+                  className={[
+                    photosInAlbum.length > 1 ? styles.storySortItem : "",
+                    dragPhotoId === x.id ? styles.storySortItemDragging : "",
+                    dropBefore ? styles.storySortItemDropBefore : "",
+                    dropAfter ? styles.storySortItemDropAfter : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onDragOver={
+                    photosInAlbum.length > 1 ? (e) => handlePhotoDragOver(e, x.id) : undefined
+                  }
+                  onDragLeave={
+                    photosInAlbum.length > 1
+                      ? (e) => {
+                          if (!e.currentTarget.contains(e.relatedTarget)) {
+                            setPhotoDropTarget((prev) => (prev?.id === x.id ? null : prev));
+                          }
+                        }
+                      : undefined
+                  }
+                  onDrop={
+                    photosInAlbum.length > 1
+                      ? (e) => {
+                          e.preventDefault();
+                          if (dragPhotoId) {
+                            reorderPhotosByDrag(
+                              dragPhotoId,
+                              x.id,
+                              photoDropTarget?.id === x.id ? photoDropTarget.position : "before"
+                            );
+                          }
+                          setDragPhotoId(null);
+                          setPhotoDropTarget(null);
+                        }
+                      : undefined
+                  }
+                >
                   <div className={styles.listRow}>
-                    <div>
-                      {x.caption}
-                      <div className={styles.muted}>{alb?.title ?? "—"}</div>
+                    {photosInAlbum.length > 1 ? (
+                      <button
+                        type="button"
+                        className={styles.storyDragHandle}
+                        style={{ minHeight: 56 }}
+                        draggable={!photoOrderSaving}
+                        disabled={photoOrderSaving}
+                        aria-label={`Перетащить фото, позиция ${index + 1}`}
+                        onDragStart={(e) => {
+                          setDragPhotoId(x.id);
+                          e.dataTransfer.effectAllowed = "move";
+                          e.dataTransfer.setData("text/plain", x.id);
+                          const row = e.currentTarget.closest("li");
+                          if (row) e.dataTransfer.setDragImage(row, 48, 28);
+                        }}
+                        onDragEnd={() => {
+                          setDragPhotoId(null);
+                          setPhotoDropTarget(null);
+                        }}
+                      >
+                        <span className={styles.storySortIndex}>{index + 1}</span>
+                        <span className={styles.storyDragGrip} aria-hidden>
+                          ⠿
+                        </span>
+                      </button>
+                    ) : null}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={x.src}
+                      alt=""
+                      style={{
+                        width: 56,
+                        height: 56,
+                        objectFit: "cover",
+                        borderRadius: 8,
+                        flexShrink: 0,
+                        background: "#262626",
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div className={styles.muted}>{x.src}</div>
                     </div>
                     <button
                       type="button"
                       className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
-                      onClick={() => removePhoto(x.id, x.caption)}
+                      onClick={() => removePhoto(x.id)}
+                      disabled={photoOrderSaving}
                     >
                       Удалить
                     </button>
@@ -1004,7 +1021,9 @@ export default function AdminHomePage() {
               );
             })}
           </ul>
-        </div>
+          {photosInAlbum.length === 0 ? (
+            <p className={styles.muted}>В этом альбоме пока нет фотографий.</p>
+          ) : null}        </div>
       </section>
       ) : null}
 

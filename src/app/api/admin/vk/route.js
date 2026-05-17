@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { isAdminRequest } from "@/lib/admin-session";
 import { addNews, addPhoto, addStory } from "@/lib/data-store";
-import { isGroupTokenVkError, VkApiError } from "@/lib/vk-api";
+import { isGroupTokenVkError, isInvalidAccessTokenVkError, VkApiError } from "@/lib/vk-api";
 import {
   fetchVkAlbumPhotosPreview,
   fetchVkAlbumsList,
@@ -12,13 +12,21 @@ import {
   isAllowedVkMediaUrl,
 } from "@/lib/vk-import";
 import { assertPostgresStorage, StorageNotConfiguredError } from "@/lib/storage/config";
+import { VK_ALBUM_IMPORT_ENABLED } from "@/lib/vk-config";
 import { isVkImported, markVkImported } from "@/lib/vk-import-store";
+
+const VK_ALBUM_IMPORT_DISABLED_MSG = "Импорт фото из VK временно отключён.";
 
 const TYPES = new Set(["news", "photos", "videos", "albums", "album-photos"]);
 
 const USER_TOKEN_HINT =
   "Для импорта из альбомов VK нужен пользовательский токен: vk.com/apps → ваше приложение → «Создать токен» " +
   "(права photos; для долгой работы — offline). Укажите VK_USER_TOKEN в .env и перезапустите сервер.";
+
+const INVALID_USER_TOKEN_HINT =
+  "VK_USER_TOKEN недействителен или истёк. Нельзя подставлять VK_SERVICE_KEY или ключ сообщества. " +
+  "Создайте новый пользовательский токен (vk.com/apps → приложение → права photos и offline), " +
+  "обновите переменную VK_USER_TOKEN на Vercel и сделайте Redeploy.";
 
 const GROUP_TOKEN_HINT =
   "Ключ сообщества (из «Управление → Работа с API») не подходит для импорта. " +
@@ -48,8 +56,12 @@ function vkErrorResponse(err) {
     return NextResponse.json({ error: "Группа VK не найдена" }, { status: 502 });
   }
   if (err instanceof VkApiError) {
-    if (isGroupTokenVkError(err.vkError ?? err)) {
+    const vkErr = err.vkError ?? err;
+    if (isGroupTokenVkError(vkErr)) {
       return NextResponse.json({ error: GROUP_TOKEN_HINT }, { status: 400 });
+    }
+    if (isInvalidAccessTokenVkError(vkErr)) {
+      return NextResponse.json({ error: INVALID_USER_TOKEN_HINT, code: err.code }, { status: 401 });
     }
     return NextResponse.json(
       { error: err.message || "Ошибка VK API", code: err.code },
@@ -74,6 +86,13 @@ export async function GET(request) {
       { error: "Неверный тип: news, photos, videos, albums или album-photos" },
       { status: 400 }
     );
+  }
+
+  if (
+    !VK_ALBUM_IMPORT_ENABLED &&
+    (type === "albums" || type === "album-photos" || type === "photos")
+  ) {
+    return NextResponse.json({ error: VK_ALBUM_IMPORT_DISABLED_MSG }, { status: 503 });
   }
 
   try {
@@ -126,6 +145,10 @@ export async function POST(request) {
 
   if (!TYPES.has(type)) {
     return NextResponse.json({ error: "Укажите type: news, photos или videos" }, { status: 400 });
+  }
+
+  if (!VK_ALBUM_IMPORT_ENABLED && type === "photos") {
+    return NextResponse.json({ error: VK_ALBUM_IMPORT_DISABLED_MSG }, { status: 503 });
   }
 
   if (items.length === 0) {

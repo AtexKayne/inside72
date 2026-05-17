@@ -14,6 +14,7 @@ export const news = pgTable("news", {
 export const albums = pgTable("albums", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  sortOrder: integer("sort_order"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 
@@ -23,6 +24,7 @@ export const photos = pgTable("photos", {
   src: text("src").notNull(),
   caption: text("caption").notNull(),
   vkId: text("vk_id"),
+  sortOrder: integer("sort_order"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
 });
 

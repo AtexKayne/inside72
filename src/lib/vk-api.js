@@ -17,12 +17,29 @@ export function isGroupTokenVkError(error) {
   return code === 27 || msg.includes("group auth") || msg.includes("unavailable with group");
 }
 
+/** Код 5 — неверный/истёкший access_token. */
+export function isInvalidAccessTokenVkError(error) {
+  const code = error?.error_code ?? error?.code;
+  const msg = String(error?.error_msg ?? error?.message ?? "").toLowerCase();
+  return code === 5 || msg.includes("invalid access_token") || msg.includes("user authorization failed");
+}
+
+function normalizeEnvToken(raw) {
+  if (!raw) return "";
+  let token = String(raw).trim();
+  if (
+    (token.startsWith('"') && token.endsWith('"')) ||
+    (token.startsWith("'") && token.endsWith("'"))
+  ) {
+    token = token.slice(1, -1).trim();
+  }
+  return token;
+}
+
 function getServiceAccessToken() {
-  const token = (
-    process.env.VK_SERVICE_KEY ||
-    process.env.VK_SERVICE_TOKEN ||
-    process.env.VK_ACCESS_TOKEN
-  )?.trim();
+  const token = normalizeEnvToken(
+    process.env.VK_SERVICE_KEY || process.env.VK_SERVICE_TOKEN || process.env.VK_ACCESS_TOKEN
+  );
   if (!token) {
     throw new Error("VK_TOKEN_MISSING");
   }
@@ -31,7 +48,9 @@ function getServiceAccessToken() {
 
 /** Пользовательский токен (scope photos) — для photos.getAlbums / photos.get. */
 export function getUserAccessToken() {
-  const token = (process.env.VK_USER_TOKEN || process.env.VK_USER_ACCESS_TOKEN)?.trim();
+  const token = normalizeEnvToken(
+    process.env.VK_USER_TOKEN || process.env.VK_USER_ACCESS_TOKEN
+  );
   if (!token) {
     throw new Error("VK_USER_TOKEN_MISSING");
   }

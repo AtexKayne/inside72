@@ -4,6 +4,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { deleteBlobStoryVideo } from "@/lib/blob-story";
 import { ensureDbSchema, getDb } from "@/lib/db";
 import * as tables from "@/lib/db/schema";
+import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
 import { sortStoriesItems } from "@/lib/story-order";
 
 export const DEFAULT_ALBUM_ID = "alb-default";
@@ -48,6 +49,7 @@ function mapAlbum(row) {
     id: row.id,
     title: row.title,
     createdAt: toIso(row.createdAt),
+    ...(row.sortOrder != null ? { sortOrder: row.sortOrder } : {}),
   };
 }
 
@@ -58,6 +60,7 @@ function mapPhoto(row) {
     src: row.src,
     caption: row.caption,
     createdAt: toIso(row.createdAt),
+    ...(row.sortOrder != null ? { sortOrder: row.sortOrder } : {}),
     ...(row.vkId ? { vkId: row.vkId } : {}),
   };
 }
@@ -129,8 +132,11 @@ export async function deleteNews(id) {
 }
 
 export async function getAlbums() {
-  const rows = await (await db()).select().from(tables.albums).orderBy(desc(tables.albums.createdAt));
-  return rows.map(mapAlbum);
+  const rows = await (await db())
+    .select()
+    .from(tables.albums)
+    .orderBy(asc(tables.albums.sortOrder), desc(tables.albums.createdAt));
+  return sortAlbumsItems(rows.map(mapAlbum));
 }
 
 export async function getAlbumById(id) {
@@ -139,16 +145,58 @@ export async function getAlbumById(id) {
 }
 
 export async function addAlbum({ title }) {
+  const database = await db();
+  const existing = await database
+    .select({ id: tables.albums.id, sortOrder: tables.albums.sortOrder })
+    .from(tables.albums);
+
+  for (const row of existing) {
+    await database
+      .update(tables.albums)
+      .set({ sortOrder: (row.sortOrder ?? 0) + 1 })
+      .where(eq(tables.albums.id, row.id));
+  }
+
   const album = {
     id: `alb-${Date.now()}`,
     title: String(title ?? "").trim(),
+    sortOrder: 0,
     createdAt: new Date(),
   };
   if (!album.title) {
     throw new Error("EMPTY_TITLE");
   }
-  await (await db()).insert(tables.albums).values(album);
+  await database.insert(tables.albums).values(album);
   return mapAlbum(album);
+}
+
+export async function reorderAlbums(orderedIds) {
+  const ids = orderedIds.map((id) => String(id ?? "").trim()).filter(Boolean);
+  if (ids.length === 0) {
+    throw new Error("EMPTY_ORDER");
+  }
+
+  const database = await db();
+  const rows = await database.select({ id: tables.albums.id }).from(tables.albums);
+  if (ids.length !== rows.length) {
+    throw new Error("ORDER_MISMATCH");
+  }
+
+  const known = new Set(rows.map((r) => r.id));
+  for (const id of ids) {
+    if (!known.has(id)) {
+      throw new Error("ALBUM_NOT_FOUND");
+    }
+  }
+
+  for (let index = 0; index < ids.length; index += 1) {
+    await database
+      .update(tables.albums)
+      .set({ sortOrder: index })
+      .where(eq(tables.albums.id, ids[index]));
+  }
+
+  return getAlbums();
 }
 
 export async function deleteAlbum(id) {
@@ -165,8 +213,16 @@ export async function deleteAlbum(id) {
 }
 
 export async function getPhotos() {
-  const rows = await (await db()).select().from(tables.photos).orderBy(desc(tables.photos.createdAt));
-  return rows.map(mapPhoto);
+  const albums = await getAlbums();
+  const rows = await (await db()).select().from(tables.photos);
+  const mapped = rows.map(mapPhoto);
+  const byAlbum = new Map();
+  for (const photo of mapped) {
+    const list = byAlbum.get(photo.albumId) ?? [];
+    list.push(photo);
+    byAlbum.set(photo.albumId, list);
+  }
+  return albums.flatMap((album) => sortPhotosItems(byAlbum.get(album.id) ?? []));
 }
 
 export async function addPhoto(item) {
@@ -176,16 +232,68 @@ export async function addPhoto(item) {
     throw new Error("INVALID_ALBUM");
   }
 
+  const database = await db();
+  const inAlbum = await database
+    .select({ id: tables.photos.id, sortOrder: tables.photos.sortOrder })
+    .from(tables.photos)
+    .where(eq(tables.photos.albumId, albumId));
+
+  for (const row of inAlbum) {
+    await database
+      .update(tables.photos)
+      .set({ sortOrder: (row.sortOrder ?? 0) + 1 })
+      .where(eq(tables.photos.id, row.id));
+  }
+
   const photo = {
     id: `p-${Date.now()}`,
     albumId,
     src: item.src,
-    caption: item.caption,
+    caption: item.caption ?? "",
     vkId: item.vkId || null,
+    sortOrder: 0,
     createdAt: new Date(item.createdAt || Date.now()),
   };
-  await (await db()).insert(tables.photos).values(photo);
+  await database.insert(tables.photos).values(photo);
   return mapPhoto(photo);
+}
+
+export async function reorderPhotos(albumId, orderedIds) {
+  const aid = String(albumId ?? "").trim();
+  if (!aid) {
+    throw new Error("EMPTY_ALBUM");
+  }
+
+  const ids = orderedIds.map((id) => String(id ?? "").trim()).filter(Boolean);
+  if (ids.length === 0) {
+    throw new Error("EMPTY_ORDER");
+  }
+
+  const database = await db();
+  const rows = await database
+    .select({ id: tables.photos.id })
+    .from(tables.photos)
+    .where(eq(tables.photos.albumId, aid));
+
+  if (ids.length !== rows.length) {
+    throw new Error("ORDER_MISMATCH");
+  }
+
+  const known = new Set(rows.map((r) => r.id));
+  for (const id of ids) {
+    if (!known.has(id)) {
+      throw new Error("PHOTO_NOT_FOUND");
+    }
+  }
+
+  for (let index = 0; index < ids.length; index += 1) {
+    await database
+      .update(tables.photos)
+      .set({ sortOrder: index })
+      .where(eq(tables.photos.id, ids[index]));
+  }
+
+  return getPhotos();
 }
 
 export async function deletePhoto(id) {

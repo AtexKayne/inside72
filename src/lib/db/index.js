@@ -77,6 +77,8 @@ export async function ensureDbSchema() {
   `;
   await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
   await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
+  await sql`ALTER TABLE albums ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
+  await sql`ALTER TABLE photos ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
   await sql`
     UPDATE stories AS s
     SET sort_order = sub.rn
@@ -86,6 +88,27 @@ export async function ensureDbSchema() {
       WHERE sort_order IS NULL
     ) AS sub
     WHERE s.id = sub.id AND s.sort_order IS NULL
+  `;
+  await sql`
+    UPDATE albums AS a
+    SET sort_order = sub.rn
+    FROM (
+      SELECT id, (ROW_NUMBER() OVER (ORDER BY created_at DESC) - 1)::int AS rn
+      FROM albums
+      WHERE sort_order IS NULL
+    ) AS sub
+    WHERE a.id = sub.id AND a.sort_order IS NULL
+  `;
+  await sql`
+    UPDATE photos AS p
+    SET sort_order = sub.rn
+    FROM (
+      SELECT id,
+        (ROW_NUMBER() OVER (PARTITION BY album_id ORDER BY created_at DESC) - 1)::int AS rn
+      FROM photos
+      WHERE sort_order IS NULL
+    ) AS sub
+    WHERE p.id = sub.id AND p.sort_order IS NULL
   `;
   migrated = true;
 }
