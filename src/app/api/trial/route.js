@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendTrialEmail } from "@/lib/trial-mail";
+import { sendTrialVkNotify } from "@/lib/trial-vk";
 
 export async function POST(request) {
   let body;
@@ -36,25 +37,32 @@ export async function POST(request) {
     `Комментарий: ${comment || "—"}`,
   ].join("\n");
 
-  const result = await sendTrialEmail({
-    subject: `Inside — пробное: ${name}`,
-    text,
-    replyTo: email || undefined,
-  });
+  const [emailResult, vkResult] = await Promise.all([
+    sendTrialEmail({
+      subject: `Inside — пробное: ${name}`,
+      text,
+      replyTo: email || undefined,
+    }),
+    sendTrialVkNotify(text),
+  ]);
 
-  if (result.ok) {
+  if (emailResult.ok || vkResult.ok) {
     return NextResponse.json({ ok: true });
   }
 
-  if (result.reason === "not_configured" || result.reason === "missing_from") {
+  const emailMissing =
+    emailResult.reason === "not_configured" || emailResult.reason === "missing_from";
+  const vkMissing = vkResult.reason === "not_configured";
+
+  if (emailMissing && vkMissing) {
     return NextResponse.json(
       {
         error:
-          "Отправка писем не настроена. На сервере задайте RESEND_API_KEY и RESEND_FROM (см. .env.example).",
+          "Заявки не настроены: задайте RESEND_API_KEY и/или VK_COMMUNITY_TOKEN + VK_TRIAL_NOTIFY_USER_IDS (см. .env.example).",
       },
       { status: 503 },
     );
   }
 
-  return NextResponse.json({ error: "Не удалось отправить письмо. Попробуйте позже." }, { status: 502 });
+  return NextResponse.json({ error: "Не удалось отправить заявку. Попробуйте позже." }, { status: 502 });
 }
