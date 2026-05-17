@@ -46,11 +46,11 @@ export async function POST(request) {
     return NextResponse.json({ ok: true });
   }
 
-  if (result.reason === "not_configured") {
+  if (result.reason === "not_configured" || result.reason === "missing_from") {
     return NextResponse.json(
       {
         error:
-          "Отправка писем не настроена. На Vercel задайте RESEND_API_KEY и RESEND_FROM (см. .env.example).",
+          "Отправка писем не настроена. На сервере задайте RESEND_API_KEY и RESEND_FROM (см. .env.example).",
       },
       { status: 503 },
     );

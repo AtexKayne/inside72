@@ -84,6 +84,8 @@ export async function sendTrialEmail(mail) {
     const resend = await sendViaResend(payload);
     if (resend.ok) return resend;
     console.error("trial mail resend error", resend.error);
+    // Не уходим в SMTP при ошибке конфигурации Resend (нет FROM, неверифицированный домен).
+    if (resend.reason !== "api_error") return resend;
     if (!createSmtpTransport()) return resend;
   }
 
