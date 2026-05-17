@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sortPhotosItems } from "@/lib/gallery-order";
+import {
+  createPhotoUrlRow,
+  dedupePhotoUrls,
+  finalizePhotoUrlRows,
+  parsePastedPhotoUrls,
+} from "@/lib/photo-url-rows";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import styles from "./admin.module.scss";
@@ -16,7 +22,8 @@ export default function AdminHomePage() {
   const [excerpt, setExcerpt] = useState("");
   const [body, setBody] = useState("");
   const [albumTitle, setAlbumTitle] = useState("");
-  const [src, setSrc] = useState("");
+  const [photoUrlRows, setPhotoUrlRows] = useState(() => [createPhotoUrlRow("")]);
+  const [photoSaving, setPhotoSaving] = useState(false);
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
   const [storyVideoUrl, setStoryVideoUrl] = useState("");
@@ -396,28 +403,74 @@ export default function AdminHomePage() {
     await load();
   }
 
+  function handlePhotoUrlChange(rowId, value) {
+    setPhotoUrlRows((rows) => {
+      const next = rows.map((r) => (r.id === rowId ? { ...r, value } : r));
+      return finalizePhotoUrlRows(next);
+    });
+  }
+
+  function handlePhotoUrlPaste(e, rowId) {
+    const lines = parsePastedPhotoUrls(e.clipboardData.getData("text"));
+    if (lines.length === 0) return;
+
+    e.preventDefault();
+    let focusId = null;
+
+    setPhotoUrlRows((rows) => {
+      const idx = rows.findIndex((r) => r.id === rowId);
+      if (idx < 0) return finalizePhotoUrlRows(rows);
+
+      const next = [...rows];
+      next[idx] = { ...next[idx], value: lines[0] };
+      for (let i = 1; i < lines.length; i++) {
+        next.splice(idx + i, 0, createPhotoUrlRow(lines[i]));
+      }
+
+      const result = finalizePhotoUrlRows(next);
+      focusId = result[result.length - 1]?.id ?? null;
+      return result;
+    });
+
+    if (focusId) {
+      queueMicrotask(() => document.getElementById(focusId)?.focus());
+    }
+  }
+
   async function addPhoto(e) {
     e.preventDefault();
+    if (photoSaving) return;
     setMsg(null);
-    const res = await fetch("/api/admin/photos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ src, albumId }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setMsg(typeof data.error === "string" ? data.error : "Ошибка");
+    const urls = dedupePhotoUrls(photoUrlRows.map((r) => r.value));
+    if (urls.length === 0) {
+      setMsg("Вставьте ссылку на изображение (https://…)");
       return;
     }
-    const added = data.added ?? 1;
-    const errCount = data.errors?.length ?? 0;
-    setSrc("");
-    setMsg(
-      added === 1
-        ? "Фото добавлено"
-        : `Добавлено фото: ${added}` + (errCount ? `, пропущено: ${errCount}` : "")
-    );
-    await load();
+
+    setPhotoSaving(true);
+    try {
+      const res = await fetch("/api/admin/photos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls, albumId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg(typeof data.error === "string" ? data.error : "Ошибка");
+        return;
+      }
+      const added = data.added ?? 1;
+      const errCount = data.errors?.length ?? 0;
+      setPhotoUrlRows([createPhotoUrlRow("")]);
+      setMsg(
+        added === 1
+          ? "Фото добавлено"
+          : `Добавлено фото: ${added}` + (errCount ? `, пропущено: ${errCount}` : "")
+      );
+      await load();
+    } finally {
+      setPhotoSaving(false);
+    }
   }
 
   async function loadVkPreview(append = false) {
@@ -875,7 +928,7 @@ export default function AdminHomePage() {
         <div className={styles.subsection}>
           <h3>Добавить фото</h3>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Вставьте прямые ссылки на изображения (https) — по одной на строку. Запятые внутри URL (VK и др.) не разделяют строки.
+          Вставьте ссылку (https://…) в поле — появится следующее. Повторяющиеся ссылки убираются автоматически.
         </p>
         <form onSubmit={addPhoto}>
           <div className={styles.field}>
@@ -894,18 +947,27 @@ export default function AdminHomePage() {
             </select>
           </div>
           <div className={styles.field}>
-            <label htmlFor="p-src">Ссылки на картинки</label>
-            <textarea
-              id="p-src"
-              value={src}
-              onChange={(e) => setSrc(e.target.value)}
-              required
-              rows={6}
-              placeholder={"https://…/photo1.jpg\nhttps://…/photo2.jpg"}
-            />
+            <span id="p-src-label" className={styles.fieldLabel}>
+              Ссылки на картинки
+            </span>
+            <div className={styles.photoUrlStack} role="group" aria-labelledby="p-src-label">
+              {photoUrlRows.map((row, index) => (
+                <input
+                  key={row.id}
+                  id={row.id}
+                  type="url"
+                  value={row.value}
+                  onChange={(e) => handlePhotoUrlChange(row.id, e.target.value)}
+                  onPaste={(e) => handlePhotoUrlPaste(e, row.id)}
+                  placeholder={index === 0 ? "https://…" : "Вставьте следующую ссылку"}
+                  inputMode="url"
+                  autoComplete="off"
+                />
+              ))}
+            </div>
           </div>
-          <button className={styles.btn} type="submit">
-            Добавить фото
+          <button className={styles.btn} type="submit" disabled={photoSaving}>
+            {photoSaving ? "Добавление…" : "Добавить фото"}
           </button>
         </form>
         </div>

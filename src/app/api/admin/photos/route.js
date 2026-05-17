@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { isAdminRequest } from "@/lib/admin-session";
 import { addPhoto, deletePhoto, getPhotos, reorderPhotos } from "@/lib/data-store";
+import { dedupePhotoUrls, normalizePhotoUrl } from "@/lib/photo-url-rows";
 
 export async function GET() {
   if (!(await isAdminRequest())) {
@@ -12,16 +13,15 @@ export async function GET() {
 }
 
 function parsePhotoUrls(body) {
+  let urls;
   if (Array.isArray(body.urls)) {
-    return body.urls.map((u) => String(u ?? "").trim()).filter(Boolean);
+    urls = body.urls.map((u) => normalizePhotoUrl(u)).filter(Boolean);
+  } else {
+    const raw = normalizePhotoUrl(body.src);
+    if (!raw) return [];
+    urls = raw.split(/\r?\n/).map(normalizePhotoUrl).filter(Boolean);
   }
-  const raw = String(body.src ?? "").trim();
-  if (!raw) return [];
-  // Только перенос строки: в URL VK и др. в query бывают запятые (as=32x24,48x36,…)
-  return raw
-    .split(/\r?\n/)
-    .map((u) => u.trim())
-    .filter(Boolean);
+  return dedupePhotoUrls(urls);
 }
 
 function isValidPhotoUrl(src) {
