@@ -24,6 +24,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
     setCaptchaResetKey((key) => key + 1);
   }, []);
 
+  const canSubmit = consent && Boolean(captchaToken) && !loading;
   const slotLabel = formatBookingSlot(slotStart, slotEnd);
 
   useEffect(() => {
@@ -187,7 +188,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
               onChange={setConsent}
               className={styles.modalConsent}
             />
-            <button className={pages.btn} type="submit" disabled={loading || !consent}>
+            <button className={pages.btn} type="submit" disabled={!canSubmit}>
               {loading ? "Отправка…" : "Отправить заявку"}
             </button>
           </form>

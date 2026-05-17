@@ -22,6 +22,8 @@ export function TrialForm() {
     setCaptchaResetKey((key) => key + 1);
   }, []);
 
+  const canSubmit = consent && Boolean(captchaToken) && !loading;
+
   async function onSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -123,7 +125,7 @@ export function TrialForm() {
       {error ? <p className={pages.formError}>{error}</p> : null}
       {ok ? <p className={pages.formOk}>Заявка отправлена. Мы свяжемся с вами.</p> : null}
       <PersonalDataConsent id="trial-consent" checked={consent} onChange={setConsent} />
-      <button className={pages.btn} type="submit" disabled={loading || !consent}>
+      <button className={pages.btn} type="submit" disabled={!canSubmit}>
         {loading ? "Отправка…" : "Отправить заявку"}
       </button>
     </form>

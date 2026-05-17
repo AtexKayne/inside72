@@ -90,10 +90,16 @@
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   text-decoration: none;
   opacity: 0.92;
   transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btnGhost {
