@@ -19,6 +19,7 @@ export default function AdminHomePage() {
   const [caption, setCaption] = useState("");
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
+  const [storyVideoUrl, setStoryVideoUrl] = useState("");
   const storyVideoInputRef = useRef(null);
   const [storySaving, setStorySaving] = useState(false);
   const [storyUploadProgress, setStoryUploadProgress] = useState(null);
@@ -298,25 +299,31 @@ export default function AdminHomePage() {
     e.preventDefault();
     setMsg(null);
     const file = storyVideoInputRef.current?.files?.[0];
-    if (!file) {
-      setMsg("Выберите видеофайл");
+    const url = storyVideoUrl.trim();
+    if (!file && !url) {
+      setMsg("Выберите видеофайл или укажите прямую ссылку");
       return;
     }
     setStorySaving(true);
-    setStoryUploadProgress(0);
+    setStoryUploadProgress(null);
     try {
-      const pathname = `stories/${Date.now()}-${file.name.replace(/[^\w.\-()а-яА-ЯёЁ ]+/gu, "_")}`;
-      const blob = await upload(pathname, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/stories/upload",
-        multipart: file.size > 4.5 * 1024 * 1024,
-        onUploadProgress: ({ percentage }) => setStoryUploadProgress(percentage),
-      });
+      let videoUrl = url;
+      if (file) {
+        setStoryUploadProgress(0);
+        const pathname = `stories/${Date.now()}-${file.name.replace(/[^\w.\-()а-яА-ЯёЁ ]+/gu, "_")}`;
+        const blob = await upload(pathname, file, {
+          access: "public",
+          handleUploadUrl: "/api/admin/stories/upload",
+          multipart: file.size > 4.5 * 1024 * 1024,
+          onUploadProgress: ({ percentage }) => setStoryUploadProgress(percentage),
+        });
+        videoUrl = blob.url;
+      }
 
       const res = await fetch("/api/admin/stories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: storyTitle, videoUrl: blob.url }),
+        body: JSON.stringify({ title: storyTitle, videoUrl }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -324,6 +331,7 @@ export default function AdminHomePage() {
         return;
       }
       setStoryTitle("");
+      setStoryVideoUrl("");
       if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
       setMsg("Сторис добавлен");
       await load();
@@ -661,7 +669,8 @@ export default function AdminHomePage() {
       <section className={styles.card}>
         <h2>Сторис</h2>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ).
+          Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ) или вставьте прямую ссылку
+          (https). Достаточно одного способа; при выборе файла ссылка игнорируется.
         </p>
         <form onSubmit={addStory}>
           <div className={styles.field}>
@@ -671,8 +680,18 @@ export default function AdminHomePage() {
               ref={storyVideoInputRef}
               type="file"
               accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
-              required
               disabled={storySaving}
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="st-url">URL видео</label>
+            <input
+              id="st-url"
+              type="url"
+              value={storyVideoUrl}
+              onChange={(e) => setStoryVideoUrl(e.target.value)}
+              disabled={storySaving}
+              placeholder="https://…"
             />
           </div>
           <div className={styles.field}>
