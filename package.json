@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:push": "drizzle-kit push",
-    "db:seed": "node scripts/seed-from-json.mjs",
-    "db:migrate-from-neon": "node scripts/migrate-neon-to-supabase.mjs"
+    "db:seed": "node scripts/seed-from-json.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
