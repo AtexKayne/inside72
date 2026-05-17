@@ -10,7 +10,8 @@ export function SiteFooter() {
         <div>
           <p className={layout.footerTitle}>Студия</p>
           <p className={layout.footerBrand}>
-            Inside — танцевальная студия хастла. Чёрно-белая эстетика, внимание к технике и музыке.
+            Inside — студия социального хастла в Тюмени. С нуля, с опытными преподавателями и
+            дружным сообществом на танцполе.
           </p>
         </div>
         <div>
