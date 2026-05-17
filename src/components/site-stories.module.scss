@@ -139,7 +139,7 @@ $row-inset: 1.25rem;
   object-fit: cover;
   display: block;
   pointer-events: none;
-  filter: grayscale(1);
+  filter: grayscale(1) blur(2px) brightness(0.8);
 }
 
 .previewLogo {
