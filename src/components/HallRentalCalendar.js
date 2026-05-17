@@ -1,41 +1,52 @@
 "use client";
-
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BUSY_LABEL,
-  HALL_CLOSE_HOUR,
-  HALL_OPEN_HOUR,
   addDays,
-  buildHallBookingUrl,
   eventBlockStyle,
   eventsForDay,
   formatDayHeader,
-  formatHourLabel,
+  formatSlotTime,
   formatTimeShort,
   formatWeekRange,
+  getHallSlots,
   getWeekDays,
   isSlotBusy,
-  slotStartInTz,
+  isSlotRangeFree,
+  slotEndFromIndex,
+  slotRangeWithMinRental,
+  slotRangeBlockStyle,
+  slotRangeBounds,
+  slotStartFromIndex,
   startOfWeekMonday,
   ymdInTz,
 } from "@/lib/hall-calendar";
+import { HallBookingForm } from "@/components/HallBookingForm";
 import styles from "./hall-rental-calendar.module.scss";
 
-const HOURS = Array.from(
-  { length: HALL_CLOSE_HOUR - HALL_OPEN_HOUR },
-  (_, i) => HALL_OPEN_HOUR + i,
-);
+const SLOTS = getHallSlots();
 
 function isSameWeek(a, b) {
   return ymdInTz(startOfWeekMonday(a)) === ymdInTz(startOfWeekMonday(b));
 }
 
-export function HallRentalCalendar() {
+function slotAtPointer(dayGridEl, clientY) {
+  const rect = dayGridEl.getBoundingClientRect();
+  if (clientY < rect.top || clientY >= rect.bottom) return null;
+  const index = Math.floor(((clientY - rect.top) / rect.height) * SLOTS.length);
+  return SLOTS[Math.max(0, Math.min(SLOTS.length - 1, index))]?.index ?? null;
+}
+
+export function HallRentalCalendar({ compact = false }) {
   const [weekStart, setWeekStart] = useState(() => startOfWeekMonday(new Date()));
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [noSource, setNoSource] = useState(false);
+  const [bookingSlot, setBookingSlot] = useState(null);
+  const [dragSelect, setDragSelect] = useState(null);
+  const [selectionError, setSelectionError] = useState(null);
+  const dragSelectRef = useRef(null);
 
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
   const weekLabel = useMemo(() => formatWeekRange(weekStart), [weekStart]);
@@ -69,31 +80,115 @@ export function HallRentalCalendar() {
     loadEvents(weekStart);
   }, [weekStart, loadEvents]);
 
+  useEffect(() => {
+    dragSelectRef.current = dragSelect;
+  }, [dragSelect]);
+
+  const commitRange = useCallback(
+    (ymd, slotA, slotB) => {
+      const range = slotRangeWithMinRental(ymd, slotA, slotB, events);
+      if (!range.ok) {
+        setSelectionError(range.reason);
+        return false;
+      }
+      setBookingSlot({
+        start: slotStartFromIndex(ymd, range.from),
+        end: slotEndFromIndex(ymd, range.to),
+      });
+      setSelectionError(null);
+      return true;
+    },
+    [events],
+  );
+
+  const finishDrag = useCallback(() => {
+    const sel = dragSelectRef.current;
+    if (!sel) return;
+    commitRange(sel.ymd, sel.anchorSlot, sel.focusSlot);
+    setDragSelect(null);
+  }, [commitRange]);
+
+  useEffect(() => {
+    if (!dragSelect) return;
+    function onPointerUp() {
+      finishDrag();
+    }
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, [dragSelect, finishDrag]);
+
+  useEffect(() => {
+    if (!selectionError) return;
+    const t = window.setTimeout(() => setSelectionError(false), 4000);
+    return () => window.clearTimeout(t);
+  }, [selectionError]);
+
   function goPrevWeek() {
+    setDragSelect(null);
+    setBookingSlot(null);
     setWeekStart((w) => addDays(w, -7));
   }
 
   function goNextWeek() {
+    setDragSelect(null);
+    setBookingSlot(null);
     setWeekStart((w) => addDays(w, 7));
   }
 
   function goToday() {
+    setDragSelect(null);
+    setBookingSlot(null);
     setWeekStart(startOfWeekMonday(new Date()));
   }
 
-  function handleSlotClick(ymd, hour) {
-    const start = slotStartInTz(ymd, hour);
-    const end = slotStartInTz(ymd, hour + 1);
-    if (isSlotBusy(events, start, end)) return;
-    window.open(buildHallBookingUrl(start, end), "_blank", "noopener,noreferrer");
+  function isSlotFree(ymd, slotIndex) {
+    const slotStart = slotStartFromIndex(ymd, slotIndex);
+    const slotEnd = slotEndFromIndex(ymd, slotIndex);
+    return !isSlotBusy(events, slotStart, slotEnd);
+  }
+
+  function handleDayPointerDown(e, ymd) {
+    if (loading || e.button !== 0) return;
+    const slotIndex = slotAtPointer(e.currentTarget, e.clientY);
+    if (slotIndex == null || !isSlotFree(ymd, slotIndex)) return;
+
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setBookingSlot(null);
+    setSelectionError(null);
+    setDragSelect({ ymd, anchorSlot: slotIndex, focusSlot: slotIndex });
+  }
+
+  function handleDayPointerMove(e, ymd) {
+    const sel = dragSelectRef.current;
+    if (!sel || sel.ymd !== ymd) return;
+    const slotIndex = slotAtPointer(e.currentTarget, e.clientY);
+    if (slotIndex == null || sel.focusSlot === slotIndex) return;
+    if (!isSlotRangeFree(events, ymd, sel.anchorSlot, slotIndex)) return;
+    setDragSelect({ ...sel, focusSlot: slotIndex });
+  }
+
+  function getSelectionPreview(ymd) {
+    const sel = dragSelect;
+    if (!sel || sel.ymd !== ymd) return null;
+    const range = slotRangeWithMinRental(ymd, sel.anchorSlot, sel.focusSlot, events);
+    if (!range.ok) {
+      const { from, to } = slotRangeBounds(sel.anchorSlot, sel.focusSlot);
+      return { from, to, valid: false, reason: range.reason };
+    }
+    return { from: range.from, to: range.to, valid: true, reason: null };
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} ${compact ? styles.wrapCompact : ""}`}>
       <h2 className={styles.heading}>Календарь записи</h2>
       <p className={styles.hint}>
-        Нажмите на свободный час, чтобы оформить запись. Занятые слоты показаны как «{BUSY_LABEL}» без
-        подробностей.
+        Выделите интервал от 1 часа (шаг 30 минут): зажмите и протяните в одном дне или кликните слот — подставится
+        соседний свободный получасовой интервал. Занято — «{BUSY_LABEL}».
       </p>
 
       <div className={styles.legend}>
@@ -104,6 +199,10 @@ export function HallRentalCalendar() {
         <span className={styles.legendItem}>
           <span className={`${styles.legendSwatch} ${styles.legendSwatchBusy}`} />
           {BUSY_LABEL}
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchSelected}`} />
+          Выбранный интервал
         </span>
       </div>
 
@@ -126,6 +225,17 @@ export function HallRentalCalendar() {
         )}
       </div>
 
+      {selectionError === "busy" ? (
+        <p className={styles.alert} role="alert">
+          В выбранном интервале есть занятое время. Выберите только свободные слоты подряд.
+        </p>
+      ) : null}
+      {selectionError === "min_duration" ? (
+        <p className={styles.alert} role="alert">
+          Минимальная аренда — 1 час. Рядом нет двух свободных получасовых слотов подряд.
+        </p>
+      ) : null}
+
       {loadError ? (
         <p className={styles.alert} role="alert">
           Не удалось загрузить расписание. Попробуйте обновить страницу или свяжитесь с администратором.
@@ -135,7 +245,7 @@ export function HallRentalCalendar() {
       {noSource && !loading && !loadError ? (
         <p className={styles.alertMuted}>
           Календарь пока недоступен для синхронизации — свободные слоты отображаются по умолчанию. Для записи
-          используйте кнопки свободных часов или напишите в студию.
+          выделите свободное время или напишите в студию.
         </p>
       ) : null}
 
@@ -144,6 +254,7 @@ export function HallRentalCalendar() {
           className={styles.calendar}
           aria-label="Недельное расписание аренды зала"
           data-loading={loading || undefined}
+          data-selecting={dragSelect ? true : undefined}
         >
           <div className={styles.headerRow}>
             <div className={styles.cornerCell} />
@@ -163,9 +274,13 @@ export function HallRentalCalendar() {
 
           <div className={styles.bodyRow}>
             <div className={styles.timeColumn}>
-              {HOURS.map((hour) => (
-                <div key={hour} className={styles.timeLabel}>
-                  {formatHourLabel(hour)}
+              {SLOTS.filter((slot) => slot.minute === 0).map((slot) => (
+                <div
+                  key={slot.index}
+                  className={styles.timeLabel}
+                  style={{ gridRow: `${slot.index + 1} / span 2` }}
+                >
+                  {formatSlotTime(slot.hour, 0)}
                 </div>
               ))}
             </div>
@@ -173,33 +288,50 @@ export function HallRentalCalendar() {
             {weekDays.map((day) => {
               const ymd = ymdInTz(day);
               const dayEvents = eventsForDay(events, ymd);
+              const preview = getSelectionPreview(ymd);
 
               return (
-                <div key={ymd} className={styles.dayColumn}>
+                <div
+                  key={ymd}
+                  className={styles.dayColumn}
+                  onPointerDown={(e) => handleDayPointerDown(e, ymd)}
+                  onPointerMove={(e) => handleDayPointerMove(e, ymd)}
+                >
                   <div className={styles.dayGrid}>
-                    {HOURS.map((hour) => {
-                      const slotStart = slotStartInTz(ymd, hour);
-                      const slotEnd = slotStartInTz(ymd, hour + 1);
-                      const busy = isSlotBusy(events, slotStart, slotEnd);
+                    {SLOTS.map((slot) => {
+                      const busy = !isSlotFree(ymd, slot.index);
+                      const inPreview =
+                        preview &&
+                        !busy &&
+                        slot.index >= preview.from &&
+                        slot.index <= preview.to;
+                      const slotClass = busy
+                        ? styles.slotBusy
+                        : inPreview
+                          ? preview.valid
+                            ? styles.slotSelected
+                            : styles.slotSelectedInvalid
+                          : styles.slotFree;
 
                       return (
-                        <button
-                          key={hour}
-                          type="button"
-                          className={`${styles.slot} ${busy ? styles.slotBusy : styles.slotFree}`}
-                          disabled={busy || loading}
+                        <div
+                          key={slot.index}
+                          role="button"
+                          tabIndex={busy || loading ? -1 : 0}
+                          className={`${styles.slot} ${slotClass}`}
+                          style={{ gridRow: slot.index + 1 }}
+                          aria-disabled={busy || loading}
                           aria-label={
                             busy
-                              ? `${formatDayHeader(day)}, ${formatHourLabel(hour)} — ${BUSY_LABEL}`
-                              : `${formatDayHeader(day)}, ${formatHourLabel(hour)} — записаться`
+                              ? `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — ${BUSY_LABEL}`
+                              : `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — выбрать`
                           }
-                          onClick={() => handleSlotClick(ymd, hour)}
                         />
                       );
                     })}
                   </div>
 
-                  <div className={styles.eventsLayer} aria-hidden={dayEvents.length === 0}>
+                  <div className={styles.eventsLayer} aria-hidden={dayEvents.length === 0 && !preview}>
                     {dayEvents.map((event) => {
                       const blockStyle = eventBlockStyle(event.start, event.end);
                       return (
@@ -216,6 +348,15 @@ export function HallRentalCalendar() {
                         </div>
                       );
                     })}
+                    {preview ? (
+                      <div
+                        className={
+                          preview.valid ? styles.selectionBlock : styles.selectionBlockInvalid
+                        }
+                        style={slotRangeBlockStyle(preview.from, preview.to)}
+                        aria-hidden
+                      />
+                    ) : null}
                   </div>
                 </div>
               );
@@ -225,6 +366,14 @@ export function HallRentalCalendar() {
       </div>
 
       {loading ? <p className={styles.loading}>Загрузка расписания…</p> : null}
+
+      {bookingSlot ? (
+        <HallBookingForm
+          slotStart={bookingSlot.start}
+          slotEnd={bookingSlot.end}
+          onClose={() => setBookingSlot(null)}
+        />
+      ) : null}
     </div>
   );
 }
