@@ -18,24 +18,25 @@
   margin: 0;
 }
 
-.tabs {
-  display: flex;
-  gap: 0.65rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-  @include scrollbar;
+$row-inset: 0.25rem;
 
-  @media (min-width: 768px) {
-    flex-wrap: wrap;
-    overflow-x: visible;
-  }
+.tabsSwiper {
+  overflow: visible;
+  margin-inline: calc(-1 * #{$row-inset});
+  padding-inline: $row-inset;
+  padding-bottom: 0.25rem;
+}
+
+.tabSlide {
+  width: auto;
+  height: auto;
 }
 
 .tab {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  flex-shrink: 0;
+  width: 100%;
   padding: 0.5rem 1rem 0.5rem 0.5rem;
   border-radius: $radius-lg;
   border: 1px solid $color-border;

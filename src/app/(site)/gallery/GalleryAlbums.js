@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode } from "swiper/modules";
+import "swiper/css";
 import { sortPhotosItems } from "@/lib/gallery-order";
 import { GalleryGrid } from "./GalleryGrid";
 import g from "./gallery-albums.module.scss";
@@ -36,31 +39,49 @@ export function GalleryAlbums({ albums, photos }) {
           <p className={g.albumLabel} id="gallery-albums-label">
             Альбомы
           </p>
-          <div className={g.tabs} role="tablist" aria-labelledby="gallery-albums-label">
+          <Swiper
+            className={g.tabsSwiper}
+            modules={[FreeMode]}
+            slidesPerView="auto"
+            spaceBetween={10}
+            freeMode={{
+              enabled: true,
+              momentum: true,
+              momentumRatio: 0.8,
+              momentumVelocityRatio: 0.8,
+            }}
+            speed={400}
+            grabCursor
+            watchOverflow
+            touchStartPreventDefault={false}
+            role="tablist"
+            aria-labelledby="gallery-albums-label"
+          >
             {albumsWithPhotos.map((album) => {
               const cover = album.photos[0]?.src;
               const isActive = active?.id === album.id;
               return (
-                <button
-                  key={album.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`${g.tab} ${isActive ? g.tabActive : ""}`}
-                  onClick={() => setActiveId(album.id)}
-                >
-                  {cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={cover} alt="" className={g.thumb} />
-                  ) : null}
-                  <span className={g.tabText}>
-                    <span className={g.tabTitle}>{album.title}</span>
-                    <span className={g.count}>{album.photos.length} фото</span>
-                  </span>
-                </button>
+                <SwiperSlide key={album.id} className={g.tabSlide}>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`${g.tab} ${isActive ? g.tabActive : ""}`}
+                    onClick={() => setActiveId(album.id)}
+                  >
+                    {cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cover} alt="" className={g.thumb} />
+                    ) : null}
+                    <span className={g.tabText}>
+                      <span className={g.tabTitle}>{album.title}</span>
+                      <span className={g.count}>{album.photos.length} фото</span>
+                    </span>
+                  </button>
+                </SwiperSlide>
               );
             })}
-          </div>
+          </Swiper>
         </div>
       ) : null}
 

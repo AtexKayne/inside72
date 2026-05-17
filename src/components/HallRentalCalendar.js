@@ -5,6 +5,7 @@ import {
   addDays,
   eventBlockStyle,
   eventsForDay,
+  mergeNearbyDayEvents,
   formatDayHeader,
   formatSlotTime,
   formatTimeShort,
@@ -371,7 +372,7 @@ export function HallRentalCalendar({ compact = false }) {
 
             {weekDays.map((day) => {
               const ymd = ymdInTz(day);
-              const dayEvents = eventsForDay(events, ymd);
+              const dayEvents = mergeNearbyDayEvents(eventsForDay(events, ymd));
               const preview = getSelectionPreview(ymd);
 
               return (

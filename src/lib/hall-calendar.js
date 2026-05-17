@@ -209,6 +209,31 @@ export function eventsForDay(events, ymd, tz = HALL_CALENDAR_TIMEZONE) {
     .filter(Boolean);
 }
 
+/** Объединяет занятые интервалы дня, если между ними меньше часа (или они вплотную). */
+export function mergeNearbyDayEvents(
+  dayEvents,
+  gapMs = HALL_MIN_RENTAL_MINUTES * 60_000,
+) {
+  if (dayEvents.length === 0) return [];
+
+  const sorted = [...dayEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const merged = [{ start: sorted[0].start, end: sorted[0].end }];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const curr = sorted[i];
+    const last = merged[merged.length - 1];
+    const gap = curr.start.getTime() - last.end.getTime();
+
+    if (gap < gapMs) {
+      if (curr.end > last.end) last.end = curr.end;
+    } else {
+      merged.push({ start: curr.start, end: curr.end });
+    }
+  }
+
+  return merged;
+}
+
 export function isSlotBusy(events, slotStart, slotEnd) {
   return events.some((e) => {
     const start = new Date(e.start);
