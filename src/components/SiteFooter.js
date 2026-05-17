@@ -34,13 +34,13 @@ export function SiteFooter() {
             <Link href="/teachers">Преподаватели</Link>
             <Link href="/arenda">Аренда зала</Link>
             <Link href="/about">О нас</Link>
-            <Link href="/privacy">Политика персональных данных</Link>
             <Link href="/#trial">Запись на пробное</Link>
           </div>
         </div>
         <div>
-          <p className={layout.footerTitle}>Админка</p>
+          <p className={layout.footerTitle}>Документы</p>
           <div className={layout.footerLinks}>
+            <Link href="/privacy">Политика персональных данных</Link>
             <Link href="/admin/login">Вход для администратора</Link>
           </div>
         </div>
