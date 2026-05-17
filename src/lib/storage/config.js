@@ -20,7 +20,8 @@ export function assertPostgresStorage() {
   if (isPostgresStorage()) return;
   if (isServerlessProduction()) {
     throw new StorageNotConfiguredError(
-      "База не настроена: добавьте на Vercel переменные DATABASE_URL и POSTGRES_URL (Supabase, pooler :6543). " +
+      "База не настроена на Vercel. Нужна строка подключения Supabase: " +
+        "DATABASE_URL, POSTGRES_URL или POSTGRES_PRISMA_URL_POSTGRES_URL (из интеграции Supabase). " +
         "JSON-хранилище data/ на сервере недоступно."
     );
   }

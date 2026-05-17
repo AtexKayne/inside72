@@ -7,8 +7,12 @@ import pages from "@/styles/pages.module.scss";
 export const revalidate = 30;
 
 export async function generateStaticParams() {
-  const items = await getNews();
-  return items.map((n) => ({ id: n.id }));
+  try {
+    const items = await getNews();
+    return items.map((n) => ({ id: n.id }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }) {
