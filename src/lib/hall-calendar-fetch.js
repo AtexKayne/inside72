@@ -1,8 +1,5 @@
-import {
-  getHallIcalUrl,
-  HALL_CALENDAR_ID,
-  sanitizeHallEvent,
-} from "@/lib/hall-calendar";
+import { getHallById, isValidHallId } from "@/lib/halls";
+import { sanitizeHallEvent } from "@/lib/hall-calendar";
 import { parseIcsEvents } from "@/lib/ics";
 
 const FETCH_HEADERS = {
@@ -10,15 +7,14 @@ const FETCH_HEADERS = {
   Accept: "text/calendar, text/plain, */*",
 };
 
-async function fetchFromIcal() {
-  const url = getHallIcalUrl();
-  const res = await fetch(url, {
+async function fetchFromIcal(hall) {
+  const res = await fetch(hall.icalUrl, {
     next: { revalidate: 300 },
     headers: FETCH_HEADERS,
   });
 
   if (!res.ok) {
-    console.warn("[hall-calendar] iCal HTTP", res.status, url);
+    console.warn("[hall-calendar] iCal HTTP", res.status, hall.id, hall.icalUrl);
     return null;
   }
 
@@ -30,11 +26,11 @@ async function fetchFromIcal() {
     .filter(Boolean);
 }
 
-async function fetchFromGoogleApi(timeMin, timeMax) {
+async function fetchFromGoogleApi(hall, timeMin, timeMax) {
   const apiKey = process.env.GOOGLE_CALENDAR_API_KEY?.trim();
   if (!apiKey) return null;
 
-  const calendarId = encodeURIComponent(HALL_CALENDAR_ID);
+  const calendarId = encodeURIComponent(hall.calendarId);
   const params = new URLSearchParams({
     key: apiKey,
     timeMin,
@@ -50,7 +46,7 @@ async function fetchFromGoogleApi(timeMin, timeMax) {
   );
 
   if (!res.ok) {
-    console.warn("[hall-calendar] Google API HTTP", res.status);
+    console.warn("[hall-calendar] Google API HTTP", res.status, hall.id);
     return null;
   }
 
@@ -87,31 +83,35 @@ function filterByRange(events, timeMin, timeMax) {
   });
 }
 
-/** Загрузка занятости: iCal → Google Calendar API. */
-export async function fetchHallCalendarEvents(timeMin, timeMax) {
+/** Загрузка занятости зала: iCal → Google Calendar API. */
+export async function fetchHallCalendarEvents(hallId, timeMin, timeMax) {
+  const hall = isValidHallId(hallId) ? getHallById(hallId) : getHallById(null);
+
   try {
-    const icalEvents = await fetchFromIcal();
+    const icalEvents = await fetchFromIcal(hall);
     if (icalEvents !== null) {
       return {
         events: filterByRange(icalEvents, timeMin, timeMax),
         source: "ical",
+        hallId: hall.id,
       };
     }
   } catch (err) {
-    console.error("[hall-calendar] iCal parse failed:", err);
+    console.error("[hall-calendar] iCal parse failed:", hall.id, err);
   }
 
   try {
-    const googleEvents = await fetchFromGoogleApi(timeMin, timeMax);
+    const googleEvents = await fetchFromGoogleApi(hall, timeMin, timeMax);
     if (googleEvents !== null) {
       return {
         events: googleEvents,
         source: "google",
+        hallId: hall.id,
       };
     }
   } catch (err) {
-    console.error("[hall-calendar] Google API failed:", err);
+    console.error("[hall-calendar] Google API failed:", hall.id, err);
   }
 
-  return { events: [], source: null };
+  return { events: [], source: null, hallId: hall.id };
 }

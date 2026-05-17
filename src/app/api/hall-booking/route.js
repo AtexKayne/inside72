@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { formatBookingSlot, HALL_MIN_RENTAL_MINUTES } from "@/lib/hall-calendar";
+import { DEFAULT_HALL_ID, getHallById, isValidHallId } from "@/lib/halls";
 import { sendTrialEmail } from "@/lib/trial-mail";
 import { sendTrialVkNotify } from "@/lib/trial-vk";
 
@@ -15,6 +16,8 @@ export async function POST(request) {
   const phone = String(body.phone ?? "").trim();
   const email = String(body.email ?? "").trim();
   const comment = String(body.comment ?? "").trim();
+  const hallIdRaw = String(body.hallId ?? DEFAULT_HALL_ID).trim();
+  const hall = isValidHallId(hallIdRaw) ? getHallById(hallIdRaw) : getHallById(DEFAULT_HALL_ID);
   const slotStartRaw = String(body.slotStart ?? "").trim();
   const slotEndRaw = String(body.slotEnd ?? "").trim();
 
@@ -47,6 +50,7 @@ export async function POST(request) {
   const text = [
     "Новая заявка на аренду зала (студия Inside)",
     "",
+    `Зал: ${hall.label}`,
     `Время: ${slotLabel}`,
     `Имя: ${name}`,
     `Телефон: ${phone}`,
@@ -56,7 +60,7 @@ export async function POST(request) {
 
   const [emailResult, vkResult] = await Promise.all([
     sendTrialEmail({
-      subject: `Inside — аренда зала: ${name}`,
+      subject: `Inside — ${hall.label}: ${name}`,
       text,
       replyTo: email || undefined,
     }),

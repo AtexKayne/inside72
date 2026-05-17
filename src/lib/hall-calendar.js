@@ -1,4 +1,9 @@
-export const HALL_CALENDAR_ID = "asantepler@gmail.com";
+import { DEFAULT_HALL_ID, getHallById } from "@/lib/halls";
+
+export { DEFAULT_HALL_ID, getHallById, HALLS, isValidHallId } from "@/lib/halls";
+
+/** @deprecated используйте calendarId зала из HALLS */
+export const HALL_CALENDAR_ID = getHallById(DEFAULT_HALL_ID).calendarId;
 
 export const HALL_CALENDAR_TIMEZONE = "Asia/Yekaterinburg";
 
@@ -10,17 +15,6 @@ export const HALL_MIN_RENTAL_SLOTS = HALL_MIN_RENTAL_MINUTES / HALL_SLOT_MINUTES
 export const HALL_SLOT_COUNT =
   ((HALL_CLOSE_HOUR - HALL_OPEN_HOUR) * 60) / HALL_SLOT_MINUTES;
 export const BUSY_LABEL = "Занято";
-
-const DEFAULT_ICAL_URL =
-  "https://calendar.google.com/calendar/ical/asantepler%40gmail.com/public/basic.ics";
-
-export function getHallIcalUrl() {
-  const fromEnv = process.env.HALL_ICAL_URL?.trim();
-  return fromEnv || DEFAULT_ICAL_URL;
-}
-
-/** @deprecated используйте getHallIcalUrl */
-export const HALL_ICAL_URL = DEFAULT_ICAL_URL;
 
 /** Событие календаря без названия (приватность аренды). */
 export function sanitizeHallEvent(raw) {

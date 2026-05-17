@@ -5,7 +5,7 @@ import { formatBookingSlot } from "@/lib/hall-calendar";
 import pages from "@/styles/pages.module.scss";
 import styles from "./hall-rental-calendar.module.scss";
 
-export function HallBookingForm({ slotStart, slotEnd, onClose }) {
+export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +46,7 @@ export function HallBookingForm({ slotStart, slotEnd, onClose }) {
           phone,
           email,
           comment,
+          hallId,
           slotStart: slotStart.toISOString(),
           slotEnd: slotEnd.toISOString(),
         }),
@@ -91,7 +92,7 @@ export function HallBookingForm({ slotStart, slotEnd, onClose }) {
           ×
         </button>
         <h3 id="hall-booking-title" className={styles.modalTitle}>
-          Заявка на аренду зала
+          Заявка на аренду — {hallLabel}
         </h3>
         <p className={styles.modalSlot}>{slotLabel}</p>
 

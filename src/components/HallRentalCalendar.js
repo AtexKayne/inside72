@@ -21,6 +21,7 @@ import {
   startOfWeekMonday,
   ymdInTz,
 } from "@/lib/hall-calendar";
+import { DEFAULT_HALL_ID, getHallById, HALLS } from "@/lib/halls";
 import { HallBookingForm } from "@/components/HallBookingForm";
 import styles from "./hall-rental-calendar.module.scss";
 
@@ -38,6 +39,8 @@ function slotAtPointer(dayGridEl, clientY) {
 }
 
 export function HallRentalCalendar({ compact = false }) {
+  const [activeHallId, setActiveHallId] = useState(DEFAULT_HALL_ID);
+  const activeHall = getHallById(activeHallId);
   const [weekStart, setWeekStart] = useState(() => startOfWeekMonday(new Date()));
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +55,7 @@ export function HallRentalCalendar({ compact = false }) {
   const weekLabel = useMemo(() => formatWeekRange(weekStart), [weekStart]);
   const isCurrentWeek = isSameWeek(weekStart, new Date());
 
-  const loadEvents = useCallback(async (start) => {
+  const loadEvents = useCallback(async (start, hallId) => {
     setLoading(true);
     setLoadError(false);
 
@@ -61,7 +64,7 @@ export function HallRentalCalendar({ compact = false }) {
 
     try {
       const res = await fetch(
-        `/api/hall-calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+        `/api/hall-calendar?hall=${encodeURIComponent(hallId)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
         { cache: "no-store" },
       );
       if (!res.ok) throw new Error("fetch failed");
@@ -77,8 +80,16 @@ export function HallRentalCalendar({ compact = false }) {
   }, []);
 
   useEffect(() => {
-    loadEvents(weekStart);
-  }, [weekStart, loadEvents]);
+    loadEvents(weekStart, activeHallId);
+  }, [weekStart, activeHallId, loadEvents]);
+
+  function switchHall(hallId) {
+    if (hallId === activeHallId) return;
+    setActiveHallId(hallId);
+    setBookingSlot(null);
+    setDragSelect(null);
+    setSelectionError(null);
+  }
 
   useEffect(() => {
     dragSelectRef.current = dragSelect;
@@ -186,6 +197,22 @@ export function HallRentalCalendar({ compact = false }) {
   return (
     <div className={`${styles.wrap} ${compact ? styles.wrapCompact : ""}`}>
       <h2 className={styles.heading}>Календарь записи</h2>
+
+      <div className={styles.hallTabs} role="tablist" aria-label="Выбор зала">
+        {HALLS.map((hall) => (
+          <button
+            key={hall.id}
+            type="button"
+            role="tab"
+            aria-selected={activeHallId === hall.id}
+            className={`${styles.hallTab} ${activeHallId === hall.id ? styles.hallTabActive : ""}`}
+            onClick={() => switchHall(hall.id)}
+          >
+            {hall.label}
+          </button>
+        ))}
+      </div>
+
       <p className={styles.hint}>
         Выделите интервал от 1 часа (шаг 30 минут): зажмите и протяните в одном дне или кликните слот — подставится
         соседний свободный получасовой интервал. Занято — «{BUSY_LABEL}».
@@ -252,7 +279,7 @@ export function HallRentalCalendar({ compact = false }) {
       <div className={styles.calendarScroll}>
         <div
           className={styles.calendar}
-          aria-label="Недельное расписание аренды зала"
+          aria-label={`Недельное расписание — ${activeHall.label}`}
           data-loading={loading || undefined}
           data-selecting={dragSelect ? true : undefined}
         >
@@ -369,6 +396,8 @@ export function HallRentalCalendar({ compact = false }) {
 
       {bookingSlot ? (
         <HallBookingForm
+          hallId={activeHall.id}
+          hallLabel={activeHall.label}
           slotStart={bookingSlot.start}
           slotEnd={bookingSlot.end}
           onClose={() => setBookingSlot(null)}

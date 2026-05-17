@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { addDays, startOfWeekMonday } from "@/lib/hall-calendar";
 import { fetchHallCalendarEvents } from "@/lib/hall-calendar-fetch";
+import { DEFAULT_HALL_ID, isValidHallId } from "@/lib/halls";
 
 export const runtime = "nodejs";
 export const revalidate = 300;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
+  const hallParam = searchParams.get("hall")?.trim() || DEFAULT_HALL_ID;
+  const hallId = isValidHallId(hallParam) ? hallParam : DEFAULT_HALL_ID;
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
@@ -21,10 +24,11 @@ export async function GET(request) {
     : weekEnd.toISOString();
 
   try {
-    const { events, source } = await fetchHallCalendarEvents(timeMin, timeMax);
+    const { events, source } = await fetchHallCalendarEvents(hallId, timeMin, timeMax);
     return NextResponse.json({
       events,
       source,
+      hall: hallId,
       range: { from: timeMin, to: timeMax },
     });
   } catch (err) {
@@ -33,6 +37,7 @@ export async function GET(request) {
       {
         events: [],
         source: null,
+        hall: hallId,
         range: { from: timeMin, to: timeMax },
         error: "calendar_unavailable",
       },

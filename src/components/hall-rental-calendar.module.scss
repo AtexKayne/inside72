@@ -19,6 +19,36 @@ $hours-count: 13;
   letter-spacing: -0.02em;
 }
 
+.hallTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.hallTab {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid $color-border;
+  background: transparent;
+  color: $color-muted;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #525252;
+    color: $color-text;
+  }
+}
+
+.hallTabActive {
+  border-color: $color-text;
+  color: $color-text;
+  background: #171717;
+}
+
 .hint {
   margin: 0 0 1rem;
   color: $color-muted;
