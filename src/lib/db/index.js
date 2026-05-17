@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { getDatabaseUrl } from "@/lib/storage/database-url";
 import * as schema from "./schema";
 
 let client;
@@ -7,7 +8,7 @@ let db;
 let migrated = false;
 
 function getConnectionString() {
-  return process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  return getDatabaseUrl();
 }
 
 function getSqlClient() {

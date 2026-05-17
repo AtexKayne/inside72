@@ -1,8 +1,9 @@
-import { isPostgresStorage } from "@/lib/storage/config";
+import { assertPostgresStorage, isPostgresStorage } from "@/lib/storage/config";
 import * as jsonStore from "@/lib/storage/json-store";
 import * as postgresStore from "@/lib/storage/postgres-store";
 
 const store = () => {
+  assertPostgresStorage();
   if (!isPostgresStorage() && process.env.STORAGE_BACKEND === "postgres") {
     console.warn(
       "[storage] STORAGE_BACKEND=postgres, но DATABASE_URL/POSTGRES_URL не заданы — используется data/*.json"

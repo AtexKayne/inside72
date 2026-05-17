@@ -9,6 +9,7 @@ import {
   fetchVkVideosPreview,
   isAllowedVkMediaUrl,
 } from "@/lib/vk-import";
+import { assertPostgresStorage, StorageNotConfiguredError } from "@/lib/storage/config";
 import { isVkImported, markVkImported } from "@/lib/vk-import-store";
 
 const TYPES = new Set(["news", "photos", "videos"]);
@@ -108,6 +109,15 @@ export async function POST(request) {
     return NextResponse.json({ error: "Выберите альбом для фотографий" }, { status: 400 });
   }
 
+  try {
+    assertPostgresStorage();
+  } catch (e) {
+    if (e instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: e.message }, { status: 503 });
+    }
+    throw e;
+  }
+
   const imported = [];
   const skipped = [];
   const errors = [];
@@ -204,6 +214,9 @@ export async function POST(request) {
       await markVkImported([vkId]);
       imported.push(vkId);
     } catch (e) {
+      if (e instanceof StorageNotConfiguredError) {
+        return NextResponse.json({ error: e.message }, { status: 503 });
+      }
       if (e?.message === "INVALID_ALBUM") {
         errors.push({ vkId, error: "Альбом не найден" });
       } else {
