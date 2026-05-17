@@ -5,7 +5,7 @@ export default async function sitemap() {
   const base = getSiteUrl();
   const news = await getNews();
 
-  const staticUrls = ["", "/news", "/gallery", "/achievements", "/about"].map((path) => ({
+  const staticUrls = ["", "/news", "/gallery", "/teachers", "/arenda", "/about"].map((path) => ({
     url: `${base}${path}`,
     lastModified: new Date(),
     changeFrequency: "weekly",

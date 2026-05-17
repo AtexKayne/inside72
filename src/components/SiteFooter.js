@@ -31,7 +31,8 @@ export function SiteFooter() {
           <div className={layout.footerLinks}>
             <Link href="/news">Новости</Link>
             <Link href="/gallery">Фотографии</Link>
-            <Link href="/achievements">Достижения учеников</Link>
+            <Link href="/teachers">Преподаватели</Link>
+            <Link href="/arenda">Аренда зала</Link>
             <Link href="/about">О нас</Link>
             <Link href="/#trial">Запись на пробное</Link>
           </div>

@@ -1,0 +1,295 @@
+@use "../styles/variables" as *;
+
+$hour-height: 2.75rem;
+$hours-count: 13;
+
+.wrap {
+  margin-top: 2rem;
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.hint {
+  margin: 0 0 1rem;
+  color: $color-muted;
+  max-width: 60ch;
+  font-size: 0.95rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: $color-muted;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legendSwatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 4px;
+  border: 1px solid $color-border;
+}
+
+.legendSwatchBusy {
+  background: #404040;
+}
+
+.legendSwatchFree {
+  background: #141414;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.toolbarNav {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.navBtn,
+.todayBtn {
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid $color-border;
+  background: #141414;
+  color: $color-text;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.navBtn:hover,
+.todayBtn:hover {
+  background: #1f1f1f;
+  border-color: #525252;
+}
+
+.weekLabel {
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: $color-text;
+  text-transform: capitalize;
+}
+
+.toolbarSpacer {
+  width: 4.5rem;
+}
+
+.alert {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(127, 29, 29, 0.25);
+  color: #fecaca;
+  font-size: 0.9rem;
+}
+
+.alertMuted {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  background: rgba(250, 204, 21, 0.08);
+  color: #fde68a;
+  font-size: 0.9rem;
+}
+
+.calendarScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid $color-border;
+  border-radius: 12px;
+  background: #0a0a0a;
+}
+
+.calendar {
+  min-width: 44rem;
+
+  &[data-loading] {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 3.25rem repeat(7, minmax(4.5rem, 1fr));
+  border-bottom: 1px solid $color-border;
+  background: #111;
+}
+
+.cornerCell {
+  border-right: 1px solid $color-border;
+}
+
+.dayHeader {
+  padding: 0.65rem 0.35rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: $color-muted;
+  text-transform: capitalize;
+  border-right: 1px solid $color-border;
+
+  &:last-child {
+    border-right: 0;
+  }
+}
+
+.dayHeaderToday {
+  color: $color-text;
+  background: rgba(250, 250, 250, 0.06);
+}
+
+.bodyRow {
+  display: grid;
+  grid-template-columns: 3.25rem repeat(7, minmax(4.5rem, 1fr));
+}
+
+.timeColumn {
+  border-right: 1px solid $color-border;
+}
+
+.timeLabel {
+  height: $hour-height;
+  padding: 0 0.35rem 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  font-size: 0.7rem;
+  color: $color-muted;
+  transform: translateY(-0.45em);
+  border-bottom: 1px solid rgba(64, 64, 64, 0.45);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.dayColumn {
+  position: relative;
+  border-right: 1px solid $color-border;
+
+  &:last-child {
+    border-right: 0;
+  }
+}
+
+.dayGrid {
+  display: flex;
+  flex-direction: column;
+}
+
+.slot {
+  height: $hour-height;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(64, 64, 64, 0.45);
+  cursor: pointer;
+  transition: background 0.12s ease;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.slotFree {
+  background: #0c0c0c;
+
+  &:hover:not(:disabled) {
+    background: rgba(250, 250, 250, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-text;
+    outline-offset: -2px;
+  }
+}
+
+.slotBusy {
+  background: #141414;
+  cursor: not-allowed;
+}
+
+.eventsLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.busyBlock {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 6px;
+  background: #3f3f46;
+  border: 1px solid #52525b;
+  padding: 0.2rem 0.35rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 1.5rem;
+}
+
+.busyBlockLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fafafa;
+  line-height: 1.2;
+}
+
+.busyBlockTime {
+  font-size: 0.68rem;
+  color: #d4d4d4;
+  line-height: 1.2;
+}
+
+.loading {
+  margin: 0.75rem 0 0;
+  color: $color-muted;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .toolbarNav {
+    order: 2;
+  }
+
+  .weekLabel {
+    order: 1;
+  }
+
+  .todayBtn,
+  .toolbarSpacer {
+    order: 3;
+  }
+}

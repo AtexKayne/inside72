@@ -21,7 +21,7 @@ export const metadata = {
     url: siteUrl,
     siteName: "Inside",
     title: "Inside — студия танца хастл",
-    description: "Обучение хастлу в студии Inside. Новости, фото, достижения, запись на пробное.",
+    description: "Обучение хастлу в студии Inside. Новости, фото, запись на пробное.",
     images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Inside" }],
   },
   twitter: {

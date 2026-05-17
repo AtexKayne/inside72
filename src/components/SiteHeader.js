@@ -10,7 +10,8 @@ const links = [
   { href: "/", label: "Главная" },
   { href: "/news", label: "Новости" },
   { href: "/gallery", label: "Фотографии" },
-  { href: "/achievements", label: "Достижения" },
+  { href: "/teachers", label: "Преподаватели" },
+  { href: "/arenda", label: "Аренда зала" },
   { href: "/about", label: "О нас" },
   { href: "/#trial", label: "Пробное" },
 ];
