@@ -875,7 +875,7 @@ export default function AdminHomePage() {
         <div className={styles.subsection}>
           <h3>Добавить фото</h3>
         <p className={styles.muted} style={{ marginTop: 0 }}>
-          Вставьте прямые ссылки на изображения (https): по одной на строку или через запятую.
+          Вставьте прямые ссылки на изображения (https) — по одной на строку. Запятые внутри URL (VK и др.) не разделяют строки.
         </p>
         <form onSubmit={addPhoto}>
           <div className={styles.field}>

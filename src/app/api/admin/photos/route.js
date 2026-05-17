@@ -17,8 +17,9 @@ function parsePhotoUrls(body) {
   }
   const raw = String(body.src ?? "").trim();
   if (!raw) return [];
+  // Только перенос строки: в URL VK и др. в query бывают запятые (as=32x24,48x36,…)
   return raw
-    .split(/[\n,]+/)
+    .split(/\r?\n/)
     .map((u) => u.trim())
     .filter(Boolean);
 }
