@@ -1,21 +1,5 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-
-const TRIAL_TO = "asantepler@gmail.com";
-
-function createMailer() {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  if (!host || !user || !pass) return null;
-  const port = Number(process.env.SMTP_PORT ?? "587");
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
-}
+import { sendTrialEmail } from "@/lib/trial-mail";
 
 export async function POST(request) {
   let body;
@@ -43,18 +27,6 @@ export async function POST(request) {
     return NextResponse.json({ error: "Некорректный email" }, { status: 400 });
   }
 
-  const transporter = createMailer();
-  if (!transporter) {
-    return NextResponse.json(
-      {
-        error:
-          "Отправка писем не настроена на сервере. Укажите SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM в переменных окружения.",
-      },
-      { status: 503 }
-    );
-  }
-
-  const from = process.env.SMTP_FROM ?? process.env.SMTP_USER;
   const text = [
     "Новая заявка на пробное занятие (студия Inside, хастл)",
     "",
@@ -64,18 +36,25 @@ export async function POST(request) {
     `Комментарий: ${comment || "—"}`,
   ].join("\n");
 
-  try {
-    await transporter.sendMail({
-      from,
-      to: TRIAL_TO,
-      subject: `Inside — пробное: ${name}`,
-      text,
-      replyTo: email || undefined,
-    });
-  } catch (e) {
-    console.error("trial mail error", e);
-    return NextResponse.json({ error: "Не удалось отправить письмо. Попробуйте позже." }, { status: 502 });
+  const result = await sendTrialEmail({
+    subject: `Inside — пробное: ${name}`,
+    text,
+    replyTo: email || undefined,
+  });
+
+  if (result.ok) {
+    return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ ok: true });
+  if (result.reason === "not_configured") {
+    return NextResponse.json(
+      {
+        error:
+          "Отправка писем не настроена. На Vercel задайте RESEND_API_KEY и RESEND_FROM (см. .env.example).",
+      },
+      { status: 503 },
+    );
+  }
+
+  return NextResponse.json({ error: "Не удалось отправить письмо. Попробуйте позже." }, { status: 502 });
 }
