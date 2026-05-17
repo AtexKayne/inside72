@@ -70,9 +70,7 @@ export default async function NewsItemPage({ params }) {
         <time className={pages.newsDate} dateTime={item.createdAt}>
           {date}
         </time>
-        <h1 className={pages.title} style={{ marginTop: "0.5rem" }}>
-          {item.title}
-        </h1>
+        <h1 className={pages.pageTitle}>{item.title}</h1>
         <NewsImages images={item.images} />
         <div className={pages.prose}>
           {item.body.split("\n").map((para, i) => (

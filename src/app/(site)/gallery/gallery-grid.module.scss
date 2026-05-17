@@ -1,0 +1,195 @@
+@use "../../../styles/variables" as *;
+
+.grid {
+  columns: 1;
+  column-gap: 0.85rem;
+
+  @media (min-width: 560px) {
+    columns: 2;
+  }
+
+  @media (min-width: 960px) {
+    columns: 3;
+  }
+}
+
+.cell {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-md;
+  overflow: hidden;
+  cursor: zoom-in;
+  background: $color-bg-elevated;
+  break-inside: avoid;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:hover .cellOverlay {
+    opacity: 1;
+  }
+
+  &:hover .thumb {
+    transform: scale(1.03);
+  }
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+  transition: transform $transition-base;
+}
+
+.cellOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.45) 0%,
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity $transition-fast;
+  pointer-events: none;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.2s $ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid $color-border-strong;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-text;
+  cursor: pointer;
+  transition: background $transition-fast, border-color $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid $color-border-strong;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-text;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background $transition-fast, border-color $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.navPrev {
+  left: 1rem;
+
+  @media (min-width: 768px) {
+    left: 1.5rem;
+  }
+}
+
+.navNext {
+  right: 1rem;
+
+  @media (min-width: 768px) {
+    right: 1.5rem;
+  }
+}
+
+.figure {
+  position: relative;
+  margin: 0;
+  max-width: min(100%, 1100px);
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lightboxImg {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 6rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: $radius-md;
+}
+
+.caption {
+  margin: 1rem 0 0;
+  max-width: 52ch;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: $color-muted;
+}
+
+.counter {
+  @include label-caps;
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  color: $color-muted-soft;
+  white-space: nowrap;
+}

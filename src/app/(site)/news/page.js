@@ -34,10 +34,10 @@ export default async function NewsPage() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <header className={styles.hero}>
-          <p className={styles.kicker}>Студия Inside</p>
-          <h1 className={styles.title}>Новости</h1>
-          <p className={styles.lead}>
+        <header className={pages.pageHero}>
+          <p className={pages.pageKicker}>Студия Inside</p>
+          <h1 className={pages.pageTitle}>Новости</h1>
+          <p className={pages.pageLead}>
             Наборы, мастер-классы, отчёты с мероприятий и всё, что происходит в студии.
           </p>
           {items.length > 0 ? (

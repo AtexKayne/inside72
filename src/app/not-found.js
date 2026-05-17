@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <h1 className={pages.h2}>Страница не найдена</h1>
+        <h1 className={pages.pageTitle}>Страница не найдена</h1>
         <p className={pages.lead}>
           Возможно, ссылка устарела. Вернитесь на главную или в раздел новостей.
         </p>

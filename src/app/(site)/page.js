@@ -37,7 +37,7 @@ export default async function HomePage() {
         <div className={`${pages.inner} ${pages.heroGrid}`}>
           <div>
             <p className={pages.kicker}>Танцевальная студия · Тюмень</p>
-            <h1 className={pages.title}>Inside — социальный хастл</h1>
+            <h1 className={pages.pageTitle}>Inside — социальный хастл</h1>
             <p className={pages.lead}>
               Парный танец, который легко освоить с нуля и танцевать под любую музыку — с разными
               партнёрами на вечеринках и опенах. Основатели студии Саша и Оля ведут группы по

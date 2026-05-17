@@ -13,7 +13,7 @@ export default function PrivacyPage() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <h1 className={pages.h2}>Политика обработки персональных данных</h1>
+        <h1 className={pages.pageTitle}>Политика обработки персональных данных</h1>
         <div className={pages.prose}>
           <p>
             Настоящая политика определяет порядок обработки и защиты персональных данных пользователей

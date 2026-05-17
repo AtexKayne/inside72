@@ -19,10 +19,11 @@ export default function TeachersPage() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <h1 className={pages.h2}>Преподаватели</h1>
-        <p className={pages.lead} style={{ marginBottom: "2rem", maxWidth: "52ch" }}>
-          {teachersIntro.lead}
-        </p>
+        <header className={pages.pageHero}>
+          <p className={pages.pageKicker}>Студия Inside</p>
+          <h1 className={pages.pageTitle}>Преподаватели</h1>
+          <p className={pages.pageLead}>{teachersIntro.lead}</p>
+        </header>
 
         <div className={pages.teachersHero}>
           <img

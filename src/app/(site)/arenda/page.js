@@ -16,10 +16,11 @@ export default function HallRentalPage() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <h1 className={pages.h2}>{info.title}</h1>
-        <p className={pages.lead} style={{ marginBottom: "1.5rem", maxWidth: "52ch" }}>
-          {info.lead}
-        </p>
+        <header className={pages.pageHero}>
+          <p className={pages.pageKicker}>Студия Inside</p>
+          <h1 className={pages.pageTitle}>{info.title}</h1>
+          <p className={pages.pageLead}>{info.lead}</p>
+        </header>
 
         <HallRentalCalendar compact />
 

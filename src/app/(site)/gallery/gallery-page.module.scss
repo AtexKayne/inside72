@@ -1,0 +1,30 @@
+@use "../../../styles/variables" as *;
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.metaItem {
+  @include label-caps;
+  font-size: 0.65rem;
+  color: $color-muted-soft;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: $color-border-strong;
+  }
+
+  &:first-child::before {
+    display: none;
+  }
+}

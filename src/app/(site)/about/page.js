@@ -13,15 +13,20 @@ export default function AboutPage() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <h1 className={pages.h2}>О студии Inside</h1>
+        <header className={pages.pageHero}>
+          <p className={pages.pageKicker}>Студия Inside</p>
+          <h1 className={pages.pageTitle}>О студии Inside</h1>
+          <p className={pages.pageLead}>
+            Парный танец, который легко освоить с нуля. Занятия в центре Тюмени — группы для
+            начинающих стартуют каждый месяц.
+          </p>
+        </header>
         <div className={pages.prose}>
           <p>
             Мы танцуем хастл — парный танец, который легко освоить с нуля и можно танцевать под любую музыку где угодно: хоть в баре, хоть в парке, хоть на набережной.
           </p>
-          <p>
-            Занятия проходят в центре Тюмени — 200 м от ЦУМа. Группы для начинающих стартуют каждый месяц.
-          </p>
-          
+          <p>Занятия проходят в центре Тюмени — 200 м от ЦУМа.</p>
+
           <strong>У нас ты:</strong>
           <ul>
             <li>Научишься танцевать с разными людьми — без зажатости и стресса.</li>
