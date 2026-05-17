@@ -1,0 +1,251 @@
+@use "../styles/variables" as *;
+
+$z-transition: 200;
+$duration-cover: 0.55s;
+$duration-reveal: 0.5s;
+$duration-spin: 1.35s;
+$line-width: 1px;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-transition;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-bg;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+
+  &.overlayDone {
+    display: none;
+  }
+}
+
+.overlayActive {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.motif {
+  position: relative;
+  width: min(72vmin, 380px);
+  aspect-ratio: 1;
+}
+
+.circleSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+}
+
+.circle {
+  fill: none;
+  stroke: $color-text;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.92;
+}
+
+.line {
+  position: fixed;
+  width: $line-width;
+  background: $color-text;
+  opacity: 0.92;
+  transform: scaleY(0);
+  will-change: transform;
+}
+
+.lineLeft {
+  left: 31%;
+  bottom: 0;
+  height: 50vh;
+  transform-origin: center bottom;
+}
+
+.lineRight {
+  left: 70%;
+  top: 0;
+  height: 50vh;
+  transform-origin: center top;
+}
+
+// —— Cover: logo assembles, lines sweep to full height ——
+.covering {
+  .circle {
+    animation: drawCircle $duration-cover $ease-out forwards;
+  }
+
+  .lineLeft {
+    animation: growLineLeft $duration-cover $ease-out forwards;
+  }
+
+  .lineRight {
+    animation: growLineRight $duration-cover $ease-out forwards;
+  }
+}
+
+// —— Hold full cover while the route updates ——
+.covered {
+  .circle {
+    stroke-dashoffset: 0;
+    opacity: 0.92;
+  }
+
+  .lineLeft,
+  .lineRight {
+    opacity: 0.92;
+    transform: scaleY(2.15);
+  }
+}
+
+// —— Infinite spin while waiting for the new page ——
+.loading {
+  .circleSvg {
+    animation: spinCircle $duration-spin linear infinite;
+  }
+}
+
+// —— Reveal: lines retract, circle fades ——
+.revealing {
+  .circleSvg {
+    animation: spinCircle $duration-spin linear infinite;
+  }
+
+  .circle {
+    animation: fadeCircle $duration-reveal $ease-out forwards;
+  }
+
+  .lineLeft {
+    transform: scaleY(1);
+    animation: shrinkLineLeft $duration-reveal $ease-out forwards;
+  }
+
+  .lineRight {
+    transform: scaleY(1);
+    animation: shrinkLineRight $duration-reveal $ease-out forwards;
+  }
+}
+
+.revealing.overlayActive {
+  animation: fadeOverlay $duration-reveal $ease-out forwards;
+}
+
+@keyframes spinCircle {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes drawCircle {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.92;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.92;
+  }
+}
+
+@keyframes growLineLeft {
+  0% {
+    transform: scaleY(0);
+  }
+  28% {
+    transform: scaleY(0.42);
+  }
+  100% {
+    transform: scaleY(2.15);
+  }
+}
+
+@keyframes growLineRight {
+  0% {
+    transform: scaleY(0);
+  }
+  28% {
+    transform: scaleY(0.42);
+  }
+  100% {
+    transform: scaleY(2.15);
+  }
+}
+
+@keyframes shrinkLineLeft {
+  0% {
+    transform: scaleY(2.15);
+    opacity: 0.92;
+  }
+  100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+@keyframes shrinkLineRight {
+  0% {
+    transform: scaleY(2.15);
+    opacity: 0.92;
+  }
+  100% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeCircle {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.92;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOverlay {
+  0% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .covering,
+  .revealing {
+    .circle,
+    .lineLeft,
+    .lineRight {
+      animation-duration: 0.01ms;
+    }
+  }
+
+  .loading .circleSvg,
+  .revealing .circleSvg {
+    animation-duration: 0.01ms;
+  }
+
+  .revealing.overlayActive {
+    animation-duration: 0.01ms;
+  }
+}
