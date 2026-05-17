@@ -9,6 +9,28 @@ export function getClientIp(request) {
   return request.headers.get("x-real-ip")?.trim() || "";
 }
 
+export function isLocalhostHost(host) {
+  if (!host) return false;
+  const hostname = host.split(":")[0].toLowerCase();
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
+export function isCaptchaSkippedForRequest(request) {
+  return isLocalhostHost(request.headers.get("host") ?? "");
+}
+
+export function isCaptchaSkippedInBrowser() {
+  if (typeof window === "undefined") return false;
+  return isLocalhostHost(window.location.host);
+}
+
+export async function verifyCaptchaForRequest(request, token) {
+  if (isCaptchaSkippedForRequest(request)) {
+    return { ok: true };
+  }
+  return verifyYandexSmartCaptcha(token, getClientIp(request));
+}
+
 export async function verifyYandexSmartCaptcha(token, ip) {
   const secret = process.env.YANDEX_SMARTCAPTCHA_SERVER_KEY?.trim();
   if (!secret) {

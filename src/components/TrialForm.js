@@ -2,8 +2,11 @@
 
 import { useCallback, useState } from "react";
 import pages from "@/styles/pages.module.scss";
+import { PhoneInput } from "@/components/PhoneInput";
 import { PersonalDataConsent } from "@/components/PersonalDataConsent";
 import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
+import { useCaptchaRequired } from "@/hooks/useCaptchaRequired";
+import { isRuPhoneComplete } from "@/lib/phone-mask";
 
 export function TrialForm() {
   const [name, setName] = useState("");
@@ -16,20 +19,27 @@ export function TrialForm() {
   const [error, setError] = useState(null);
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(false);
+  const captchaRequired = useCaptchaRequired();
 
   const resetCaptcha = useCallback(() => {
     setCaptchaToken("");
     setCaptchaResetKey((key) => key + 1);
   }, []);
 
-  const canSubmit = consent && Boolean(captchaToken) && !loading;
+  const captchaSatisfied = captchaRequired === false || Boolean(captchaToken);
+  const canSubmit = consent && captchaSatisfied && !loading && captchaRequired !== null;
 
   async function onSubmit(e) {
     e.preventDefault();
     setError(null);
     setOk(false);
 
-    if (!captchaToken) {
+    if (!isRuPhoneComplete(phone)) {
+      setError("Укажите полный номер телефона");
+      return;
+    }
+
+    if (captchaRequired && !captchaToken) {
       setError("Подтвердите, что вы не робот");
       return;
     }
@@ -90,17 +100,7 @@ export function TrialForm() {
       </div>
       <div className={pages.field}>
         <label htmlFor="trial-phone">Телефон</label>
-        <input
-          id="trial-phone"
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          required
-          placeholder="+7 …"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
+        <PhoneInput id="trial-phone" value={phone} onChange={setPhone} required />
       </div>
       <div className={pages.field}>
         <label htmlFor="trial-email">Email (необязательно)</label>
@@ -115,13 +115,21 @@ export function TrialForm() {
       </div>
       <div className={pages.field}>
         <label htmlFor="trial-comment">Комментарий</label>
-        <textarea id="trial-comment" name="comment" value={comment} onChange={(e) => setComment(e.target.value)} />
+        <textarea
+          id="trial-comment"
+          name="comment"
+          value={comment}
+          placeholder="Например: удобнее связаться в Telegram или WhatsApp, ссылка на ВК или другую соцсеть"
+          onChange={(e) => setComment(e.target.value)}
+        />
       </div>
-      <YandexSmartCaptchaField
-        resetKey={captchaResetKey}
-        onToken={setCaptchaToken}
-        onTokenExpired={() => setCaptchaToken("")}
-      />
+      {captchaRequired ? (
+        <YandexSmartCaptchaField
+          resetKey={captchaResetKey}
+          onToken={setCaptchaToken}
+          onTokenExpired={() => setCaptchaToken("")}
+        />
+      ) : null}
       {error ? <p className={pages.formError}>{error}</p> : null}
       {ok ? <p className={pages.formOk}>Заявка отправлена. Мы свяжемся с вами.</p> : null}
       <PersonalDataConsent id="trial-consent" checked={consent} onChange={setConsent} />

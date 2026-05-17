@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { formatBookingSlot } from "@/lib/hall-calendar";
+import { PhoneInput } from "@/components/PhoneInput";
 import { PersonalDataConsent } from "@/components/PersonalDataConsent";
 import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
+import { useCaptchaRequired } from "@/hooks/useCaptchaRequired";
+import { isRuPhoneComplete } from "@/lib/phone-mask";
 import pages from "@/styles/pages.module.scss";
 import styles from "./hall-rental-calendar.module.scss";
 
@@ -18,13 +21,15 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
   const [error, setError] = useState(null);
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(false);
+  const captchaRequired = useCaptchaRequired();
 
   const resetCaptcha = useCallback(() => {
     setCaptchaToken("");
     setCaptchaResetKey((key) => key + 1);
   }, []);
 
-  const canSubmit = consent && Boolean(captchaToken) && !loading;
+  const captchaSatisfied = captchaRequired === false || Boolean(captchaToken);
+  const canSubmit = consent && captchaSatisfied && !loading && captchaRequired !== null;
   const slotLabel = formatBookingSlot(slotStart, slotEnd);
 
   useEffect(() => {
@@ -48,7 +53,12 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
     setError(null);
     setOk(false);
 
-    if (!captchaToken) {
+    if (!isRuPhoneComplete(phone)) {
+      setError("Укажите полный номер телефона");
+      return;
+    }
+
+    if (captchaRequired && !captchaToken) {
       setError("Подтвердите, что вы не робот");
       return;
     }
@@ -144,17 +154,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
             </div>
             <div className={pages.field}>
               <label htmlFor="hall-phone">Телефон</label>
-              <input
-                id="hall-phone"
-                name="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                required
-                placeholder="+7 …"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
+              <PhoneInput id="hall-phone" value={phone} onChange={setPhone} required />
             </div>
             <div className={pages.field}>
               <label htmlFor="hall-email">Email (необязательно)</label>
@@ -173,14 +173,17 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
                 id="hall-comment"
                 name="comment"
                 value={comment}
+                placeholder="Например: удобнее связаться в Telegram или WhatsApp, ссылка на ВК или другую соцсеть"
                 onChange={(e) => setComment(e.target.value)}
               />
             </div>
-            <YandexSmartCaptchaField
-              resetKey={captchaResetKey}
-              onToken={setCaptchaToken}
-              onTokenExpired={() => setCaptchaToken("")}
-            />
+            {captchaRequired ? (
+              <YandexSmartCaptchaField
+                resetKey={captchaResetKey}
+                onToken={setCaptchaToken}
+                onTokenExpired={() => setCaptchaToken("")}
+              />
+            ) : null}
             {error ? <p className={pages.formError}>{error}</p> : null}
             <PersonalDataConsent
               id="hall-booking-consent"
