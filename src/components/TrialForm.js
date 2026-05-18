@@ -11,7 +11,6 @@ import { isRuPhoneComplete } from "@/lib/phone-mask";
 export function TrialForm({ idPrefix = "trial" }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
@@ -57,7 +56,6 @@ export function TrialForm({ idPrefix = "trial" }) {
         body: JSON.stringify({
           name,
           phone,
-          email,
           comment,
           smartToken: captchaToken,
           personalDataConsent: true,
@@ -72,7 +70,6 @@ export function TrialForm({ idPrefix = "trial" }) {
       setOk(true);
       setName("");
       setPhone("");
-      setEmail("");
       setComment("");
       setConsent(false);
       resetCaptcha();
@@ -101,17 +98,6 @@ export function TrialForm({ idPrefix = "trial" }) {
       <div className={pages.field}>
         <label htmlFor={`${idPrefix}-phone`}>Телефон</label>
         <PhoneInput id={`${idPrefix}-phone`} value={phone} onChange={setPhone} required />
-      </div>
-      <div className={pages.field}>
-        <label htmlFor={`${idPrefix}-email`}>Email (необязательно)</label>
-        <input
-          id={`${idPrefix}-email`}
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
       </div>
       <div className={pages.field}>
         <label htmlFor={`${idPrefix}-comment`}>Комментарий</label>

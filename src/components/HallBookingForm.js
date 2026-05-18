@@ -13,7 +13,6 @@ import styles from "./hall-rental-calendar.module.scss";
 export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
@@ -76,7 +75,6 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
         body: JSON.stringify({
           name,
           phone,
-          email,
           comment,
           hallId,
           slotStart: slotStart.toISOString(),
@@ -94,7 +92,6 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
       setOk(true);
       setName("");
       setPhone("");
-      setEmail("");
       setComment("");
       setConsent(false);
       resetCaptcha();
@@ -155,17 +152,6 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
             <div className={pages.field}>
               <label htmlFor="hall-phone">Телефон</label>
               <PhoneInput id="hall-phone" value={phone} onChange={setPhone} required />
-            </div>
-            <div className={pages.field}>
-              <label htmlFor="hall-email">Email (необязательно)</label>
-              <input
-                id="hall-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
             </div>
             <div className={pages.field}>
               <label htmlFor="hall-comment">Комментарий</label>

@@ -16,7 +16,6 @@ export async function POST(request) {
 
   const name = String(body.name ?? "").trim();
   const phone = String(body.phone ?? "").trim();
-  const email = String(body.email ?? "").trim();
   const comment = String(body.comment ?? "").trim();
   const hallIdRaw = String(body.hallId ?? DEFAULT_HALL_ID).trim();
   const hall = isValidHallId(hallIdRaw) ? getHallById(hallIdRaw) : getHallById(DEFAULT_HALL_ID);
@@ -46,10 +45,6 @@ export async function POST(request) {
     return NextResponse.json({ error: "Укажите корректный телефон" }, { status: 400 });
   }
 
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "Некорректный email" }, { status: 400 });
-  }
-
   const slotStart = new Date(slotStartRaw);
   const slotEnd = new Date(slotEndRaw);
   if (Number.isNaN(slotStart.getTime()) || Number.isNaN(slotEnd.getTime()) || slotEnd <= slotStart) {
@@ -70,7 +65,6 @@ export async function POST(request) {
     `Время: ${slotLabel}`,
     `Имя: ${name}`,
     `Телефон: ${phone}`,
-    `Email: ${email || "—"}`,
     `Комментарий: ${comment || "—"}`,
   ].join("\n");
 
@@ -78,7 +72,6 @@ export async function POST(request) {
     sendTrialEmail({
       subject: `Inside — ${hall.label}: ${name}`,
       text,
-      replyTo: email || undefined,
     }),
     sendTrialVkNotify(text),
   ]);

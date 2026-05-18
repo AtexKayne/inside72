@@ -14,7 +14,6 @@ export async function POST(request) {
 
   const name = String(body.name ?? "").trim();
   const phone = String(body.phone ?? "").trim();
-  const email = String(body.email ?? "").trim();
   const comment = String(body.comment ?? "").trim();
   const smartToken = String(body.smartToken ?? "").trim();
 
@@ -40,16 +39,11 @@ export async function POST(request) {
     return NextResponse.json({ error: "Укажите корректный телефон" }, { status: 400 });
   }
 
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "Некорректный email" }, { status: 400 });
-  }
-
   const text = [
     "Новая заявка на пробное занятие (студия Inside, хастл)",
     "",
     `Имя: ${name}`,
     `Телефон: ${phone}`,
-    `Email: ${email || "—"}`,
     `Комментарий: ${comment || "—"}`,
   ].join("\n");
 
@@ -57,7 +51,6 @@ export async function POST(request) {
     sendTrialEmail({
       subject: `Inside — пробное: ${name}`,
       text,
-      replyTo: email || undefined,
     }),
     sendTrialVkNotify(text),
   ]);
