@@ -89,11 +89,10 @@ export default async function NewsItemPage({ params }) {
 
         <header className={styles.hero}>
           <p className={pages.pageKicker}>Студия Inside · Новости</p>
-          <time className={styles.date} dateTime={item.createdAt}>
+          <h1 className={styles.title}>{item.title}</h1>
+          <time className={pages.pageLead} dateTime={item.createdAt}>
             {dateLabel}
           </time>
-          <h1 className={styles.title}>{item.title}</h1>
-          {item.excerpt ? <p className={styles.lead}>{item.excerpt}</p> : null}
         </header>
 
         {heroImage ? (

@@ -10,31 +10,16 @@
   border-bottom: 1px solid $color-border;
 }
 
-.date {
-  display: block;
-  @include label-caps;
-  font-size: 0.65rem;
-  margin-bottom: 1rem;
-}
-
 .title {
   @include display-heading;
   font-size: clamp(1.85rem, 4vw, 2.75rem);
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
   max-width: 28ch;
   line-height: 1.12;
 
   @media (min-width: 768px) {
     max-width: none;
   }
-}
-
-.lead {
-  margin: 0;
-  max-width: 52ch;
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: $color-muted;
 }
 
 .gallery {
