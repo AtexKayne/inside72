@@ -77,14 +77,7 @@ export function formatWeekRange(weekStart, tz = HALL_CALENDAR_TIMEZONE) {
     day: "numeric",
     month: "long",
   });
-  const yearFmt = new Intl.DateTimeFormat("ru-RU", {
-    timeZone: tz,
-    year: "numeric",
-  });
-  const startStr = fmt.format(weekStart);
-  const endStr = fmt.format(weekEnd);
-  const year = yearFmt.format(weekEnd);
-  return `${startStr} — ${endStr} ${year}`;
+  return `${fmt.format(weekStart)} — ${fmt.format(weekEnd)}`;
 }
 
 export function formatDayHeader(date, tz = HALL_CALENDAR_TIMEZONE) {

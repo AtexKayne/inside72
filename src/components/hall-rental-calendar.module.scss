@@ -6,6 +6,7 @@ $slot-count: 26;
 $hours-count: 13;
 
 .wrap {
+  position: relative;
   margin-top: 2rem;
   max-width: 100%;
   min-width: 0;
@@ -13,14 +14,37 @@ $hours-count: 13;
 
 .wrapCompact {
   margin-top: 0;
+
+  .hallTabs {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .calendarHeader {
+    margin-bottom: 0.5rem;
+  }
 }
 
-.heading {
-  margin: 0 0 0.75rem;
-  font-family: $font-sans;
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: 0;
+.wrapGuideActive {
+  .calendarScroll {
+    position: relative;
+    z-index: 45;
+    isolation: isolate;
+  }
+
+  .cornerCell,
+  .timeColumn,
+  .eventsLayer {
+    z-index: 0;
+  }
+
+  .guideOverlay {
+    z-index: 46;
+  }
+}
+
+.calendarHeader {
+  margin-bottom: 0.65rem;
 }
 
 .hallTabs {
@@ -82,22 +106,6 @@ $hours-count: 13;
   }
 }
 
-.hint {
-  margin: 0 0 1rem;
-  color: $color-muted;
-  max-width: 60ch;
-  font-size: 0.95rem;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 1.5rem;
-  margin: 0 0 1rem;
-  font-size: 0.85rem;
-  color: $color-muted;
-}
-
 .legendItem {
   display: inline-flex;
   align-items: center;
@@ -137,7 +145,39 @@ $hours-count: 13;
   gap: 0.35rem;
 }
 
-.navBtn,
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.04);
+  color: $color-text;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: $color-border-strong;
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+.navIcon {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
 .todayBtn {
   padding: 0.45rem 0.75rem;
   border-radius: 8px;
@@ -147,12 +187,11 @@ $hours-count: 13;
   font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
-}
 
-.navBtn:hover,
-.todayBtn:hover {
-  background: #1f1f1f;
-  border-color: #525252;
+  &:hover {
+    background: #1f1f1f;
+    border-color: #525252;
+  }
 }
 
 .weekLabel {
@@ -163,8 +202,11 @@ $hours-count: 13;
   text-transform: capitalize;
 }
 
-.toolbarSpacer {
-  width: 4.5rem;
+.toolbarStart {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
 }
 
 .alert {
@@ -224,6 +266,8 @@ $hours-count: 13;
   position: sticky;
   left: 0;
   z-index: 5;
+  padding: 0.65rem 0.35rem;
+  box-sizing: border-box;
   border-right: 1px solid $color-border;
   background: #111;
 }
@@ -249,33 +293,36 @@ $hours-count: 13;
 .bodyRow {
   display: grid;
   grid-template-columns: 3.25rem repeat(7, minmax(4.5rem, 1fr));
+  grid-template-rows: repeat($slot-count, $slot-height);
 }
 
 .timeColumn {
   position: sticky;
   left: 0;
   z-index: 4;
+  grid-column: 1;
+  grid-row: 1 / -1;
   display: grid;
-  grid-template-rows: repeat($slot-count, $slot-height);
+  grid-template-rows: subgrid;
   border-right: 1px solid $color-border;
   background: #0a0a0a;
 }
 
 .timeLabel {
-  grid-column: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  padding: 0 0.35rem 0 0;
+  padding: 0 0.35rem 0.1rem 0;
   font-size: 0.7rem;
+  line-height: 1;
   color: $color-muted;
-  transform: translateY(-0.45em);
-  border-bottom: 1px solid rgba(64, 64, 64, 0.45);
+  box-shadow: inset 0 -1px 0 rgba(64, 64, 64, 0.45);
 }
 
 .dayColumn {
+  grid-row: 1 / -1;
   display: grid;
-  grid-template-rows: repeat($slot-count, $slot-height);
+  grid-template-rows: subgrid;
   position: relative;
   touch-action: pan-x pan-y;
   cursor: crosshair;
@@ -402,11 +449,82 @@ $hours-count: 13;
   font-size: 0.9rem;
 }
 
-.calendarScrollHint {
-  display: none;
-  margin: 0 0 0.5rem;
+.guideBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.82);
+  pointer-events: auto;
+}
+
+.guideOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.guideSpotlight {
+  position: absolute;
+  border-radius: 12px;
+  border: 2px solid rgba(250, 250, 250, 0.32);
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(250, 250, 250, 0.1);
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.guidePanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: auto;
+  width: min(22rem, calc(100% - 1.5rem));
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+  padding: 1.15rem 1.1rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid $color-border;
+  background: #111;
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.85);
+}
+
+.guideTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.guideLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.85rem;
   color: $color-muted;
-  font-size: 0.82rem;
+}
+
+.guideList {
+  margin: 0 0 1.1rem;
+  padding-left: 1.15rem;
+  color: $color-muted;
+  font-size: 0.9rem;
+  line-height: 1.55;
+
+  li + li {
+    margin-top: 0.55rem;
+  }
+}
+
+.guideListMobile {
+  display: none;
 }
 
 .modalBackdrop {
@@ -469,31 +587,142 @@ $hours-count: 13;
   margin: 0;
 }
 
+@media (min-width: 768px) {
+  .calendarHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .hallTabs {
+    margin-top: 0;
+    margin-bottom: 0;
+    min-width: 0;
+  }
+
+  .hallTab {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.68rem;
+  }
+
+  .hallTabBadge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .toolbar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+    gap: 1rem;
+  }
+
+  .toolbarStart {
+    flex: 0 1 auto;
+    gap: 0.65rem;
+  }
+
+  .weekLabel {
+    text-align: left;
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+
+  .toolbarNav {
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .navBtn {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+  }
+
+  .navIcon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .todayBtn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  .cornerCell {
+    padding: 0.4rem 0.25rem;
+  }
+
+  .dayHeader {
+    padding: 0.4rem 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  .calendar {
+    min-width: 42rem;
+  }
+
+  .bodyRow {
+    grid-template-rows: repeat($slot-count, 1.25rem);
+  }
+
+  .timeLabel {
+    font-size: 0.65rem;
+  }
+}
+
 @media (max-width: 640px) {
   .calendarScroll {
     margin-inline: -0.25rem;
     border-radius: 10px;
   }
 
-  .calendarScrollHint {
-    display: block;
+  .guideListMobile {
+    display: list-item;
   }
 
   .toolbar {
-    grid-template-columns: 1fr;
-    justify-items: center;
+    box-sizing: border-box;
+    width: calc(100% + 0.5rem);
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto;
+    align-items: center;
+    gap: 0.5rem 0.35rem;
+  }
+
+  .toolbarStart {
+    display: contents;
   }
 
   .toolbarNav {
-    order: 2;
+    display: contents;
+  }
+
+  .toolbarNav .navBtn:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .toolbarNav .navBtn:last-child {
+    grid-column: 3;
+    grid-row: 1;
   }
 
   .weekLabel {
-    order: 1;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    text-align: center;
+    font-size: 0.88rem;
   }
 
-  .todayBtn,
-  .toolbarSpacer {
-    order: 3;
+  .todayBtn {
+    display: none;
   }
 }

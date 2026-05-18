@@ -1,5 +1,7 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import pages from "@/styles/pages.module.scss";
 import {
   BUSY_LABEL,
   addDays,
@@ -28,9 +30,32 @@ import styles from "./hall-rental-calendar.module.scss";
 
 const SLOTS = getHallSlots();
 const GESTURE_THRESHOLD_PX = 8;
+const CALENDAR_GUIDE_STORAGE_KEY = "inside-hall-calendar-guide-v1";
+const GUIDE_SPOTLIGHT_PADDING_PX = 10;
 
 function isSameWeek(a, b) {
   return ymdInTz(startOfWeekMonday(a)) === ymdInTz(startOfWeekMonday(b));
+}
+
+function getGuideRectRelative(el, containerEl) {
+  const containerRect = containerEl.getBoundingClientRect();
+  const rect = el.getBoundingClientRect();
+  return {
+    top: rect.top - containerRect.top,
+    left: rect.left - containerRect.left,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function getGuideSpotlightRect(highlightEl, containerEl) {
+  const rect = getGuideRectRelative(highlightEl, containerEl);
+  return {
+    top: rect.top - GUIDE_SPOTLIGHT_PADDING_PX,
+    left: rect.left - GUIDE_SPOTLIGHT_PADDING_PX,
+    width: rect.width + GUIDE_SPOTLIGHT_PADDING_PX * 2,
+    height: rect.height + GUIDE_SPOTLIGHT_PADDING_PX * 2,
+  };
 }
 
 function slotAtPointer(dayGridEl, clientY) {
@@ -54,6 +79,13 @@ export function HallRentalCalendar({ compact = false }) {
   const dragSelectRef = useRef(null);
   const pendingPointerRef = useRef(null);
   const eventsRef = useRef(events);
+  const calendarSectionRef = useRef(null);
+  const calendarHeaderRef = useRef(null);
+  const calendarHighlightRef = useRef(null);
+  const guideDismissRef = useRef(null);
+  const [showCalendarGuide, setShowCalendarGuide] = useState(false);
+  const [guideSpotlightRect, setGuideSpotlightRect] = useState(null);
+  const [guidePanelTop, setGuidePanelTop] = useState(0);
 
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
   const weekLabel = useMemo(() => formatWeekRange(weekStart), [weekStart]);
@@ -86,6 +118,79 @@ export function HallRentalCalendar({ compact = false }) {
   useEffect(() => {
     loadEvents(weekStart, activeHallId);
   }, [weekStart, activeHallId, loadEvents]);
+
+  useEffect(() => {
+    let dismissed = false;
+    try {
+      dismissed = Boolean(localStorage.getItem(CALENDAR_GUIDE_STORAGE_KEY));
+    } catch {
+      dismissed = false;
+    }
+    if (dismissed) return;
+
+    const el = calendarSectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        const highlight = calendarHighlightRef.current;
+        const container = calendarSectionRef.current;
+        if (!highlight || !container) return;
+        setGuideSpotlightRect(getGuideSpotlightRect(highlight, container));
+        setShowCalendarGuide(true);
+        observer.disconnect();
+      },
+      { threshold: 1 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!showCalendarGuide) return;
+
+    function updateGuideLayout() {
+      const highlight = calendarHighlightRef.current;
+      const container = calendarSectionRef.current;
+      const header = calendarHeaderRef.current;
+      if (highlight && container) {
+        setGuideSpotlightRect(getGuideSpotlightRect(highlight, container));
+      }
+      if (header) {
+        setGuidePanelTop(header.offsetHeight + 8);
+      }
+    }
+
+    updateGuideLayout();
+    window.addEventListener("resize", updateGuideLayout);
+    return () => window.removeEventListener("resize", updateGuideLayout);
+  }, [showCalendarGuide, loading, weekStart, activeHallId]);
+
+  useEffect(() => {
+    if (!showCalendarGuide) return;
+    guideDismissRef.current?.focus({ preventScroll: true });
+  }, [showCalendarGuide]);
+
+  const dismissCalendarGuide = useCallback(() => {
+    try {
+      localStorage.setItem(CALENDAR_GUIDE_STORAGE_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    setShowCalendarGuide(false);
+    setGuideSpotlightRect(null);
+  }, []);
+
+  useEffect(() => {
+    if (!showCalendarGuide) return;
+    function onKeyDown(e) {
+      if (e.key === "Escape") dismissCalendarGuide();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showCalendarGuide, dismissCalendarGuide]);
 
   function switchHall(hallId) {
     if (hallId === activeHallId) return;
@@ -243,69 +348,52 @@ export function HallRentalCalendar({ compact = false }) {
   }
 
   return (
-    <div className={`${styles.wrap} ${compact ? styles.wrapCompact : ""}`}>
-      <h2 className={styles.heading}>Календарь записи</h2>
-
-      <p className={styles.hint}>
-        Выделите интервал от 1 часа (шаг 30 минут): зажмите и протяните в одном дне или кликните слот — подставится
-        соседний свободный получасовой интервал. Занято — «{BUSY_LABEL}».
-      </p>
-
-      <div className={styles.hallTabs} role="tablist" aria-label="Выбор зала">
-        {HALLS.map((hall) => {
-          const comingSoon = isHallComingSoon(hall);
-          return (
-            <button
-              key={hall.id}
-              type="button"
-              role="tab"
-              disabled={comingSoon}
-              aria-selected={activeHallId === hall.id}
-              className={`${styles.hallTab} ${activeHallId === hall.id ? styles.hallTabActive : ""}`}
-              onClick={() => switchHall(hall.id)}
-              title={comingSoon ? "Запись во 2-й зал — с 1 июня" : undefined}
-            >
-              <span className={styles.hallTabLabel}>{hall.label}</span>
-              {comingSoon ? (
-                <span className={styles.hallTabBadge}>с 1 июня</span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className={styles.legend}>
-        <span className={styles.legendItem}>
-          <span className={`${styles.legendSwatch} ${styles.legendSwatchFree}`} />
-          Свободно
-        </span>
-        <span className={styles.legendItem}>
-          <span className={`${styles.legendSwatch} ${styles.legendSwatchBusy}`} />
-          {BUSY_LABEL}
-        </span>
-        <span className={styles.legendItem}>
-          <span className={`${styles.legendSwatch} ${styles.legendSwatchSelected}`} />
-          Выбранный интервал
-        </span>
-      </div>
-
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarNav}>
-          <button type="button" className={styles.navBtn} onClick={goPrevWeek} aria-label="Предыдущая неделя">
-            ←
-          </button>
-          <button type="button" className={styles.navBtn} onClick={goNextWeek} aria-label="Следующая неделя">
-            →
-          </button>
+    <div
+      ref={calendarSectionRef}
+      className={`${styles.wrap} ${compact ? styles.wrapCompact : ""} ${showCalendarGuide ? styles.wrapGuideActive : ""}`}
+    >
+      <div ref={calendarHeaderRef} className={styles.calendarHeader}>
+        <div className={styles.hallTabs} role="tablist" aria-label="Выбор зала">
+          {HALLS.map((hall) => {
+            const comingSoon = isHallComingSoon(hall);
+            return (
+              <button
+                key={hall.id}
+                type="button"
+                role="tab"
+                disabled={comingSoon}
+                aria-selected={activeHallId === hall.id}
+                className={`${styles.hallTab} ${activeHallId === hall.id ? styles.hallTabActive : ""}`}
+                onClick={() => switchHall(hall.id)}
+                title={comingSoon ? "Запись во 2-й зал — с 1 июня" : undefined}
+              >
+                <span className={styles.hallTabLabel}>{hall.label}</span>
+                {comingSoon ? (
+                  <span className={styles.hallTabBadge}>с 1 июня</span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
-        <p className={styles.weekLabel}>{weekLabel}</p>
-        {!isCurrentWeek ? (
-          <button type="button" className={styles.todayBtn} onClick={goToday}>
-            Сегодня
-          </button>
-        ) : (
-          <span className={styles.toolbarSpacer} />
-        )}
+
+        <div className={styles.toolbar}>
+          <div className={styles.toolbarStart}>
+            <p className={styles.weekLabel}>{weekLabel}</p>
+            {!isCurrentWeek ? (
+              <button type="button" className={styles.todayBtn} onClick={goToday}>
+                Сегодня
+              </button>
+            ) : null}
+          </div>
+          <div className={styles.toolbarNav}>
+            <button type="button" className={styles.navBtn} onClick={goPrevWeek} aria-label="Предыдущая неделя">
+              <CalendarNavIcon direction="prev" className={styles.navIcon} />
+            </button>
+            <button type="button" className={styles.navBtn} onClick={goNextWeek} aria-label="Следующая неделя">
+              <CalendarNavIcon direction="next" className={styles.navIcon} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {selectionError === "busy" ? (
@@ -332,9 +420,7 @@ export function HallRentalCalendar({ compact = false }) {
         </p>
       ) : null}
 
-      <p className={styles.calendarScrollHint}>Смахните календарь влево‑вправо, чтобы увидеть все дни</p>
-
-      <div className={styles.calendarScroll}>
+      <div ref={calendarHighlightRef} className={styles.calendarScroll}>
         <div
           className={styles.calendar}
           aria-label={`Недельное расписание — ${activeHall.label}`}
@@ -451,6 +537,67 @@ export function HallRentalCalendar({ compact = false }) {
 
       {loading ? <p className={styles.loading}>Загрузка расписания…</p> : null}
 
+      {showCalendarGuide && guideSpotlightRect
+        ? createPortal(<div className={styles.guideBackdrop} aria-hidden />, document.body)
+        : null}
+
+      {showCalendarGuide && guideSpotlightRect ? (
+        <div
+          className={styles.guideOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hall-calendar-guide-title"
+        >
+          <div
+            className={styles.guideSpotlight}
+            style={{
+              top: guideSpotlightRect.top,
+              left: guideSpotlightRect.left,
+              width: guideSpotlightRect.width,
+              height: guideSpotlightRect.height,
+            }}
+            aria-hidden
+          />
+          <div className={styles.guidePanel} style={{ top: guidePanelTop }}>
+            <h3 id="hall-calendar-guide-title" className={styles.guideTitle}>
+              Как записаться по календарю
+            </h3>
+            <div className={styles.guideLegend} aria-label="Обозначения цветов в календаре">
+              <span className={styles.legendItem}>
+                <span className={`${styles.legendSwatch} ${styles.legendSwatchFree}`} />
+                Свободно
+              </span>
+              <span className={styles.legendItem}>
+                <span className={`${styles.legendSwatch} ${styles.legendSwatchBusy}`} />
+                {BUSY_LABEL}
+              </span>
+              <span className={styles.legendItem}>
+                <span className={`${styles.legendSwatch} ${styles.legendSwatchSelected}`} />
+                Выбранный интервал
+              </span>
+            </div>
+            <ul className={styles.guideList}>
+              <li>
+                Выделите свободный интервал от 1 часа (шаг 30 минут): зажмите и проведите по слотам в одном дне или
+                нажмите на слот — подставится соседний свободный получасовой интервал.
+              </li>
+              <li>После выбора откроется форма заявки.</li>
+              <li className={styles.guideListMobile}>
+                На телефоне смахните календарь влево‑вправо, чтобы увидеть все дни недели.
+              </li>
+            </ul>
+            <button
+              ref={guideDismissRef}
+              type="button"
+              className={pages.btn}
+              onClick={dismissCalendarGuide}
+            >
+              Понятно
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {bookingSlot ? (
         <HallBookingForm
           hallId={activeHall.id}
@@ -461,5 +608,21 @@ export function HallRentalCalendar({ compact = false }) {
         />
       ) : null}
     </div>
+  );
+}
+
+function CalendarNavIcon({ direction, className }) {
+  const isPrev = direction === "prev";
+
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d={isPrev ? "M12 4L6 10l6 6M17 4l-6 6 6 6" : "M8 4l6 6-6 6M3 4l6 6-6 6"}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

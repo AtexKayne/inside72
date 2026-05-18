@@ -49,7 +49,7 @@ export function HallRentalInfoTabs() {
           <>
             {/* <p className={styles.hint}>{info.notice}</p> */}
             <p className={styles.hint} style={{ marginBottom: "1.25rem" }}>
-              Разовая аренда — выберите зал и свободные слоты в календаре выше.
+              Постоянная аренда — выберите зал и свободные слоты в календаре выше.
             </p>
             {info.recurringSlots.map((slot) => (
               <div key={slot.day} className={styles.scheduleRow}>
