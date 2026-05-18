@@ -1,8 +1,9 @@
 @use "../styles/variables" as *;
 @use "hover" as *;
 
-$stories-expanded-height: 11.125rem;
-$stories-collapse-amount: 5.875rem;
+$stories-scale: 0.8;
+$stories-expanded-height: 11.125rem * $stories-scale;
+$stories-collapse-amount: 5.875rem * $stories-scale;
 
 .wrap {
   --stories-collapse: 0;
@@ -26,7 +27,7 @@ $stories-collapse-amount: 5.875rem;
 }
 
 .section {
-  --story-size: calc(100px - var(--stories-collapse) * 44px);
+  --story-size: calc(80px - var(--stories-collapse) * 35px);
   --section-height: calc(#{$stories-expanded-height} - var(--collapse-shrink));
 
   position: sticky;
@@ -43,12 +44,14 @@ $stories-collapse-amount: 5.875rem;
 }
 
 .collapseInner {
-  padding-block: calc(2rem - var(--stories-collapse) * 1.25rem)
-    calc(2.5rem - var(--stories-collapse) * 1.75rem);
+  width: 100%;
 }
 
 .inner {
   @include container;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .head {
@@ -74,18 +77,17 @@ $stories-collapse-amount: 5.875rem;
   opacity: 0.85;
 }
 
-$row-inset: 1.25rem;
+$row-inset: 1rem;
 
 .row {
   overflow: visible;
-  padding-bottom: calc(0.35rem - var(--stories-collapse) * 0.35rem);
   margin-inline: calc(-1 * #{$row-inset});
   padding-inline: $row-inset;
 }
 
 .slide {
   width: var(--story-size);
-  margin-right: calc(1rem - var(--stories-collapse) * 0.35rem);
+  margin-right: calc(0.8rem - var(--stories-collapse) * 0.28rem);
   height: auto;
 }
 
@@ -98,8 +100,8 @@ $row-inset: 1.25rem;
   padding: 0;
   width: var(--story-size);
   height: var(--story-size);
+  border: none;
   border-radius: 50%;
-  border: 1px solid $color-border-strong;
   background: transparent;
   color: $color-text;
   cursor: pointer;
@@ -116,22 +118,46 @@ $row-inset: 1.25rem;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.25));
-  box-sizing: border-box;
   position: relative;
 }
 
-.ringInner {
-  width: 100%;
-  height: 100%;
-  inset: 0;
+.ringSvg {
   position: absolute;
+  inset: -3px;
+  z-index: 2;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.5;
+}
+
+.ringProgress {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 0.55s $ease-out;
+}
+
+.ringInner {
+  position: absolute;
+  inset: 1px;
+  z-index: 1;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid $color-bg;
-  box-sizing: border-box;
   background: $color-surface;
+}
+
+.previewWrap {
+  position: absolute;
+  inset: 0;
+  display: block;
 }
 
 .preview {
@@ -141,23 +167,59 @@ $row-inset: 1.25rem;
   display: block;
   pointer-events: none;
   filter: grayscale(1) blur(2px) brightness(0.8);
+  transition:
+    opacity 0.45s $ease-out,
+    filter 0.45s $ease-out;
 }
 
 .previewLogo {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
   background: rgba(0, 0, 0, 0.25);
+  transition: background 0.45s $ease-out;
 
   img {
-    width: 100%;
+    width: 88%;
     height: auto;
-    max-height: 100%;
+    max-height: 88%;
     object-fit: contain;
     opacity: 0.5;
+    transition: opacity 0.45s $ease-out;
+  }
+}
+
+@include media-hover {
+  .preview {
+    opacity: 0;
+  }
+
+  .previewLogo {
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .storyBtn:hover,
+  .storyBtn:focus-visible {
+    .ringProgress {
+      stroke-dashoffset: 0;
+    }
+
+    .preview {
+      opacity: 1;
+      filter: none;
+    }
+
+    .previewLogo {
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .previewLogo img {
+      opacity: 0.05;
+    }
   }
 }
 

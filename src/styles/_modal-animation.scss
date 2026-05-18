@@ -1,0 +1,94 @@
+@use "variables" as *;
+
+$modal-enter-duration: 0.38s;
+$modal-exit-duration: 0.3s;
+$modal-dialog-delay: 0.04s;
+
+@keyframes modalBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@mixin modal-backdrop-enter {
+  animation: modalBackdropIn $modal-enter-duration $ease-out both;
+}
+
+@mixin modal-dialog-enter($delay: $modal-dialog-delay) {
+  animation: modalDialogIn $modal-enter-duration $ease-out $delay both;
+}
+
+@keyframes modalBackdropOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalDialogOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+@mixin modal-backdrop-exit {
+  animation: modalBackdropOut $modal-exit-duration $ease-out both;
+  pointer-events: none;
+}
+
+@mixin modal-dialog-exit {
+  animation: modalDialogOut $modal-exit-duration $ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes modalBackdropIn {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modalDialogIn {
+    from,
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes modalBackdropOut {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modalDialogOut {
+    from,
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useModalTransition } from "@/hooks/useModalTransition";
 import { formatBookingSlot } from "@/lib/hall-calendar";
 import { PhoneInput } from "@/components/PhoneInput";
 import { PersonalDataConsent } from "@/components/PersonalDataConsent";
@@ -30,22 +31,30 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
   const captchaSatisfied = captchaRequired === false || Boolean(captchaToken);
   const canSubmit = consent && captchaSatisfied && !loading && captchaRequired !== null;
   const slotLabel = formatBookingSlot(slotStart, slotEnd);
+  const { mounted, exiting, requestClose, handleAnimationEnd } = useModalTransition(true);
+
+  const close = useCallback(() => {
+    if (loading || exiting) return;
+    requestClose(onClose);
+  }, [loading, exiting, requestClose, onClose]);
 
   useEffect(() => {
+    if (!mounted) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
+    if (!mounted || exiting) return;
     function onKeyDown(e) {
-      if (e.key === "Escape" && !loading) onClose();
+      if (e.key === "Escape" && !loading) close();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose, loading]);
+  }, [mounted, exiting, loading, close]);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -103,16 +112,19 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
     }
   }
 
+  if (!mounted) return null;
+
   return (
     <div
-      className={styles.modalBackdrop}
+      className={`${styles.modalBackdrop} ${exiting ? styles.modalBackdropExiting : ""}`}
       role="presentation"
+      onAnimationEnd={handleAnimationEnd}
       onClick={(e) => {
-        if (e.target === e.currentTarget && !loading) onClose();
+        if (e.target === e.currentTarget && !loading && !exiting) close();
       }}
     >
       <div
-        className={styles.modal}
+        className={`${styles.modal} ${exiting ? styles.modalExiting : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="hall-booking-title"
@@ -120,15 +132,15 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
         <button
           type="button"
           className={styles.modalClose}
-          onClick={onClose}
+          onClick={close}
           disabled={loading}
           aria-label="Закрыть"
         >
           ×
         </button>
-        <h3 id="hall-booking-title" className={styles.modalTitle}>
+        <h2 id="hall-booking-title" className={styles.modalTitle}>
           Заявка на аренду — {hallLabel}
-        </h3>
+        </h2>
         <p className={styles.modalSlot}>{slotLabel}</p>
 
         {ok ? (

@@ -14,46 +14,155 @@ import logoImage from "../../public/logo.jpg";
 
 const VIDEO_PROPS = {
   playsInline: true,
-  preload: "metadata",
   referrerPolicy: "no-referrer",
 };
 
-function StoryPreview({ videoUrl }) {
-  const ref = useRef(null);
+function useFineHover() {
+  const [hasFineHover, setHasFineHover] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = () => setHasFineHover(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return hasFineHover;
+}
+
+/** @param {React.RefObject<HTMLElement | null>} ref */
+function useInView(ref, rootMargin = "120px 0px") {
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const playPreview = () => {
-      el.currentTime = 0;
-      const p = el.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    };
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(Boolean(entry?.isIntersecting)),
+      { rootMargin, threshold: 0.05 }
+    );
 
-    el.addEventListener("loadeddata", playPreview);
-    if (el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-      playPreview();
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, rootMargin]);
+
+  return inView;
+}
+
+/**
+ * @param {{ videoUrl: string; hovered: boolean; hasFineHover: boolean }} props
+ */
+function StoryPreview({ videoUrl, hovered, hasFineHover }) {
+  const wrapRef = useRef(null);
+  const videoRef = useRef(null);
+  const inView = useInView(wrapRef);
+  const shouldLoad = hasFineHover ? hovered : inView;
+  const shouldPlay = hasFineHover ? hovered : inView;
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    if (!shouldLoad) {
+      el.pause();
+      el.removeAttribute("src");
+      el.load();
+      return;
     }
 
-    return () => el.removeEventListener("loadeddata", playPreview);
-  }, [videoUrl]);
+    if (el.getAttribute("src") !== videoUrl) {
+      el.setAttribute("src", videoUrl);
+      el.load();
+    }
+  }, [videoUrl, shouldLoad]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !shouldPlay || !shouldLoad) {
+      el?.pause();
+      return;
+    }
+
+    let cancelled = false;
+
+    const playPreview = () => {
+      if (cancelled) return;
+      const p = el.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
+    };
+
+    if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      playPreview();
+    } else {
+      el.addEventListener("canplay", playPreview, { once: true });
+      el.addEventListener("loadeddata", playPreview, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      el.removeEventListener("canplay", playPreview);
+      el.removeEventListener("loadeddata", playPreview);
+      el.pause();
+    };
+  }, [videoUrl, shouldPlay, shouldLoad]);
 
   return (
-    <>
+    <span ref={wrapRef} className={styles.previewWrap}>
       <video
-        ref={ref}
+        ref={videoRef}
         className={styles.preview}
-        src={videoUrl}
         muted
         loop
         aria-hidden
+        preload="none"
         {...VIDEO_PROPS}
       />
       <span className={styles.previewLogo} aria-hidden>
-        <img src={logoImage.src} alt="" />
+        <img src={logoImage.src} alt="" loading="lazy" decoding="async" />
       </span>
-    </>
+    </span>
+  );
+}
+
+/**
+ * @param {{ story: StoryItem; onOpen: () => void; hasFineHover: boolean }} props
+ */
+function StoryCircle({ story, onOpen, hasFineHover }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      type="button"
+      className={styles.storyBtn}
+      onClick={onOpen}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+      aria-label={`Открыть сторис: ${story.title}`}
+    >
+      <span className={styles.ring} aria-hidden>
+        <svg className={styles.ringSvg} viewBox="0 0 100 100" aria-hidden>
+          <circle className={styles.ringTrack} cx="50" cy="50" r="48.5" pathLength="100" />
+          <circle className={styles.ringProgress} cx="50" cy="50" r="48.5" pathLength="100" />
+        </svg>
+        <span className={styles.ringInner}>
+          <StoryPreview
+            videoUrl={story.videoUrl}
+            hovered={hovered}
+            hasFineHover={hasFineHover}
+          />
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -68,6 +177,7 @@ export function SiteStories({ items = [] }) {
   const wrapRef = useRef(null);
   const sectionRef = useRef(null);
   const videoRef = useRef(null);
+  const hasFineHover = useFineHover();
 
   const close = useCallback(() => {
     setOpenIndex(null);
@@ -170,18 +280,11 @@ export function SiteStories({ items = [] }) {
             >
               {items.map((story, index) => (
                 <SwiperSlide key={story.id} className={styles.slide}>
-                  <button
-                    type="button"
-                    className={styles.storyBtn}
-                    onClick={() => setOpenIndex(index)}
-                    aria-label={`Открыть сторис: ${story.title}`}
-                  >
-                    <span className={styles.ring} aria-hidden>
-                      <span className={styles.ringInner}>
-                        <StoryPreview videoUrl={story.videoUrl} />
-                      </span>
-                    </span>
-                  </button>
+                  <StoryCircle
+                    story={story}
+                    hasFineHover={hasFineHover}
+                    onOpen={() => setOpenIndex(index)}
+                  />
                 </SwiperSlide>
               ))}
             </Swiper>
@@ -238,6 +341,7 @@ export function SiteStories({ items = [] }) {
                 src={active.videoUrl}
                 controls
                 controlsList="nodownload"
+                preload="auto"
                 {...VIDEO_PROPS}
               />
             </div>

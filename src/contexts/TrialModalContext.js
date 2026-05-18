@@ -21,24 +21,6 @@ export function TrialModalProvider({ children }) {
     window.history.replaceState(null, "", url);
   }, [pathname]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") closeModal();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, closeModal]);
-
   const value = useMemo(
     () => ({ open, openModal, closeModal }),
     [open, openModal, closeModal],

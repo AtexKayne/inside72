@@ -1,4 +1,5 @@
 @use "../../../styles/variables" as *;
+@use "../../../styles/modal-animation" as modal;
 @use "hover" as *;
 
 .grid {
@@ -73,16 +74,14 @@
   padding: 1.5rem;
   background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(12px);
-  animation: fadeIn 0.2s $ease-out;
+
+  &:not(.lightboxExiting) {
+    @include modal.modal-backdrop-enter;
+  }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.lightboxExiting {
+  @include modal.modal-backdrop-exit;
 }
 
 .close {
@@ -169,6 +168,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  .lightbox:not(.lightboxExiting) & {
+    @include modal.modal-dialog-enter;
+  }
+
+  .lightboxExiting & {
+    @include modal.modal-dialog-exit;
+  }
 }
 
 .lightboxImg {

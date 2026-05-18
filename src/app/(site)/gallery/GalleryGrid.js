@@ -1,12 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useModalTransition } from "@/hooks/useModalTransition";
 import g from "./gallery-grid.module.scss";
 
 export function GalleryGrid({ items }) {
   const [index, setIndex] = useState(null);
+  const [displayIndex, setDisplayIndex] = useState(null);
+  const open = index !== null;
+  const { mounted, exiting, requestClose, handleAnimationEnd } = useModalTransition(open);
 
-  const close = useCallback(() => setIndex(null), []);
+  const close = useCallback(() => {
+    if (index === null || exiting) return;
+    requestClose(() => setIndex(null));
+  }, [index, exiting, requestClose]);
+
   const goPrev = useCallback(() => {
     setIndex((i) => (i != null && i > 0 ? i - 1 : i));
   }, []);
@@ -15,7 +23,11 @@ export function GalleryGrid({ items }) {
   }, [items.length]);
 
   useEffect(() => {
-    if (index === null) return;
+    if (index !== null) setDisplayIndex(index);
+  }, [index]);
+
+  useEffect(() => {
+    if (!mounted) return;
     const onKey = (e) => {
       if (e.key === "Escape") close();
       if (e.key === "ArrowRight") goNext();
@@ -23,19 +35,19 @@ export function GalleryGrid({ items }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [close, goNext, goPrev, index]);
+  }, [close, goNext, goPrev, mounted]);
 
   useEffect(() => {
-    if (index === null) return;
+    if (!mounted) return;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [index]);
+  }, [mounted]);
 
   if (items.length === 0) return null;
 
-  const active = index != null ? items[index] : null;
+  const active = displayIndex != null ? items[displayIndex] : null;
 
   return (
     <>
@@ -61,13 +73,16 @@ export function GalleryGrid({ items }) {
         ))}
       </div>
 
-      {active ? (
+      {mounted && active ? (
         <div
-          className={g.lightbox}
+          className={`${g.lightbox} ${exiting ? g.lightboxExiting : ""}`}
           role="dialog"
           aria-modal="true"
           aria-label="Просмотр фотографии"
-          onClick={close}
+          onAnimationEnd={handleAnimationEnd}
+          onClick={() => {
+            if (!exiting) close();
+          }}
         >
           <button type="button" className={g.close} onClick={close} aria-label="Закрыть">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
@@ -80,7 +95,7 @@ export function GalleryGrid({ items }) {
             </svg>
           </button>
 
-          {index > 0 ? (
+          {displayIndex > 0 ? (
             <button
               type="button"
               className={`${g.nav} ${g.navPrev}`}
@@ -102,7 +117,7 @@ export function GalleryGrid({ items }) {
             </button>
           ) : null}
 
-          {index < items.length - 1 ? (
+          {displayIndex < items.length - 1 ? (
             <button
               type="button"
               className={`${g.nav} ${g.navNext}`}
@@ -129,7 +144,7 @@ export function GalleryGrid({ items }) {
             <img src={active.src} alt="" className={g.lightboxImg} />
             {active.caption ? <figcaption className={g.caption}>{active.caption}</figcaption> : null}
             <span className={g.counter}>
-              {index + 1} / {items.length}
+              {displayIndex + 1} / {items.length}
             </span>
           </figure>
         </div>

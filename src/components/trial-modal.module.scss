@@ -1,4 +1,5 @@
 @use "../styles/variables" as *;
+@use "../styles/modal-animation" as modal;
 @use "hover" as *;
 
 .backdrop {
@@ -11,6 +12,14 @@
   padding: 1rem;
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(6px);
+
+  &:not(.backdropExiting) {
+    @include modal.modal-backdrop-enter;
+  }
+}
+
+.backdropExiting {
+  @include modal.modal-backdrop-exit;
 }
 
 .dialog {
@@ -23,6 +32,14 @@
   border: 1px solid $color-border;
   background: $color-surface;
   box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.75);
+
+  &:not(.dialogExiting) {
+    @include modal.modal-dialog-enter;
+  }
+}
+
+.dialogExiting {
+  @include modal.modal-dialog-exit;
 }
 
 .close {

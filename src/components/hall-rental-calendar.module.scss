@@ -1,4 +1,5 @@
 @use "../styles/variables" as *;
+@use "../styles/modal-animation" as modal;
 @use "hover" as *;
 
 $hour-height: 2.75rem;
@@ -544,7 +545,16 @@ $hours-count: 13;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+
+  &:not(.modalBackdropExiting) {
+    @include modal.modal-backdrop-enter;
+  }
+}
+
+.modalBackdropExiting {
+  @include modal.modal-backdrop-exit;
 }
 
 .modal {
@@ -556,6 +566,14 @@ $hours-count: 13;
   border-radius: 12px;
   border: 1px solid $color-border;
   background: #111;
+
+  &:not(.modalExiting) {
+    @include modal.modal-dialog-enter;
+  }
+}
+
+.modalExiting {
+  @include modal.modal-dialog-exit;
 }
 
 .modalClose {
@@ -583,14 +601,18 @@ $hours-count: 13;
 
 .modalTitle {
   margin: 0 2rem 0.5rem 0;
-  font-size: 1.1rem;
+  font-family: $font-sans;
+  font-size: 1.35rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .modalSlot {
-  margin: 0 0 1rem;
+  margin: 0 0 1.25rem;
   color: $color-muted;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  max-width: 42ch;
   text-transform: capitalize;
 }
 
