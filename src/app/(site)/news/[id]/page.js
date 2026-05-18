@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NewsImages } from "@/components/NewsImages";
+import { NewsCard } from "@/components/NewsCard";
+import { TrialCta } from "@/components/TrialCta";
 import { getNews } from "@/lib/data-store";
 import pages from "@/styles/pages.module.scss";
+import styles from "./news-detail-page.module.scss";
 
 export const revalidate = 30;
 
@@ -33,22 +35,39 @@ export async function generateMetadata({ params }) {
   };
 }
 
+function formatDate(iso) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+function bodyParagraphs(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 export default async function NewsItemPage({ params }) {
   const { id } = await params;
   const items = await getNews();
   const item = items.find((x) => x.id === id);
   if (!item) notFound();
 
-  const date = new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(item.createdAt));
+  const dateLabel = formatDate(item.createdAt);
+  const images = item.images ?? [];
+  const [heroImage, ...restImages] = images;
+  const paragraphs = bodyParagraphs(item.body);
+  const related = items
+    .filter((x) => x.id !== item.id)
+    .slice(0, 3);
 
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
-        <p style={{ margin: "0 0 0.5rem" }}>
+        <nav className={styles.nav} aria-label="Навигация">
           <Link href="/news" className={pages.backLink}>
             <svg
               className={pages.backLinkIcon}
@@ -66,16 +85,92 @@ export default async function NewsItemPage({ params }) {
             </svg>
             Все новости
           </Link>
-        </p>
-        <time className={pages.newsDate} dateTime={item.createdAt}>
-          {date}
-        </time>
-        <h1 className={pages.pageTitle}>{item.title}</h1>
-        <NewsImages images={item.images} />
-        <div className={pages.prose}>
-          {item.body.split("\n").map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
+        </nav>
+
+        <header className={styles.hero}>
+          <p className={pages.pageKicker}>Студия Inside · Новости</p>
+          <time className={styles.date} dateTime={item.createdAt}>
+            {dateLabel}
+          </time>
+          <h1 className={styles.title}>{item.title}</h1>
+          {item.excerpt ? <p className={styles.lead}>{item.excerpt}</p> : null}
+        </header>
+
+        {heroImage ? (
+          <div className={styles.gallery}>
+            <figure className={styles.heroFigure}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={heroImage} alt="" loading="eager" referrerPolicy="no-referrer" />
+            </figure>
+            {restImages.length > 0 ? (
+              <div className={styles.gridFigures}>
+                {restImages.map((src) => (
+                  <figure key={src} className={styles.gridFigure}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                  </figure>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className={styles.article}>
+          <article className={styles.content}>
+            <div className={styles.prose}>
+              {paragraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+          </article>
+
+          <aside className={styles.aside} aria-label="Дополнительно">
+            <div className={styles.asideCard}>
+              <strong>Хочешь попробовать?</strong>
+              <p>
+                Запишись на открытый урок — познакомишься со студией, преподавателями и
+                атмосферой.
+              </p>
+              <TrialCta className={`${pages.btn} ${styles.asideBtn}`}>
+                Записаться на пробное
+              </TrialCta>
+            </div>
+          </aside>
+        </div>
+
+        {related.length > 0 ? (
+          <section className={styles.related} aria-labelledby="related-heading">
+            <h2 id="related-heading" className={styles.relatedHeading}>
+              Другие новости
+            </h2>
+            <div className={styles.relatedGrid}>
+              {related.map((relatedItem, i) => (
+                <NewsCard
+                  key={relatedItem.id}
+                  item={relatedItem}
+                  dateLabel={formatDate(relatedItem.createdAt)}
+                  index={i}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <div className={styles.ctaBand}>
+          <div className={styles.ctaCopy}>
+            <strong>Следи за событиями студии</strong>
+            <p>
+              Наборы, мастер-классы и отчёты с мероприятий — всё в разделе новостей.
+            </p>
+          </div>
+          <div className={styles.ctaActions}>
+            <Link className={pages.btn} href="/news">
+              Все новости
+            </Link>
+            <Link className={`${pages.btn} ${pages.btnGhost}`} href="/teachers">
+              Преподаватели
+            </Link>
+          </div>
         </div>
       </div>
     </section>

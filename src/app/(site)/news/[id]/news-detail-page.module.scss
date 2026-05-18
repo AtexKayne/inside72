@@ -1,0 +1,225 @@
+@use "../../../../styles/variables" as *;
+
+.nav {
+  margin-bottom: 2rem;
+}
+
+.hero {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid $color-border;
+}
+
+.date {
+  display: block;
+  @include label-caps;
+  font-size: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.title {
+  @include display-heading;
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  margin: 0 0 1rem;
+  max-width: 28ch;
+  line-height: 1.12;
+
+  @media (min-width: 768px) {
+    max-width: none;
+  }
+}
+
+.lead {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: $color-muted;
+}
+
+.gallery {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 3rem;
+
+  @media (min-width: 768px) {
+    gap: 1.25rem;
+  }
+}
+
+.heroFigure {
+  margin: 0;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  background: $color-surface;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
+
+.gridFigures {
+  display: grid;
+  gap: 1rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.gridFigure {
+  margin: 0;
+  border-radius: $radius-md;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  background: $color-surface;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: transform 0.55s $ease-out;
+  }
+
+  &:hover img {
+    transform: scale(1.03);
+  }
+}
+
+.article {
+  display: grid;
+  gap: 2.5rem;
+  margin-bottom: 4rem;
+
+  @media (min-width: 960px) {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 3.5rem;
+    align-items: start;
+  }
+}
+
+.content {
+  min-width: 0;
+}
+
+.prose {
+  max-width: 62ch;
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    line-height: 1.8;
+    font-size: 1.02rem;
+
+    & + p {
+      margin-top: 1.15rem;
+    }
+  }
+}
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.asideCard {
+  padding: 1.5rem 1.35rem;
+  border-radius: $radius-md;
+  @include surface-elevated;
+
+  strong {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-family: $font-sans;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: $color-text;
+  }
+
+  p {
+    margin: 0 0 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: $color-muted;
+  }
+}
+
+.asideBtn {
+  width: 100%;
+}
+
+.related {
+  margin-bottom: 3.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid $color-border;
+}
+
+.relatedHeading {
+  @include display-heading;
+  font-size: clamp(1.35rem, 2.5vw, 1.65rem);
+  margin: 0 0 1.75rem;
+}
+
+.relatedGrid {
+  display: grid;
+  gap: 1.25rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 960px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ctaBand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 1.75rem;
+  border-radius: $radius-lg;
+  @include surface-elevated;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2.25rem 2rem;
+  }
+}
+
+.ctaCopy {
+  max-width: 42ch;
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-family: $font-sans;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: $color-text;
+  }
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
