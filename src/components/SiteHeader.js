@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTrialModal } from "@/contexts/TrialModalContext";
+import { useModalTransition } from "@/hooks/useModalTransition";
 import layout from "@/styles/layout.module.scss";
 
 const links = [
@@ -17,24 +18,39 @@ const links = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { openModal } = useTrialModal();
-  const [open, setOpen] = useState(false);
+  const { open: trialOpen, openModal } = useTrialModal();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { mounted, exiting, handleAnimationEnd } = useModalTransition(menuOpen);
+
+  const closeMenu = useCallback(() => {
+    if (!menuOpen || exiting) return;
+    setMenuOpen(false);
+  }, [menuOpen, exiting]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!mounted || trialOpen || exiting) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [open]);
+  }, [mounted, trialOpen, exiting]);
 
   useEffect(() => {
-    setOpen(false);
+    setMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!mounted || exiting) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") closeMenu();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mounted, exiting, closeMenu]);
+
   function openTrial() {
-    setOpen(false);
+    setMenuOpen(false);
     openModal();
   }
 
@@ -61,10 +77,10 @@ export function SiteHeader() {
           </nav>
           <button
             type="button"
-            className={`${layout.burger} ${open ? layout.burgerOpen : ""}`}
-            aria-expanded={open}
+            className={`${layout.burger} ${menuOpen ? layout.burgerOpen : ""}`}
+            aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setMenuOpen((v) => !v)}
           >
             <span className="sr-only">Меню</span>
             <span />
@@ -73,27 +89,35 @@ export function SiteHeader() {
           </button>
         </div>
       </header>
-      <div
-        id="mobile-menu"
-        className={`${layout.mobileNav} ${open ? layout.mobileNavOpen : ""}`}
-        aria-hidden={!open}
-      >
-        <div className={layout.mobileNavInner}>
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              aria-current={pathname === l.href ? "page" : undefined}
-            >
-              {l.label}
-            </Link>
-          ))}
-          <button type="button" className={layout.mobileNavTrialBtn} onClick={openTrial}>
-            Пробное
-          </button>
+      {mounted ? (
+        <div
+          id="mobile-menu"
+          className={`${layout.mobileNav} ${exiting ? layout.mobileNavExiting : ""}`}
+          aria-hidden={exiting}
+          onAnimationEnd={handleAnimationEnd}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !exiting) closeMenu();
+          }}
+        >
+          <div
+            className={`${layout.mobileNavInner} ${exiting ? layout.mobileNavInnerExiting : ""}`}
+          >
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={closeMenu}
+                aria-current={pathname === l.href ? "page" : undefined}
+              >
+                {l.label}
+              </Link>
+            ))}
+            <button type="button" className={layout.mobileNavTrialBtn} onClick={openTrial}>
+              Пробное
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 }

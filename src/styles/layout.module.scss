@@ -1,5 +1,6 @@
 @use "variables" as *;
 @use "hover" as *;
+@use "modal-animation" as modal;
 
 .header {
   position: sticky;
@@ -144,16 +145,14 @@
   justify-content: center;
   background: rgba(5, 5, 5, 0.97);
   backdrop-filter: blur(24px);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.35s $ease-out, visibility 0.35s $ease-out;
+
+  &:not(.mobileNavExiting) {
+    @include modal.modal-backdrop-enter;
+  }
 }
 
-.mobileNavOpen {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.mobileNavExiting {
+  @include modal.modal-backdrop-exit;
 }
 
 .mobileNavInner {
@@ -163,6 +162,14 @@
   gap: 2rem;
   padding: 2rem;
   width: 100%;
+
+  &:not(.mobileNavInnerExiting) {
+    @include modal.modal-dialog-enter;
+  }
+}
+
+.mobileNavInnerExiting {
+  @include modal.modal-dialog-exit;
 }
 
 .mobileNav a,
