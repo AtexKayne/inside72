@@ -14,4 +14,13 @@ export const siteContacts = {
     gateCode: "103",
   },
   hours: "Ежедневно с 09:00 до 22:00",
+  map: {
+    lat: 57.1487023,
+    lon: 65.5373981,
+    zoom: 17,
+    openUrl:
+      "https://yandex.ru/maps/?ll=65.5373981%2C57.1487023&z=17&pt=65.5373981%2C57.1487023%2Cpm2rdm",
+    widgetUrl:
+      "https://yandex.ru/map-widget/v1/?ll=65.5373981%2C57.1487023&z=17&pt=65.5373981%2C57.1487023%2Cpm2rdm&lang=ru_RU&theme=dark&scroll=false",
+  },
 };

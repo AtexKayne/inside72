@@ -1,0 +1,124 @@
+@use "../styles/variables" as *;
+
+.wrap {
+  position: relative;
+  margin: 0;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  background: $color-bg-elevated;
+  aspect-ratio: 21 / 9;
+  min-width: 0;
+  max-width: 100%;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 24px 48px -24px rgba(0, 0, 0, 0.55);
+
+  @media (max-width: 640px) {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+.embedded {
+  height: 100%;
+  min-height: 22rem;
+  aspect-ratio: auto;
+  min-width: 0;
+  max-width: 100%;
+
+  @media (min-width: 900px) {
+    min-height: 100%;
+  }
+
+  @media (max-width: 899px) {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  color-scheme: dark;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 5, 5, 0.12) 0%,
+    transparent 42%,
+    transparent 58%,
+    rgba(5, 5, 5, 0.35) 82%,
+    rgba(5, 5, 5, 0.82) 100%
+  );
+}
+
+.badge {
+  position: absolute;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid $color-border-strong;
+  background: rgba(5, 5, 5, 0.78);
+  backdrop-filter: blur(12px);
+  @include label-caps;
+  font-size: 0.62rem;
+  color: $color-text;
+  pointer-events: none;
+
+  @media (max-width: 899px) {
+    display: none;
+  }
+}
+
+.openLink {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid $color-border-strong;
+  background: rgba(5, 5, 5, 0.78);
+  backdrop-filter: blur(12px);
+  color: $color-text;
+  font-family: $font-sans;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    border-color $transition-fast,
+    background $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    text-decoration: none;
+    border-color: $color-text;
+    background: rgba(245, 245, 245, 0.08);
+    color: $color-text;
+  }
+
+  @media (max-width: 899px) {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.58rem;
+  }
+}

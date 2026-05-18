@@ -1,0 +1,189 @@
+@use "../../../styles/variables" as *;
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 7.5rem;
+  padding: 1rem 1.15rem;
+  border-radius: $radius-md;
+  @include surface-elevated;
+}
+
+.statValue {
+  font-family: $font-sans;
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: $color-text;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: $color-muted;
+}
+
+.storyGrid {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 4rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+.storyMain {
+  h2 {
+    @include display-heading;
+    font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+    margin: 0 0 1.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    line-height: 1.75;
+    font-size: 1.02rem;
+
+    & + p {
+      margin-top: 1rem;
+    }
+  }
+}
+
+.storyAside {
+  padding: 1.5rem 1.35rem;
+  border-radius: $radius-md;
+  @include surface-elevated;
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: $color-muted;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 0.65rem;
+    font-family: $font-sans;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: $color-text;
+  }
+}
+
+.valuesSection {
+  margin-bottom: 3.5rem;
+}
+
+.valuesHeading {
+  @include display-heading;
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+  margin: 0 0 1.75rem;
+}
+
+.valuesGrid {
+  display: grid;
+  gap: 1px;
+  border-radius: $radius-md;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  background: $color-border;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.valueCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.75rem 1.5rem;
+  background: $color-bg;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-surface;
+  }
+}
+
+.valueIndex {
+  @include label-caps;
+  font-size: 0.62rem;
+  color: $color-muted-soft;
+}
+
+.valueTitle {
+  margin: 0;
+  font-family: $font-sans;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: $color-text;
+}
+
+.valueText {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: $color-muted;
+}
+
+.ctaBand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  padding: 2rem 1.75rem;
+  border-radius: $radius-lg;
+  @include surface-elevated;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2.25rem 2rem;
+  }
+}
+
+.ctaCopy {
+  max-width: 42ch;
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-family: $font-sans;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: $color-text;
+  }
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
