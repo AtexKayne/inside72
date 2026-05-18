@@ -8,6 +8,7 @@ import {
   LOADER_CYCLE_MS,
   loaderSweepForCycle,
 } from "@/lib/page-transition-arc";
+import { scrollToHash } from "@/lib/scroll-to-hash";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./page-transition.module.scss";
@@ -69,10 +70,23 @@ export function PageTransition() {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
       const anchor = e.target.closest("a");
-      if (!anchor || !isInternalNavLink(anchor, pathname)) return;
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+
+      const url = new URL(href, window.location.origin);
+
+      if (url.pathname === pathname && url.hash) {
+        e.preventDefault();
+        scrollToHash(url.hash);
+        window.history.pushState(null, "", url.pathname + url.search + url.hash);
+        return;
+      }
+
+      if (!isInternalNavLink(anchor, pathname)) return;
 
       e.preventDefault();
-      const url = new URL(anchor.getAttribute("href"), window.location.origin);
       startTransition(url.pathname + url.search + url.hash);
     }
 
@@ -111,8 +125,41 @@ export function PageTransition() {
 
   useEffect(() => {
     if (phase !== "revealing") return;
+
+    const href = pendingHref.current;
+    if (!href) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      return;
+    }
+
+    const url = new URL(href, window.location.origin);
+    if (url.hash) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!scrollToHash(url.hash, "instant")) {
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          }
+        });
+      });
+      return;
+    }
+
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "idle") return;
+    if (pathname?.startsWith("/admin")) return;
+
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollToHash(hash, "instant"));
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [pathname, phase]);
 
   useEffect(() => {
     if (phase !== "revealing") return;
@@ -192,7 +239,14 @@ export function PageTransition() {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (!mq.matches) return;
 
-    if (pendingHref.current) router.push(pendingHref.current, { scroll: false });
+    const href = pendingHref.current;
+    if (href) {
+      router.push(href, { scroll: false });
+      const url = new URL(href, window.location.origin);
+      if (url.hash) {
+        requestAnimationFrame(() => scrollToHash(url.hash, "instant"));
+      }
+    }
     busy.current = false;
     pendingHref.current = null;
     setPhase("idle");

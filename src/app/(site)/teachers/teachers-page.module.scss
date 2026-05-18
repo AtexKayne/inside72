@@ -1,0 +1,335 @@
+@use "../../../styles/variables" as *;
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 7.5rem;
+  padding: 1rem 1.15rem;
+  border-radius: $radius-md;
+  @include surface-elevated;
+}
+
+.statValue {
+  font-family: $font-sans;
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: $color-text;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: $color-muted;
+}
+
+.introGrid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  align-items: center;
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 2rem;
+  }
+}
+
+.introImageWrap {
+  position: relative;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  @include surface-elevated;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 55%,
+      rgba(5, 5, 5, 0.55) 100%
+    );
+    pointer-events: none;
+  }
+}
+
+.introImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.introCaption {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.15rem;
+  z-index: 1;
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.75);
+}
+
+.introCopy {
+  p {
+    margin: 0;
+    color: $color-muted;
+    line-height: 1.75;
+    font-size: 1.02rem;
+  }
+}
+
+.philosophySection {
+  margin-bottom: 4rem;
+}
+
+.philosophyHeading {
+  @include display-heading;
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+  margin: 0 0 1.75rem;
+}
+
+.philosophyGrid {
+  display: grid;
+  gap: 1px;
+  border-radius: $radius-md;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  background: $color-border;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.philosophyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem 1.35rem;
+  background: $color-bg;
+  transition: background $transition-fast;
+
+  &:hover {
+    background: $color-surface;
+  }
+}
+
+.philosophyIndex {
+  @include label-caps;
+  font-size: 0.62rem;
+  color: $color-muted-soft;
+}
+
+.philosophyTitle {
+  margin: 0;
+  font-family: $font-sans;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: $color-text;
+}
+
+.philosophyText {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: $color-muted;
+}
+
+.teamSection {
+  margin-bottom: 4rem;
+}
+
+.teamHeading {
+  @include display-heading;
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+  margin: 0 0 0.65rem;
+}
+
+.teamLead {
+  margin: 0 0 2rem;
+  max-width: 48ch;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: $color-muted;
+}
+
+.teamGrid {
+  display: grid;
+  gap: 1.5rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.teacherCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  @include surface-elevated;
+  transition:
+    transform $transition-base,
+    box-shadow $transition-base;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.05) inset,
+      0 32px 64px -28px rgba(0, 0, 0, 0.75);
+  }
+}
+
+.teacherPhoto {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: $color-bg-elevated;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: transform 0.6s $ease-out;
+  }
+
+  .teacherCard:hover & img {
+    transform: scale(1.03);
+  }
+}
+
+.teacherBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.35rem 1.35rem 1.5rem;
+}
+
+.teacherRole {
+  @include label-caps;
+  margin: 0;
+  font-size: 0.62rem;
+}
+
+.teacherName {
+  margin: -0.5rem 0 0;
+  font-family: $font-sans;
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: $color-text;
+}
+
+.teacherBio {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+
+  li {
+    position: relative;
+    padding-left: 1rem;
+    color: $color-muted;
+    font-size: 0.9rem;
+    line-height: 1.6;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: $color-border-strong;
+    }
+  }
+}
+
+.outroBlock {
+  margin-bottom: 3.5rem;
+  padding: 1.75rem 1.5rem;
+  border-radius: $radius-md;
+  border-left: 2px solid $color-border-strong;
+  @include surface-elevated;
+
+  @media (min-width: 768px) {
+    padding: 2rem 2.25rem;
+  }
+
+  p {
+    margin: 0;
+    max-width: 68ch;
+    color: $color-muted;
+    line-height: 1.8;
+    font-size: 1.02rem;
+  }
+}
+
+.ctaBand {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 1.75rem;
+  border-radius: $radius-lg;
+  @include surface-elevated;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2.25rem 2rem;
+  }
+}
+
+.ctaCopy {
+  max-width: 42ch;
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-family: $font-sans;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: $color-text;
+  }
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}

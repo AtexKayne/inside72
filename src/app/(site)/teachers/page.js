@@ -7,6 +7,7 @@ import {
   teachersValues,
 } from "@/lib/teachers";
 import pages from "@/styles/pages.module.scss";
+import styles from "./teachers-page.module.scss";
 
 export const metadata = {
   title: "Преподаватели",
@@ -15,69 +16,146 @@ export const metadata = {
   alternates: { canonical: "/teachers" },
 };
 
+const stats = [
+  { value: "100+", label: "танцоров с нуля" },
+  { value: "9+ лет", label: "в хастле у основателей" },
+  { value: "2", label: "преподавателя-основателя" },
+];
+
+const philosophy = [
+  {
+    index: "01",
+    title: "Система в обучении",
+    text: teachersValues[0],
+  },
+  {
+    index: "02",
+    title: "Ясность каждого шага",
+    text: teachersValues[1],
+  },
+  {
+    index: "03",
+    title: "Постоянное развитие",
+    text: teachersValues[2],
+  },
+  {
+    index: "04",
+    title: "Комфортный путь",
+    text: teachersValues[3],
+  },
+];
+
 export default function TeachersPage() {
   return (
     <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Студия Inside</p>
+          <p className={pages.pageKicker}>Студия Inside · Тюмень</p>
           <h1 className={pages.pageTitle}>Преподаватели</h1>
           <p className={pages.pageLead}>{teachersIntro.lead}</p>
+          <div className={styles.stats} aria-label="Ключевые факты">
+            {stats.map((item) => (
+              <div key={item.value} className={styles.stat}>
+                <span className={styles.statValue}>{item.value}</span>
+                <span className={styles.statLabel}>{item.label}</span>
+              </div>
+            ))}
+          </div>
         </header>
 
-        <div className={pages.teachersHero}>
-          <img
-            src={teachersIntro.heroImage}
-            alt="Александр и Ольга — основатели студии Inside"
-            width={1128}
-            height={768}
-            className={pages.teachersHeroImage}
-          />
+        <div className={styles.introGrid}>
+          <div className={styles.introImageWrap}>
+            <img
+              src={teachersIntro.heroImage}
+              alt="Александр и Ольга — основатели студии Inside"
+              width={1128}
+              height={768}
+              className={styles.introImage}
+            />
+            <p className={styles.introCaption}>Саша и Оля — основатели Inside</p>
+          </div>
+          <div className={styles.introCopy}>
+            <p>
+              Мы начинали так же, как вы: будучи уже взрослыми и с нуля. Сегодня ведём группы,
+              готовим к вечеринкам и соревнованиям — и делаем путь в хастл понятным с первого
+              занятия.
+            </p>
+          </div>
         </div>
 
-        <div className={pages.teachersValues}>
-          {teachersValues.map((paragraph) => (
-            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
-          ))}
-        </div>
+        <section className={styles.philosophySection} aria-labelledby="philosophy-heading">
+          <h2 id="philosophy-heading" className={styles.philosophyHeading}>
+            Как мы учим
+          </h2>
+          <div className={styles.philosophyGrid}>
+            {philosophy.map((item) => (
+              <article key={item.index} className={styles.philosophyCard}>
+                <span className={styles.philosophyIndex} aria-hidden="true">
+                  {item.index}
+                </span>
+                <h3 className={styles.philosophyTitle}>{item.title}</h3>
+                <p className={styles.philosophyText}>{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
-        <div className={pages.teachersGrid}>
-          {teachers.map((person) => (
-            <article key={person.id} className={pages.teacherCard}>
-              <div className={pages.teacherPhoto}>
-                <img
-                  src={person.image}
-                  alt={person.name}
-                  width={640}
-                  height={960}
-                  loading="lazy"
-                />
-              </div>
-              <div className={pages.teacherBody}>
-                <p className={pages.teacherRole}>{person.role}</p>
-                <h2 className={pages.teacherName}>{person.name}</h2>
-                <ul className={pages.teacherBio}>
-                  {person.bio.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          ))}
-        </div>
+        <section className={styles.teamSection} aria-labelledby="team-heading">
+          <h2 id="team-heading" className={styles.teamHeading}>
+            Команда
+          </h2>
+          <p className={styles.teamLead}>
+            Два основателя — одна методика: системно, прозрачно и с вниманием к деталям.
+          </p>
+          <div className={styles.teamGrid}>
+            {teachers.map((person) => (
+              <article key={person.id} className={styles.teacherCard}>
+                <div className={styles.teacherPhoto}>
+                  <img
+                    src={person.image}
+                    alt={person.name}
+                    width={640}
+                    height={960}
+                    loading="lazy"
+                  />
+                </div>
+                <div className={styles.teacherBody}>
+                  <p className={styles.teacherRole}>{person.role}</p>
+                  <h3 className={styles.teacherName}>{person.name}</h3>
+                  <ul className={styles.teacherBio}>
+                    {person.bio.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
-        <p className={pages.teachersOutro}>{teachersOutro}</p>
+        <blockquote className={styles.outroBlock}>
+          <p>{teachersOutro}</p>
+        </blockquote>
 
-        <div className={pages.ctaRow} style={{ marginTop: "2.5rem" }}>
-          <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
-          <Link
-            className={`${pages.btn} ${pages.btnGhost}`}
-            href="https://vk.me/inside_dance72"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Написать в VK
-          </Link>
+        <div className={styles.ctaBand}>
+          <div className={styles.ctaCopy}>
+            <strong>Познакомься с нами на занятии</strong>
+            <p>
+              Запишись на пробное — увидишь, как мы объясняем, как меняем партнёров и как
+              быстро появляется уверенность в танце.
+            </p>
+          </div>
+          <div className={styles.ctaActions}>
+            <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
+            <Link
+              className={`${pages.btn} ${pages.btnGhost}`}
+              href="https://vk.me/inside_dance72"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Написать в VK
+            </Link>
+          </div>
         </div>
       </div>
     </section>

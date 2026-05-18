@@ -3,6 +3,7 @@
 .section {
   margin-top: 4rem;
   padding-top: 4rem;
+  scroll-margin-top: calc(#{$header-height} + 1.25rem);
   @include hairline-top;
 }
 
