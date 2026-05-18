@@ -35,8 +35,12 @@ function useFineHover() {
   return hasFineHover;
 }
 
-/** @param {React.RefObject<HTMLElement | null>} ref */
-function useInView(ref, rootMargin = "120px 0px") {
+/**
+ * @param {React.RefObject<HTMLElement | null>} ref
+ * @param {string} [rootMargin]
+ * @param {{ sticky?: boolean }} [options]
+ */
+function useInView(ref, rootMargin = "120px 0px", { sticky = false } = {}) {
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
@@ -44,13 +48,19 @@ function useInView(ref, rootMargin = "120px 0px") {
     if (!el) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(Boolean(entry?.isIntersecting)),
+      ([entry]) => {
+        const visible = Boolean(entry?.isIntersecting);
+        setInView((prev) => {
+          if (visible) return true;
+          return sticky ? prev : false;
+        });
+      },
       { rootMargin, threshold: 0.05 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [ref, rootMargin]);
+  }, [ref, rootMargin, sticky]);
 
   return inView;
 }
@@ -61,7 +71,7 @@ function useInView(ref, rootMargin = "120px 0px") {
 function StoryPreview({ videoUrl, hovered, hasFineHover }) {
   const wrapRef = useRef(null);
   const videoRef = useRef(null);
-  const inView = useInView(wrapRef);
+  const inView = useInView(wrapRef, "120px 0px", { sticky: !hasFineHover });
   const shouldLoad = hasFineHover ? hovered : inView;
   const shouldPlay = hasFineHover ? hovered : inView;
 
@@ -125,9 +135,7 @@ function StoryPreview({ videoUrl, hovered, hasFineHover }) {
         preload="none"
         {...VIDEO_PROPS}
       />
-      <span className={styles.previewLogo} aria-hidden>
-        <img src={logoImage.src} alt="" loading="lazy" decoding="async" />
-      </span>
+      <span className={styles.previewLogo} aria-hidden />
     </span>
   );
 }
@@ -254,7 +262,10 @@ export function SiteStories({ items = [] }) {
 
   return (
     <>
-      <div ref={wrapRef} className={styles.wrap} style={{ "--stories-collapse": 0 }}>
+      <div ref={wrapRef} className={styles.wrap} style={{
+          "--stories-collapse": 0,
+          "--story-logo-url": `url(${logoImage.src})`,
+        }}>
         <div className={styles.anchor}>
           <section
             ref={sectionRef}

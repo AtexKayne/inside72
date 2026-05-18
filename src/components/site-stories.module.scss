@@ -89,14 +89,13 @@ $row-inset: 1rem;
   width: var(--story-size);
   margin-right: calc(0.8rem - var(--stories-collapse) * 0.28rem);
   height: auto;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .storyBtn {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   padding: 0;
   width: var(--story-size);
   height: var(--story-size);
@@ -106,9 +105,10 @@ $row-inset: 1rem;
   color: $color-text;
   cursor: pointer;
   font: inherit;
-  text-align: center;
   appearance: none;
+  display: block;
   -webkit-appearance: none;
+  border: 1px solid #8a8a8a;
 }
 
 .storyBtn:focus-visible {
@@ -119,13 +119,16 @@ $row-inset: 1rem;
 .ring {
   width: 100%;
   height: 100%;
+  display: block;
   border-radius: 50%;
-  position: relative;
+  position: absolute;
+  inset: 0;
 }
 
 .ringSvg {
   position: absolute;
   inset: -3px;
+  display: none;
   z-index: 2;
   pointer-events: none;
   transform: rotate(-90deg);
@@ -149,7 +152,7 @@ $row-inset: 1rem;
 
 .ringInner {
   position: absolute;
-  inset: 1px;
+  inset: 0px;
   z-index: 1;
   border-radius: 50%;
   overflow: hidden;
@@ -173,6 +176,9 @@ $row-inset: 1rem;
   object-position: center;
   display: block;
   pointer-events: none;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   filter: grayscale(1) blur(2px) brightness(0.8);
   transition:
     opacity 0.45s $ease-out,
@@ -183,22 +189,23 @@ $row-inset: 1rem;
   position: absolute;
   inset: 0;
   z-index: 1;
-  display: grid;
-  place-items: center;
   width: 100%;
   height: 100%;
   pointer-events: none;
   background: rgba(0, 0, 0, 0.25);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   transition: background 0.45s $ease-out;
 
-  img {
-    display: block;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    object-position: center;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--story-logo-url);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
     opacity: 0.5;
     transition: opacity 0.45s $ease-out;
   }
@@ -211,6 +218,10 @@ $row-inset: 1rem;
 
   .previewLogo {
     background: rgba(0, 0, 0, 0.35);
+  }
+
+  .storyBtn {
+    border: none;
   }
 
   .storyBtn:hover,
@@ -228,9 +239,13 @@ $row-inset: 1rem;
       background: rgba(0, 0, 0, 0.12);
     }
 
-    .previewLogo img {
+    .previewLogo::before {
       opacity: 0.05;
     }
+  }
+
+  .ringSvg {
+    display: block;
   }
 }
 
