@@ -442,6 +442,11 @@
   color: $color-text;
   line-height: 1.4;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .listMeta {
@@ -449,7 +454,13 @@
   font-size: 0.82rem;
   line-height: 1.45;
   color: $color-muted;
-  word-break: break-all;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .listActions {
@@ -458,6 +469,22 @@
   gap: 0.4rem;
   flex-shrink: 0;
   align-items: flex-start;
+}
+
+@media (max-width: 639px) {
+  .listPlain .listRow {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .listPlain .listActions {
+    flex: 0 0 100%;
+    width: 100%;
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+    margin-top: 0.15rem;
+    border-top: 1px solid $color-border;
+  }
 }
 
 .emptyHint {
@@ -578,6 +605,22 @@ form + .hint {
   font-weight: 500;
   color: $color-text;
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.vkItemText .muted {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .vkThumb {
@@ -653,6 +696,27 @@ form + .hint {
   align-items: flex-start;
   min-width: 0;
   flex: 1;
+}
+
+@media (max-width: 639px) {
+  .storySortItem .listRow {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .storySortItem .storySortMain {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .storySortItem .listActions {
+    flex: 0 0 100%;
+    width: 100%;
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+    margin-top: 0.15rem;
+    border-top: 1px solid $color-border;
+  }
 }
 
 .storyDragHandle {

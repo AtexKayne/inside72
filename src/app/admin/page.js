@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { sortPhotosItems } from "@/lib/gallery-order";
 import {
   createPhotoUrlRow,
@@ -10,7 +10,6 @@ import {
 } from "@/lib/photo-url-rows";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import styles from "./admin.module.scss";
 
 export default function AdminHomePage() {
@@ -29,9 +28,7 @@ export default function AdminHomePage() {
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
   const [storyVideoUrl, setStoryVideoUrl] = useState("");
-  const storyVideoInputRef = useRef(null);
   const [storySaving, setStorySaving] = useState(false);
-  const [storyUploadProgress, setStoryUploadProgress] = useState(null);
   const [dragStoryId, setDragStoryId] = useState(null);
   const [storyDropTarget, setStoryDropTarget] = useState(null);
   const [storyOrderSaving, setStoryOrderSaving] = useState(false);
@@ -112,7 +109,6 @@ export default function AdminHomePage() {
     setEditingStoryId(null);
     setStoryTitle("");
     setStoryVideoUrl("");
-    if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
   }
 
   function startEditStory(item) {
@@ -120,7 +116,6 @@ export default function AdminHomePage() {
     setStoryTitle(item.title);
     setStoryVideoUrl(item.videoUrl);
     setMsg(null);
-    if (storyVideoInputRef.current) storyVideoInputRef.current.value = "";
   }
 
   function switchTab(id) {
@@ -551,31 +546,19 @@ export default function AdminHomePage() {
   async function saveStory(e) {
     e.preventDefault();
     setMsg(null);
-    const file = storyVideoInputRef.current?.files?.[0];
     const url = storyVideoUrl.trim();
     const isEditing = Boolean(editingStoryId);
 
-    if (!isEditing && !file && !url) {
-      setMsg("Выберите видеофайл или укажите прямую ссылку");
+    if (!isEditing && !url) {
+      setMsg("Укажите прямую ссылку на видео (https://…)");
       return;
     }
 
     setStorySaving(true);
-    setStoryUploadProgress(null);
     try {
       const currentStory = isEditing ? stories.find((s) => s.id === editingStoryId) : null;
       let videoUrl;
-      if (file) {
-        setStoryUploadProgress(0);
-        const pathname = `stories/${Date.now()}-${file.name.replace(/[^\w.\-()а-яА-ЯёЁ ]+/gu, "_")}`;
-        const blob = await upload(pathname, file, {
-          access: "public",
-          handleUploadUrl: "/api/admin/stories/upload",
-          multipart: file.size > 4.5 * 1024 * 1024,
-          onUploadProgress: ({ percentage }) => setStoryUploadProgress(percentage),
-        });
-        videoUrl = blob.url;
-      } else if (url && (!isEditing || url !== currentStory?.videoUrl)) {
+      if (url && (!isEditing || url !== currentStory?.videoUrl)) {
         videoUrl = url;
       }
 
@@ -601,10 +584,9 @@ export default function AdminHomePage() {
       setMsg(isEditing ? "Сторис обновлён" : "Сторис добавлен");
       await load();
     } catch (err) {
-      setMsg(err instanceof Error ? err.message : "Ошибка загрузки видео");
+      setMsg(err instanceof Error ? err.message : "Ошибка сохранения");
     } finally {
       setStorySaving(false);
-      setStoryUploadProgress(null);
     }
   }
 
@@ -940,14 +922,16 @@ export default function AdminHomePage() {
                     </div>
                   </div>
                   {albums.length > 1 ? (
-                    <button
-                      type="button"
-                      className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
-                      onClick={() => removeAlbum(alb.id, alb.title)}
-                      disabled={albumOrderSaving}
-                    >
-                      Удалить
-                    </button>
+                    <div className={styles.listActions}>
+                      <button
+                        type="button"
+                        className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
+                        onClick={() => removeAlbum(alb.id, alb.title)}
+                        disabled={albumOrderSaving}
+                      >
+                        Удалить
+                      </button>
+                    </div>
                   ) : null}
                 </div>
               </li>
@@ -1090,14 +1074,16 @@ export default function AdminHomePage() {
                     <div className={styles.listBody}>
                       <div className={styles.listMeta}>{x.src}</div>
                     </div>
-                    <button
-                      type="button"
-                      className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
-                      onClick={() => removePhoto(x.id)}
-                      disabled={photoOrderSaving}
-                    >
-                      Удалить
-                    </button>
+                    <div className={styles.listActions}>
+                      <button
+                        type="button"
+                        className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
+                        onClick={() => removePhoto(x.id)}
+                        disabled={photoOrderSaving}
+                      >
+                        Удалить
+                      </button>
+                    </div>
                   </div>
                 </li>
               );
@@ -1115,20 +1101,10 @@ export default function AdminHomePage() {
         <h2 className={styles.cardTitle}>{editingStoryId ? "Редактирование сторис" : "Новый сторис"}</h2>
         <p className={styles.cardDesc}>
           {editingStoryId
-            ? "Измените подпись или замените видео (новый файл или URL). Если видео не трогать — останется текущее."
-            : "Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ) или вставьте прямую ссылку (https). Достаточно одного способа; при выборе файла ссылка игнорируется."}
+            ? "Измените подпись или укажите новый URL видео. Если поле ссылки не менять — останется текущее видео."
+            : "Вставьте прямую ссылку на видео (https://…). Загрузка файла с компьютера временно отключена."}
         </p>
         <form onSubmit={saveStory}>
-          <div className={styles.field}>
-            <label htmlFor="st-file">Видеофайл{editingStoryId ? " (заменить)" : ""}</label>
-            <input
-              id="st-file"
-              ref={storyVideoInputRef}
-              type="file"
-              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
-              disabled={storySaving}
-            />
-          </div>
           <div className={styles.field}>
             <label htmlFor="st-url">URL видео{editingStoryId ? " (заменить)" : ""}</label>
             <input
@@ -1151,13 +1127,7 @@ export default function AdminHomePage() {
           </div>
           <div className={styles.formActions}>
             <button className={styles.btn} type="submit" disabled={storySaving}>
-              {storySaving
-                ? storyUploadProgress != null
-                  ? `Загрузка ${Math.round(storyUploadProgress)}%…`
-                  : "Сохранение…"
-                : editingStoryId
-                  ? "Сохранить"
-                  : "Добавить сторис"}
+              {storySaving ? "Сохранение…" : editingStoryId ? "Сохранить" : "Добавить сторис"}
             </button>
             {editingStoryId ? (
               <button
