@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "hover" as *;
 
 .section {
   padding-block: 5.5rem;
@@ -116,10 +117,12 @@
     opacity $transition-fast;
 }
 
-.btn:hover:not(:disabled) {
-  text-decoration: none;
-  background: transparent;
-  color: $color-text;
+@include media-hover {
+  .btn:hover:not(:disabled) {
+    text-decoration: none;
+    background: transparent;
+    color: $color-text;
+  }
 }
 
 .btn:disabled {
@@ -132,10 +135,12 @@
   color: $color-text;
   border-color: $color-border-strong;
 
-  &:hover:not(:disabled) {
-    border-color: $color-text;
-    background: transparent;
-    color: $color-text;
+  @include media-hover {
+    &:hover:not(:disabled) {
+      border-color: $color-text;
+      background: transparent;
+      color: $color-text;
+    }
   }
 }
 
@@ -154,8 +159,10 @@
   background: $color-bg;
   transition: background $transition-fast;
 
-  &:hover {
-    background: $color-surface;
+  @include media-hover {
+    &:hover {
+      background: $color-surface;
+    }
   }
 
   h3 {
@@ -209,8 +216,10 @@
   text-decoration: none;
   transition: color $transition-fast;
 
-  &:hover {
-    color: $color-text;
+  @include media-hover {
+    &:hover {
+      color: $color-text;
+    }
   }
 }
 
@@ -257,9 +266,11 @@
 .newsMediaLink {
   text-decoration: none;
 
-  &:hover {
-    text-decoration: none;
-    opacity: 0.88;
+  @include media-hover {
+    &:hover {
+      text-decoration: none;
+      opacity: 0.88;
+    }
   }
 }
 
@@ -363,8 +374,10 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 
-  &:hover {
-    opacity: 0.8;
+  @include media-hover {
+    &:hover {
+      opacity: 0.8;
+    }
   }
 }
 
@@ -386,8 +399,10 @@ button.proseLink {
   cursor: pointer;
   user-select: none;
 
-  &:hover .consentBox {
-    border-color: $color-border-strong;
+  @include media-hover {
+    &:hover .consentBox {
+      border-color: $color-border-strong;
+    }
   }
 }
 
@@ -460,8 +475,10 @@ button.proseLink {
     text-decoration: underline;
     text-underline-offset: 0.15em;
 
-    &:hover {
-      text-decoration: none;
+    @include media-hover {
+      &:hover {
+        text-decoration: none;
+      }
     }
   }
 }
@@ -524,8 +541,10 @@ button.proseLink {
   text-underline-offset: 0.25em;
   transition: opacity $transition-fast;
 
-  &:hover {
-    opacity: 0.75;
+  @include media-hover {
+    &:hover {
+      opacity: 0.75;
+    }
   }
 }
 

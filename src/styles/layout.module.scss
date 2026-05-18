@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "hover" as *;
 
 .header {
   position: sticky;
@@ -30,9 +31,11 @@
   transition: opacity $transition-fast;
 }
 
-.logo:hover {
-  text-decoration: none;
-  opacity: 0.75;
+@include media-hover {
+  .logo:hover {
+    text-decoration: none;
+    opacity: 0.75;
+  }
 }
 
 .nav {
@@ -71,12 +74,14 @@
     transition: transform $transition-base;
   }
 
-  &:hover {
-    color: $color-text;
-    text-decoration: none;
+  @include media-hover {
+    &:hover {
+      color: $color-text;
+      text-decoration: none;
 
-    &::after {
-      transform: scaleX(1);
+      &::after {
+        transform: scaleX(1);
+      }
     }
   }
 }
@@ -172,8 +177,10 @@
   cursor: pointer;
   padding: 0;
 
-  &:hover {
-    color: $color-text;
+  @include media-hover {
+    &:hover {
+      color: $color-text;
+    }
   }
 }
 
@@ -241,9 +248,11 @@
   transition: opacity $transition-fast;
   text-align: left;
 
-  &:hover {
-    opacity: 1;
-    text-decoration: none;
+  @include media-hover {
+    &:hover {
+      opacity: 1;
+      text-decoration: none;
+    }
   }
 }
 
@@ -282,8 +291,10 @@
   opacity: 0.85;
   transition: opacity $transition-fast;
 
-  &:hover {
-    opacity: 1;
-    text-decoration: none;
+  @include media-hover {
+    &:hover {
+      opacity: 1;
+      text-decoration: none;
+    }
   }
 }

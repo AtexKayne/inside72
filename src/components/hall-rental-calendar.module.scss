@@ -1,4 +1,5 @@
 @use "../styles/variables" as *;
+@use "hover" as *;
 
 $hour-height: 2.75rem;
 $slot-height: $hour-height * 0.5;
@@ -71,9 +72,11 @@ $hours-count: 13;
   cursor: pointer;
   transition: border-color $transition-fast, color $transition-fast, background $transition-fast;
 
-  &:hover {
-    border-color: $color-border-strong;
-    color: $color-text;
+  @include media-hover {
+    &:hover {
+      border-color: $color-border-strong;
+      color: $color-text;
+    }
   }
 }
 
@@ -162,9 +165,11 @@ $hours-count: 13;
     border-color 0.15s ease,
     transform 0.12s ease;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: $color-border-strong;
+  @include media-hover {
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: $color-border-strong;
+    }
   }
 
   &:active {
@@ -188,9 +193,11 @@ $hours-count: 13;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 
-  &:hover {
-    background: #1f1f1f;
-    border-color: #525252;
+  @include media-hover {
+    &:hover {
+      background: #1f1f1f;
+      border-color: #525252;
+    }
   }
 }
 
@@ -357,8 +364,10 @@ $hours-count: 13;
 .slotFree {
   background: #0c0c0c;
 
-  &:hover:not(:disabled) {
-    background: rgba(250, 250, 250, 0.08);
+  @include media-hover {
+    &:hover:not(:disabled) {
+      background: rgba(250, 250, 250, 0.08);
+    }
   }
 
   &:focus-visible {
@@ -564,9 +573,11 @@ $hours-count: 13;
   line-height: 1;
   cursor: pointer;
 
-  &:hover:not(:disabled) {
-    color: $color-text;
-    background: rgba(250, 250, 250, 0.08);
+  @include media-hover {
+    &:hover:not(:disabled) {
+      color: $color-text;
+      background: rgba(250, 250, 250, 0.08);
+    }
   }
 }
 

@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "hover" as *;
 
 @import "@fontsource-variable/manrope/index.css";
 
@@ -42,8 +43,10 @@ a {
   transition: color $transition-fast, opacity $transition-fast;
 }
 
-a:hover {
-  text-decoration: none;
+@include media-hover {
+  a:hover {
+    text-decoration: none;
+  }
 }
 
 img {

@@ -1,4 +1,5 @@
 @use "../styles/variables" as *;
+@use "hover" as *;
 
 .section {
   margin-top: 4rem;
@@ -74,8 +75,10 @@
   background: $color-bg;
   transition: background $transition-fast;
 
-  &:hover {
-    background: $color-surface;
+  @include media-hover {
+    &:hover {
+      background: $color-surface;
+    }
   }
 }
 
@@ -97,8 +100,10 @@
     text-underline-offset: 0.2em;
     transition: opacity $transition-fast;
 
-    &:hover {
-      opacity: 0.75;
+    @include media-hover {
+      &:hover {
+        opacity: 0.75;
+      }
     }
   }
 }
@@ -157,8 +162,10 @@
     text-underline-offset: 0.2em;
     white-space: nowrap;
 
-    &:hover {
-      opacity: 0.75;
+    @include media-hover {
+      &:hover {
+        opacity: 0.75;
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 @use "../styles/variables" as *;
+@use "hover" as *;
 
 .wrap {
   position: relative;
@@ -108,11 +109,13 @@
     background $transition-fast,
     color $transition-fast;
 
-  &:hover {
-    text-decoration: none;
-    border-color: $color-text;
-    background: rgba(245, 245, 245, 0.08);
-    color: $color-text;
+  @include media-hover {
+    &:hover {
+      text-decoration: none;
+      border-color: $color-text;
+      background: rgba(245, 245, 245, 0.08);
+      color: $color-text;
+    }
   }
 
   @media (max-width: 899px) {

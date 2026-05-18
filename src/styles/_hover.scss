@@ -1,0 +1,7 @@
+/// Apply nested rules only when the device supports true hover (mouse / trackpad).
+/// Avoids sticky `:hover` after tap on most phones and tablets.
+@mixin media-hover {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}

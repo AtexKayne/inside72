@@ -1,4 +1,5 @@
 @use "../styles/variables" as *;
+@use "hover" as *;
 
 .root {
   margin-top: 2.5rem;
@@ -24,9 +25,11 @@
   cursor: pointer;
   transition: border-color $transition-fast, color $transition-fast, background $transition-fast;
 
-  &:hover {
-    border-color: $color-border-strong;
-    color: $color-text;
+  @include media-hover {
+    &:hover {
+      border-color: $color-border-strong;
+      color: $color-text;
+    }
   }
 }
 

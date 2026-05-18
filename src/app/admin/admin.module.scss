@@ -1,4 +1,5 @@
 @use "../../styles/variables" as *;
+@use "hover" as *;
 
 .shell {
   min-height: 100vh;
@@ -51,8 +52,10 @@
     text-decoration: none;
     transition: color $transition-fast;
 
-    &:hover {
-      color: $color-text;
+    @include media-hover {
+      &:hover {
+        color: $color-text;
+      }
     }
   }
 }
@@ -155,9 +158,11 @@
     border-color $transition-fast,
     color $transition-fast;
 
-  &:hover:not(.mainTabActive) {
-    color: $color-text;
-    background: rgba(255, 255, 255, 0.04);
+  @include media-hover {
+    &:hover:not(.mainTabActive) {
+      color: $color-text;
+      background: rgba(255, 255, 255, 0.04);
+    }
   }
 
   &:focus-visible {
@@ -223,8 +228,10 @@
     text-underline-offset: 3px;
     text-decoration-color: rgba(255, 255, 255, 0.25);
 
-    &:hover {
-      text-decoration-color: $color-text;
+    @include media-hover {
+      &:hover {
+        text-decoration-color: $color-text;
+      }
     }
   }
 }
@@ -260,8 +267,10 @@
     color: $color-muted-soft;
   }
 
-  &:hover:not(:disabled) {
-    border-color: rgba(255, 255, 255, 0.22);
+  @include media-hover {
+    &:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
   }
 
   &:focus {
@@ -300,8 +309,10 @@
     cursor: pointer;
     transition: background $transition-fast;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
+    @include media-hover {
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
     }
   }
 }
@@ -348,9 +359,11 @@
     border-color $transition-fast,
     opacity $transition-fast;
 
-  &:hover:not(:disabled) {
-    background: transparent;
-    color: $color-text;
+  @include media-hover {
+    &:hover:not(:disabled) {
+      background: transparent;
+      color: $color-text;
+    }
   }
 
   &:focus-visible {
@@ -368,10 +381,12 @@
   color: $color-text;
   border-color: $color-border-strong;
 
-  &:hover:not(:disabled) {
-    border-color: $color-text;
-    background: transparent;
-    color: $color-text;
+  @include media-hover {
+    &:hover:not(:disabled) {
+      border-color: $color-text;
+      background: transparent;
+      color: $color-text;
+    }
   }
 }
 
@@ -380,10 +395,12 @@
   color: #fca5a5;
   border-color: rgba(252, 165, 165, 0.35);
 
-  &:hover:not(:disabled) {
-    border-color: #fca5a5;
-    color: #fef2f2;
-    background: rgba(127, 29, 29, 0.2);
+  @include media-hover {
+    &:hover:not(:disabled) {
+      border-color: #fca5a5;
+      color: #fef2f2;
+      background: rgba(127, 29, 29, 0.2);
+    }
   }
 }
 
@@ -571,9 +588,11 @@ form + .hint {
     border-color $transition-fast,
     background $transition-fast;
 
-  &:hover {
-    border-color: $color-border-strong;
-    background: rgba(255, 255, 255, 0.03);
+  @include media-hover {
+    &:hover {
+      border-color: $color-border-strong;
+      background: rgba(255, 255, 255, 0.03);
+    }
   }
 
   input[type="checkbox"] {
@@ -587,9 +606,11 @@ form + .hint {
   opacity: 0.5;
   cursor: default;
 
-  &:hover {
-    border-color: $color-border;
-    background: rgba(0, 0, 0, 0.25);
+  @include media-hover {
+    &:hover {
+      border-color: $color-border;
+      background: rgba(0, 0, 0, 0.25);
+    }
   }
 }
 
@@ -651,9 +672,11 @@ form + .hint {
     opacity $transition-fast,
     transform $transition-fast;
 
-  &:hover {
-    border-color: $color-border-strong;
-    background: rgba(255, 255, 255, 0.03);
+  @include media-hover {
+    &:hover {
+      border-color: $color-border-strong;
+      background: rgba(255, 255, 255, 0.03);
+    }
   }
 }
 
@@ -740,10 +763,12 @@ form + .hint {
     background $transition-fast,
     color $transition-fast;
 
-  &:hover:not(:disabled) {
-    border-color: rgba(255, 255, 255, 0.35);
-    background: rgba(255, 255, 255, 0.08);
-    color: $color-text;
+  @include media-hover {
+    &:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.08);
+      color: $color-text;
+    }
   }
 
   &:active:not(:disabled) {
