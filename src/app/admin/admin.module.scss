@@ -484,6 +484,10 @@
   color: $color-muted;
 }
 
+form + .hint {
+  margin-top: 1.25rem;
+}
+
 // —— Thumbnails ——
 
 .thumb {
