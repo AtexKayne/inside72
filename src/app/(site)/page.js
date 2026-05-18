@@ -4,7 +4,8 @@ import { SiteStories } from "@/components/SiteStories";
 import { TrialCta } from "@/components/TrialCta";
 import { getStories } from "@/lib/data-store";
 import pages from "@/styles/pages.module.scss";
-import bannerImage from "../../../public/banner-tanec-vnutri.png";
+import bannerImage from "../../../public/banner-tanec-vnutri.webp";
+import bannerImageFallback from "../../../public/banner-tanec-vnutri.png";
 
 export const metadata = {
   title: "Главная",
@@ -22,14 +23,17 @@ export default async function HomePage() {
 
       <section className={pages.promoBanner} aria-label="Танец внутри">
         <div className={pages.inner}>
-          <img
-            src={bannerImage.src}
-            alt="Inside — социальный хастл: научись танцевать в паре с нуля"
-            width={1024}
-            height={409}
-            className={pages.promoBannerImage}
-            fetchPriority="high"
-          />
+          <picture>
+            <source srcSet={bannerImage.src} type="image/webp" />
+            <img
+              src={bannerImageFallback.src}
+              alt="Inside — социальный хастл: научись танцевать в паре с нуля"
+              width={2560}
+              height={1023}
+              className={pages.promoBannerImage}
+              fetchPriority="high"
+            />
+          </picture>
         </div>
       </section>
 

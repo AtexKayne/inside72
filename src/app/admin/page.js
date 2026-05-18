@@ -610,52 +610,69 @@ export default function AdminHomePage() {
 
   return (
     <div className={styles.inner}>
-      <div className={styles.topBar}>
-        <div>
-          <h1 className={styles.title}>Админка</h1>
+      <header className={styles.header}>
+        <div className={styles.headerMain}>
+          <p className={styles.kicker}>Inside · Панель управления</p>
+          <h1 className={styles.title}>Контент сайта</h1>
           <nav className={styles.siteNav} aria-label="Переходы на сайт">
             <Link href="/">На главную</Link>
             {activeTab === "news" ? (
               <Link href="/news" target="_blank" rel="noopener noreferrer">
-                Раздел «Новости»
+                Раздел «Новости» ↗
               </Link>
             ) : null}
             {activeTab === "photos" ? (
               <Link href="/gallery" target="_blank" rel="noopener noreferrer">
-                Раздел «Галерея»
+                Раздел «Галерея» ↗
               </Link>
             ) : null}
           </nav>
         </div>
-        <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => logout()}>
-          Выйти
-        </button>
-      </div>
-      {msg ? <p className={styles.muted}>{msg}</p> : null}
-
-      <div className={styles.mainTabs} role="tablist" aria-label="Разделы админки">
-        {[
-          ["news", "Новости"],
-          ["photos", "Фото"],
-          ["stories", "Сторис"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === id}
-            className={activeTab === id ? styles.mainTabActive : styles.mainTab}
-            onClick={() => switchTab(id)}
-          >
-            {label}
+        <div className={styles.headerActions}>
+          <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => logout()}>
+            Выйти
           </button>
-        ))}
-      </div>
+        </div>
+      </header>
+      {msg ? (
+        <p
+          className={`${styles.toast} ${/ошибк|не удалось/i.test(msg) ? styles.toastError : styles.toastSuccess}`}
+          role="status"
+        >
+          {msg}
+        </p>
+      ) : null}
 
+      <div className={styles.layout}>
+        <aside className={styles.sidebar}>
+          <div className={styles.mainTabs} role="tablist" aria-label="Разделы админки">
+            {[
+              ["news", "Новости", news.length],
+              ["photos", "Фото", photos.length],
+              ["stories", "Сторис", stories.length],
+            ].map(([id, label, count]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === id}
+                className={activeTab === id ? styles.mainTabActive : styles.mainTab}
+                onClick={() => switchTab(id)}
+              >
+                {label}
+                <span className={styles.tabCount} aria-label={`${count} записей`}>
+                  {count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <div className={styles.content}>
       {activeTab === "news" ? (
       <section className={styles.card}>
-        <h2>Импорт из VK</h2>
-        <p className={styles.vkImportHint}>
+        <h2 className={styles.cardTitle}>Импорт из VK</h2>
+        <p className={styles.cardDesc}>
           Импорт постов как новостей из сообщества{" "}
           <a href="https://vk.com/inside_dance72" target="_blank" rel="noopener noreferrer">
             vk.com/inside_dance72
@@ -727,8 +744,7 @@ export default function AdminHomePage() {
         {vkHasMore ? (
           <button
             type="button"
-            className={`${styles.btn} ${styles.btnGhost}`}
-            style={{ marginTop: "1rem" }}
+            className={`${styles.btn} ${styles.btnGhost} ${styles.loadMoreBtn}`}
             disabled={vkLoading}
             onClick={() => loadVkPreview(true)}
           >
@@ -740,7 +756,7 @@ export default function AdminHomePage() {
 
       {activeTab === "news" ? (
       <section className={styles.card}>
-        <h2>{editingNewsId ? "Редактирование новости" : "Новая новость"}</h2>
+        <h2 className={styles.cardTitle}>{editingNewsId ? "Редактирование новости" : "Новая новость"}</h2>
         <form onSubmit={saveNews}>
           <div className={styles.field}>
             <label htmlFor="n-title">Заголовок</label>
@@ -765,7 +781,7 @@ export default function AdminHomePage() {
             <label htmlFor="n-body">Текст</label>
             <textarea id="n-body" value={body} onChange={(e) => setBody(e.target.value)} required />
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div className={styles.formActions}>
             <button className={styles.btn} type="submit">
               {editingNewsId ? "Сохранить" : "Добавить новость"}
             </button>
@@ -773,7 +789,6 @@ export default function AdminHomePage() {
               <button
                 type="button"
                 className={`${styles.btn} ${styles.btnGhost}`}
-                style={{ marginLeft: 0 }}
                 onClick={resetNewsForm}
               >
                 Отмена
@@ -783,20 +798,19 @@ export default function AdminHomePage() {
         </form>
 
         <div className={styles.subsection}>
-          <h3>Последние новости</h3>
-          <ul className={styles.list}>
+          <h3 className={styles.subsectionTitle}>Последние новости</h3>
+          <ul className={`${styles.list} ${styles.listPlain}`}>
             {news.map((x) => (
               <li key={x.id}>
                 <div className={styles.listRow}>
-                  <div>
-                    {x.title}
-                    <div className={styles.muted}>{new Date(x.createdAt).toLocaleString("ru-RU")}</div>
+                  <div className={styles.listBody}>
+                    <div className={styles.listTitle}>{x.title}</div>
+                    <div className={styles.listMeta}>{new Date(x.createdAt).toLocaleString("ru-RU")}</div>
                   </div>
                   <div className={styles.listActions}>
                     <button
                       type="button"
                       className={`${styles.btn} ${styles.btnGhost} ${styles.btnSmall}`}
-                      style={{ marginLeft: 0 }}
                       onClick={() => startEditNews(x)}
                     >
                       Редактировать
@@ -819,10 +833,10 @@ export default function AdminHomePage() {
 
       {activeTab === "photos" ? (
       <section className={styles.card}>
-        <h2>Фотографии</h2>
+        <h2 className={styles.cardTitle}>Фотографии</h2>
 
         <div className={styles.subsection}>
-          <h3>Альбомы</h3>
+          <h3 className={styles.subsectionTitle}>Альбомы</h3>
           <form onSubmit={addAlbum}>
           <div className={styles.field}>
             <label htmlFor="alb-title">Название альбома</label>
@@ -839,7 +853,7 @@ export default function AdminHomePage() {
           </button>
         </form>
         {albums.length > 1 ? (
-          <p className={styles.muted} style={{ marginTop: "1.25rem", marginBottom: 0 }}>
+          <p className={styles.hint}>
             Схватите элемент за ручку <span className={styles.storyDragHint}>⠿</span> и перетащите.
             Порядок альбомов совпадает с вкладками на странице «Галерея».
             {albumOrderSaving ? " Сохранение порядка…" : ""}
@@ -847,7 +861,6 @@ export default function AdminHomePage() {
         ) : null}
         <ul
           className={`${styles.list} ${albums.length > 1 ? styles.storySortList : ""}`}
-          style={{ marginTop: albums.length > 1 ? "0.75rem" : "1.5rem" }}
         >
           {albums.map((alb, index) => {
             const count = photos.filter((p) => p.albumId === alb.id).length;
@@ -920,9 +933,9 @@ export default function AdminHomePage() {
                       </span>
                     </button>
                   ) : null}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {alb.title}
-                    <div className={styles.muted}>
+                  <div className={styles.listBody}>
+                    <div className={styles.listTitle}>{alb.title}</div>
+                    <div className={styles.listMeta}>
                       {count} фото · {new Date(alb.createdAt).toLocaleString("ru-RU")}
                     </div>
                   </div>
@@ -944,8 +957,8 @@ export default function AdminHomePage() {
         </div>
 
         <div className={styles.subsection}>
-          <h3>Добавить фото</h3>
-        <p className={styles.muted} style={{ marginTop: 0 }}>
+          <h3 className={styles.subsectionTitle}>Добавить фото</h3>
+        <p className={styles.hint}>
           Вставьте ссылку (https://…) в поле — появится следующее. Повторяющиеся ссылки убираются автоматически.
         </p>
         <form onSubmit={addPhoto}>
@@ -991,9 +1004,9 @@ export default function AdminHomePage() {
         </div>
 
         <div className={styles.subsection}>
-          <h3>Фотографии в альбоме</h3>
+          <h3 className={styles.subsectionTitle}>Фотографии в альбоме</h3>
           {photosInAlbum.length > 1 ? (
-            <p className={styles.muted} style={{ marginTop: 0 }}>
+            <p className={styles.hint}>
               Схватите за ручку <span className={styles.storyDragHint}>⠿</span> и перетащите. Порядок
               совпадает с каруселью на сайте. Альбом выбирается в форме выше.
               {photoOrderSaving ? " Сохранение порядка…" : ""}
@@ -1073,20 +1086,9 @@ export default function AdminHomePage() {
                       </button>
                     ) : null}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={x.src}
-                      alt=""
-                      style={{
-                        width: 56,
-                        height: 56,
-                        objectFit: "cover",
-                        borderRadius: 8,
-                        flexShrink: 0,
-                        background: "#262626",
-                      }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className={styles.muted}>{x.src}</div>
+                    <img src={x.src} alt="" className={styles.thumb} />
+                    <div className={styles.listBody}>
+                      <div className={styles.listMeta}>{x.src}</div>
                     </div>
                     <button
                       type="button"
@@ -1102,15 +1104,16 @@ export default function AdminHomePage() {
             })}
           </ul>
           {photosInAlbum.length === 0 ? (
-            <p className={styles.muted}>В этом альбоме пока нет фотографий.</p>
-          ) : null}        </div>
+            <p className={styles.emptyHint}>В этом альбоме пока нет фотографий.</p>
+          ) : null}
+        </div>
       </section>
       ) : null}
 
       {activeTab === "stories" ? (
       <section className={styles.card}>
-        <h2>{editingStoryId ? "Редактирование сторис" : "Новый сторис"}</h2>
-        <p className={styles.muted} style={{ marginTop: 0 }}>
+        <h2 className={styles.cardTitle}>{editingStoryId ? "Редактирование сторис" : "Новый сторис"}</h2>
+        <p className={styles.cardDesc}>
           {editingStoryId
             ? "Измените подпись или замените видео (новый файл или URL). Если видео не трогать — останется текущее."
             : "Загрузите видео с компьютера (MP4, WebM, MOV — до 100 МБ) или вставьте прямую ссылку (https). Достаточно одного способа; при выборе файла ссылка игнорируется."}
@@ -1146,7 +1149,7 @@ export default function AdminHomePage() {
               placeholder="Например: Пробный урок"
             />
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div className={styles.formActions}>
             <button className={styles.btn} type="submit" disabled={storySaving}>
               {storySaving
                 ? storyUploadProgress != null
@@ -1160,7 +1163,6 @@ export default function AdminHomePage() {
               <button
                 type="button"
                 className={`${styles.btn} ${styles.btnGhost}`}
-                style={{ marginLeft: 0 }}
                 onClick={resetStoryForm}
                 disabled={storySaving}
               >
@@ -1171,9 +1173,9 @@ export default function AdminHomePage() {
         </form>
 
         <div className={styles.subsection}>
-          <h3>Загруженные сторис</h3>
+          <h3 className={styles.subsectionTitle}>Загруженные сторис</h3>
           {stories.length > 1 ? (
-            <p className={styles.muted} style={{ marginTop: 0 }}>
+            <p className={styles.hint}>
               Схватите элемент за ручку <span className={styles.storyDragHint}>⠿</span> и перетащите.
               Порядок в списке совпадает с главной (слева направо).
               {storyOrderSaving ? " Сохранение порядка…" : ""}
@@ -1247,26 +1249,18 @@ export default function AdminHomePage() {
                       playsInline
                       preload="metadata"
                       referrerPolicy="no-referrer"
-                      style={{
-                        width: 56,
-                        height: 100,
-                        objectFit: "cover",
-                        borderRadius: 8,
-                        flexShrink: 0,
-                        background: "#000",
-                      }}
+                      className={styles.thumbVideo}
                     />
-                    <div>
-                      {x.title}
-                      <div className={styles.muted}>{x.videoUrl}</div>
-                      <div className={styles.muted}>{new Date(x.createdAt).toLocaleString("ru-RU")}</div>
+                    <div className={styles.listBody}>
+                      <div className={styles.listTitle}>{x.title}</div>
+                      <div className={styles.listMeta}>{x.videoUrl}</div>
+                      <div className={styles.listMeta}>{new Date(x.createdAt).toLocaleString("ru-RU")}</div>
                     </div>
                     </div>
                     <div className={styles.listActions}>
                       <button
                         type="button"
                         className={`${styles.btn} ${styles.btnGhost} ${styles.btnSmall}`}
-                        style={{ marginLeft: 0 }}
                         onClick={() => startEditStory(x)}
                         disabled={storyOrderSaving || storySaving}
                       >
@@ -1289,6 +1283,8 @@ export default function AdminHomePage() {
         </div>
       </section>
       ) : null}
+        </div>
+      </div>
     </div>
   );
 }

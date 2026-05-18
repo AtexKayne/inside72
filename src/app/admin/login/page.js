@@ -38,45 +38,48 @@ function AdminLoginForm() {
   }
 
   return (
-    <div className={styles.inner}>
-      <h1 className={styles.title}>Вход</h1>
-      <p className={styles.lead}>Панель управления новостями и фотографиями студии Inside.</p>
-      <form onSubmit={onSubmit}>
-        <div className={styles.field}>
-          <label htmlFor="user">Логин</label>
-          <input
-            id="user"
-            name="username"
-            autoComplete="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className={styles.field}>
-          <label htmlFor="pass">Пароль</label>
-          <input
-            id="pass"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button className={styles.btn} type="submit" disabled={loading}>
-          {loading ? "Вход…" : "Войти"}
-        </button>
-        {error ? <p className={styles.error}>{error}</p> : null}
-      </form>
+    <div className={styles.loginWrap}>
+      <div className={styles.loginCard}>
+        <p className={styles.kicker}>Inside · Админ</p>
+        <h1 className={styles.title}>Вход</h1>
+        <p className={styles.lead}>Панель управления новостями, галереей и сторис студии.</p>
+        <form onSubmit={onSubmit}>
+          <div className={styles.field}>
+            <label htmlFor="user">Логин</label>
+            <input
+              id="user"
+              name="username"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="pass">Пароль</label>
+            <input
+              id="pass"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button className={styles.btn} type="submit" disabled={loading}>
+            {loading ? "Вход…" : "Войти"}
+          </button>
+          {error ? <p className={styles.error}>{error}</p> : null}
+        </form>
+      </div>
     </div>
   );
 }
 
 export default function AdminLoginPage() {
   return (
-    <Suspense fallback={<div className={styles.inner} aria-busy="true" />}>
+    <Suspense fallback={<div className={styles.loginWrap} aria-busy="true" />}>
       <AdminLoginForm />
     </Suspense>
   );
