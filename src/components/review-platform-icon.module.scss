@@ -1,0 +1,22 @@
+@use "../styles/variables" as *;
+
+.wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.svg {
+  display: block;
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+  overflow: visible;
+  transition: transform $transition-fast;
+}
+
+.wrap[data-platform="avito"] .svg {
+  width: 1.12rem;
+  height: 1.12rem;
+}

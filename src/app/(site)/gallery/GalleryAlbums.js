@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode } from "swiper/modules";
 import "swiper/css";
@@ -11,6 +11,12 @@ import g from "./gallery-albums.module.scss";
 /** Container side gutter (1.25rem at 16px root) — mobile full-bleed alignment only */
 const MOBILE_SLIDE_GUTTER_PX = 20;
 const MOBILE_MQ = "(max-width: 899px)";
+
+function getAlbumIdFromHash() {
+  const raw = window.location.hash.slice(1);
+  if (!raw) return null;
+  return decodeURIComponent(raw);
+}
 
 export function GalleryAlbums({ albums, photos }) {
   const [slideGutter, setSlideGutter] = useState(0);
@@ -37,7 +43,29 @@ export function GalleryAlbums({ albums, photos }) {
       .filter((a) => a.photos.length > 0);
   }, [albums, photos]);
 
-  const [activeId, setActiveId] = useState(() => albumsWithPhotos[0]?.id ?? null);
+  const resolveActiveId = useCallback(
+    (preferredId) => {
+      if (preferredId && albumsWithPhotos.some((a) => a.id === preferredId)) {
+        return preferredId;
+      }
+      return albumsWithPhotos[0]?.id ?? null;
+    },
+    [albumsWithPhotos],
+  );
+
+  const [activeId, setActiveId] = useState(() => resolveActiveId(null));
+
+  useEffect(() => {
+    setActiveId(resolveActiveId(getAlbumIdFromHash()));
+  }, [resolveActiveId]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      setActiveId(resolveActiveId(getAlbumIdFromHash()));
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, [resolveActiveId]);
 
   const active =
     albumsWithPhotos.find((a) => a.id === activeId) ?? albumsWithPhotos[0] ?? null;
@@ -79,12 +107,11 @@ export function GalleryAlbums({ albums, photos }) {
                 const isActive = active?.id === album.id;
                 return (
                   <SwiperSlide key={album.id} className={g.tabSlide}>
-                    <button
-                      type="button"
+                    <a
+                      href={`#${encodeURIComponent(album.id)}`}
                       role="tab"
                       aria-selected={isActive}
                       className={`${g.tab} ${isActive ? g.tabActive : ""}`}
-                      onClick={() => setActiveId(album.id)}
                     >
                       {cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -94,7 +121,7 @@ export function GalleryAlbums({ albums, photos }) {
                         <span className={g.tabTitle}>{album.title}</span>
                         <span className={g.count}>{album.photos.length} фото</span>
                       </span>
-                    </button>
+                    </a>
                   </SwiperSlide>
                 );
               })}
@@ -104,7 +131,7 @@ export function GalleryAlbums({ albums, photos }) {
       ) : null}
 
       {active ? (
-        <div role="tabpanel" className={g.panel} key={active.id}>
+        <div role="tabpanel" id={active.id} className={g.panel} key={active.id}>
           <GalleryGrid items={active.photos} />
         </div>
       ) : null}
