@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useTrialModal } from "@/contexts/TrialModalContext";
-import { useModalTransition } from "@/hooks/useModalTransition";
+import { MOBILE_MENU_EXIT_MS, useModalTransition } from "@/hooks/useModalTransition";
 import layout from "@/styles/layout.module.scss";
 
 const links = [
@@ -20,7 +20,10 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { open: trialOpen, openModal } = useTrialModal();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { mounted, exiting, handleAnimationEnd } = useModalTransition(menuOpen);
+  const { mounted, exiting, handleAnimationEnd } = useModalTransition(menuOpen, {
+    exitAnimationName: "mobileMenuBackdropOut",
+    exitMs: MOBILE_MENU_EXIT_MS,
+  });
 
   const closeMenu = useCallback(() => {
     if (!menuOpen || exiting) return;
@@ -99,9 +102,13 @@ export function SiteHeader() {
             if (e.target === e.currentTarget && !exiting) closeMenu();
           }}
         >
-          <div
-            className={`${layout.mobileNavInner} ${exiting ? layout.mobileNavInnerExiting : ""}`}
-          >
+          <div className={layout.mobileNavMotif} aria-hidden>
+            <div className={layout.mobileNavMotifFrame}>
+              <span className={`${layout.mobileNavLine} ${layout.mobileNavLineLeft}`} />
+              <span className={`${layout.mobileNavLine} ${layout.mobileNavLineRight}`} />
+            </div>
+          </div>
+          <div className={layout.mobileNavInner}>
             {links.map((l) => (
               <Link
                 key={l.href}

@@ -1,0 +1,172 @@
+@use "variables" as *;
+
+$mobile-menu-enter-duration: 0.5s;
+$mobile-menu-exit-duration: 0.45s;
+$mobile-menu-content-delay: 0.2s;
+$mobile-menu-content-duration: 0.35s;
+$mobile-menu-line-width: 1px;
+
+@keyframes mobileMenuBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mobileMenuBackdropOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+// Logo motif proportions (viewBox 100×100): x=31 / x=70, segment lengths 72.8% / 74.6%
+@keyframes mobileMenuLineLeftIn {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  28% {
+    transform: scaleY(0.42);
+    opacity: 0.92;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 0.92;
+  }
+}
+
+@keyframes mobileMenuLineRightIn {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  28% {
+    transform: scaleY(0.42);
+    opacity: 0.92;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 0.92;
+  }
+}
+
+@keyframes mobileMenuLineLeftOut {
+  from {
+    transform: scaleY(1);
+    opacity: 0.92;
+  }
+  to {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+@keyframes mobileMenuLineRightOut {
+  from {
+    transform: scaleY(1);
+    opacity: 0.92;
+  }
+  to {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+@keyframes mobileMenuContentIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mobileMenuContentOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@mixin mobile-menu-backdrop-enter {
+  animation: mobileMenuBackdropIn $mobile-menu-enter-duration $ease-out both;
+}
+
+@mixin mobile-menu-backdrop-exit {
+  animation: mobileMenuBackdropOut $mobile-menu-exit-duration $ease-out 0.14s both;
+  pointer-events: none;
+}
+
+@mixin mobile-menu-line-left-enter {
+  animation: mobileMenuLineLeftIn $mobile-menu-enter-duration $ease-out both;
+}
+
+@mixin mobile-menu-line-right-enter {
+  animation: mobileMenuLineRightIn $mobile-menu-enter-duration $ease-out both;
+}
+
+@mixin mobile-menu-line-left-exit {
+  animation: mobileMenuLineLeftOut $mobile-menu-exit-duration $ease-out both;
+}
+
+@mixin mobile-menu-line-right-exit {
+  animation: mobileMenuLineRightOut $mobile-menu-exit-duration $ease-out both;
+}
+
+@mixin mobile-menu-content-enter {
+  animation: mobileMenuContentIn $mobile-menu-content-duration $ease-out
+    $mobile-menu-content-delay both;
+}
+
+@mixin mobile-menu-content-exit {
+  animation: mobileMenuContentOut 0.2s $ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes mobileMenuBackdropIn {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mobileMenuBackdropOut {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes mobileMenuLineLeftIn,
+  @keyframes mobileMenuLineRightIn {
+    from,
+    to {
+      transform: scaleY(1);
+      opacity: 0.92;
+    }
+  }
+
+  @keyframes mobileMenuLineLeftOut,
+  @keyframes mobileMenuLineRightOut {
+    from,
+    to {
+      transform: scaleY(1);
+      opacity: 0;
+    }
+  }
+
+  @keyframes mobileMenuContentIn,
+  @keyframes mobileMenuContentOut {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+}

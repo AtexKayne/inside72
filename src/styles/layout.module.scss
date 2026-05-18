@@ -1,6 +1,6 @@
 @use "variables" as *;
 @use "hover" as *;
-@use "modal-animation" as modal;
+@use "mobile-menu-animation" as menu;
 
 .header {
   position: sticky;
@@ -147,29 +147,90 @@
   backdrop-filter: blur(24px);
 
   &:not(.mobileNavExiting) {
-    @include modal.modal-backdrop-enter;
+    @include menu.mobile-menu-backdrop-enter;
+
+    .mobileNavLineLeft {
+      @include menu.mobile-menu-line-left-enter;
+    }
+
+    .mobileNavLineRight {
+      @include menu.mobile-menu-line-right-enter;
+    }
+
+    .mobileNavInner {
+      @include menu.mobile-menu-content-enter;
+    }
+  }
+
+  &.mobileNavExiting {
+    @include menu.mobile-menu-backdrop-exit;
+
+    .mobileNavLineLeft {
+      @include menu.mobile-menu-line-left-exit;
+    }
+
+    .mobileNavLineRight {
+      @include menu.mobile-menu-line-right-exit;
+    }
+
+    .mobileNavInner {
+      @include menu.mobile-menu-content-exit;
+    }
   }
 }
 
-.mobileNavExiting {
-  @include modal.modal-backdrop-exit;
+.mobileNavMotif {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mobileNavMotifFrame {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - #{$header-height} - 4rem);
+  margin-bottom: 2rem;
+}
+
+.mobileNavLine {
+  position: absolute;
+  width: menu.$mobile-menu-line-width;
+  margin-left: -0.5px;
+  background: $color-text;
+  opacity: 0.92;
+  will-change: transform;
+}
+
+.mobileNavLineLeft {
+  left: 10%;
+  bottom: 0;
+  height: 72.8%;
+  transform: scaleY(0);
+  transform-origin: center bottom;
+}
+
+.mobileNavLineRight {
+  left: 90%;
+  top: 0;
+  height: 74.6%;
+  transform: scaleY(0);
+  transform-origin: center top;
 }
 
 .mobileNavInner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
   padding: 2rem;
   width: 100%;
-
-  &:not(.mobileNavInnerExiting) {
-    @include modal.modal-dialog-enter;
-  }
-}
-
-.mobileNavInnerExiting {
-  @include modal.modal-dialog-exit;
+  max-width: min(76vw, 18rem);
 }
 
 .mobileNav a,

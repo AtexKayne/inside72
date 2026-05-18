@@ -5,7 +5,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 /** Keep in sync with $modal-exit-duration in styles/_modal-animation.scss */
 export const MODAL_EXIT_MS = 300;
 
-export function useModalTransition(isOpen) {
+/** Keep in sync with $mobile-menu-exit-duration + backdrop delay in _mobile-menu-animation.scss */
+export const MOBILE_MENU_EXIT_MS = 590;
+
+/**
+ * @param {boolean} isOpen
+ * @param {{ exitAnimationName?: string; exitMs?: number }} [options]
+ */
+export function useModalTransition(isOpen, options = {}) {
+  const { exitAnimationName = "modalBackdropOut", exitMs = MODAL_EXIT_MS } = options;
   const [mounted, setMounted] = useState(isOpen);
   const [exiting, setExiting] = useState(false);
   const afterCloseRef = useRef(null);
@@ -34,17 +42,17 @@ export function useModalTransition(isOpen) {
       if (exitingRef.current) return;
       afterCloseRef.current = onAfterClose ?? null;
       setExiting(true);
-      exitTimerRef.current = setTimeout(completeExit, MODAL_EXIT_MS);
+      exitTimerRef.current = setTimeout(completeExit, exitMs);
     },
-    [completeExit],
+    [completeExit, exitMs],
   );
 
   const handleAnimationEnd = useCallback(
     (e) => {
-      if (!exitingRef.current || e.animationName !== "modalBackdropOut") return;
+      if (!exitingRef.current || e.animationName !== exitAnimationName) return;
       completeExit();
     },
-    [completeExit],
+    [completeExit, exitAnimationName],
   );
 
   useEffect(() => {
