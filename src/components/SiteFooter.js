@@ -34,18 +34,22 @@ export function SiteFooter() {
             <Link href="/teachers">Преподаватели</Link>
             <Link href="/arenda">Аренда зала</Link>
             <Link href="/about">О нас</Link>
-            <TrialCtaLink className={layout.footerTrialLink}>Запись на пробное</TrialCtaLink>
+            <TrialCtaLink>Запись на пробное</TrialCtaLink>
           </div>
         </div>
         <div>
           <p className={layout.footerTitle}>Документы</p>
           <div className={layout.footerLinks}>
             <Link href="/privacy">Политика персональных данных</Link>
-            <Link href="/admin/login">Вход для администратора</Link>
           </div>
         </div>
       </div>
-      <div className={layout.footerBottom}>© {new Date().getFullYear()} Inside. Все права защищены.</div>
+      <div className={layout.footerBottom}>
+        <span>© {new Date().getFullYear()} Inside. Все права защищены.</span>
+        <Link href="/admin/login" className={layout.footerAdminLink}>
+          Вход для администратора
+        </Link>
+      </div>
     </footer>
   );
 }
