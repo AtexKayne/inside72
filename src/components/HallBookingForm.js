@@ -173,7 +173,7 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
                 id="hall-comment"
                 name="comment"
                 value={comment}
-                placeholder="Например: удобнее связаться в Telegram или WhatsApp, ссылка на ВК или другую соцсеть"
+                placeholder="Например: удобнее связаться в Telegram или VK, или ссылка на другую соцсеть"
                 onChange={(e) => setComment(e.target.value)}
               />
             </div>
