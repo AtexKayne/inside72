@@ -6,6 +6,8 @@ import { formatBookingSlot } from "@/lib/hall-calendar";
 import { PhoneInput } from "@/components/PhoneInput";
 import { PersonalDataConsent } from "@/components/PersonalDataConsent";
 import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
+import { FormContactTabs } from "@/components/FormContactTabs";
+import { ContactAlexanderPanel } from "@/components/ContactAlexanderPanel";
 import { useCaptchaRequired } from "@/hooks/useCaptchaRequired";
 import { isRuPhoneComplete } from "@/lib/phone-mask";
 import pages from "@/styles/pages.module.scss";
@@ -143,57 +145,73 @@ export function HallBookingForm({ hallId, hallLabel, slotStart, slotEnd, onClose
         </h2>
         <p className={styles.modalSlot}>{slotLabel}</p>
 
-        {ok ? (
-          <p className={pages.formOk}>
-            Заявка отправлена. Администратор подтвердит запись и свяжется с вами.
-          </p>
-        ) : (
-          <form className={pages.form} onSubmit={onSubmit}>
-            <div className={pages.field}>
-              <label htmlFor="hall-name">Имя</label>
-              <input
-                id="hall-name"
-                name="name"
-                autoComplete="name"
-                required
-                minLength={2}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className={pages.field}>
-              <label htmlFor="hall-phone">Телефон</label>
-              <PhoneInput id="hall-phone" value={phone} onChange={setPhone} required />
-            </div>
-            <div className={pages.field}>
-              <label htmlFor="hall-comment">Комментарий</label>
-              <textarea
-                id="hall-comment"
-                name="comment"
-                value={comment}
-                placeholder="Например: удобнее связаться в Telegram или VK, или ссылка на другую соцсеть"
-                onChange={(e) => setComment(e.target.value)}
-              />
-            </div>
-            {captchaRequired ? (
-              <YandexSmartCaptchaField
-                resetKey={captchaResetKey}
-                onToken={setCaptchaToken}
-                onTokenExpired={() => setCaptchaToken("")}
-              />
-            ) : null}
-            {error ? <p className={pages.formError}>{error}</p> : null}
-            <PersonalDataConsent
-              id="hall-booking-consent"
-              checked={consent}
-              onChange={setConsent}
-              className={styles.modalConsent}
+        <FormContactTabs
+          idPrefix="hall-booking"
+          application={
+            ok ? (
+              <p className={pages.formOk}>
+                Заявка отправлена. Администратор подтвердит запись и свяжется с вами.
+              </p>
+            ) : (
+              <form className={pages.form} onSubmit={onSubmit}>
+                <div className={pages.field}>
+                  <label htmlFor="hall-name">Имя</label>
+                  <input
+                    id="hall-name"
+                    name="name"
+                    autoComplete="name"
+                    required
+                    minLength={2}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className={pages.field}>
+                  <label htmlFor="hall-phone">Телефон</label>
+                  <PhoneInput id="hall-phone" value={phone} onChange={setPhone} required />
+                </div>
+                <div className={pages.field}>
+                  <label htmlFor="hall-comment">Комментарий</label>
+                  <textarea
+                    id="hall-comment"
+                    name="comment"
+                    value={comment}
+                    placeholder="Например: удобнее связаться в Telegram или VK, или ссылка на другую соцсеть"
+                    onChange={(e) => setComment(e.target.value)}
+                  />
+                </div>
+                {captchaRequired ? (
+                  <YandexSmartCaptchaField
+                    resetKey={captchaResetKey}
+                    onToken={setCaptchaToken}
+                    onTokenExpired={() => setCaptchaToken("")}
+                  />
+                ) : null}
+                {error ? <p className={pages.formError}>{error}</p> : null}
+                <PersonalDataConsent
+                  id="hall-booking-consent"
+                  checked={consent}
+                  onChange={setConsent}
+                  className={styles.modalConsent}
+                />
+                <button className={pages.btn} type="submit" disabled={!canSubmit}>
+                  {loading ? "Отправка…" : "Отправить заявку"}
+                </button>
+              </form>
+            )
+          }
+          direct={
+            <ContactAlexanderPanel
+              idPrefix="hall-alexander"
+              intent="hall-booking"
+              name={name}
+              phone={phone}
+              comment={comment}
+              hallLabel={hallLabel}
+              slotLabel={slotLabel}
             />
-            <button className={pages.btn} type="submit" disabled={!canSubmit}>
-              {loading ? "Отправка…" : "Отправить заявку"}
-            </button>
-          </form>
-        )}
+          }
+        />
       </div>
     </div>
   );

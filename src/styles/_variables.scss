@@ -111,3 +111,24 @@ $transition-base: 0.35s $ease-out;
     background: transparent;
   }
 }
+
+// Сброс светлой подсветки браузерного autofill на тёмной теме
+@mixin autofill-dark($bg: $color-bg-elevated, $bg-focus: $color-surface) {
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:autofill {
+    -webkit-box-shadow: 0 0 0 1000px #{$bg} inset !important;
+    box-shadow: 0 0 0 1000px #{$bg} inset !important;
+    -webkit-text-fill-color: #{$color-text} !important;
+    caret-color: #{$color-text};
+    transition: background-color 9999s ease-out 0s;
+  }
+
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #{$bg-focus} inset !important;
+    box-shadow: 0 0 0 1000px #{$bg-focus} inset !important;
+    -webkit-text-fill-color: #{$color-text} !important;
+    caret-color: #{$color-text};
+  }
+}

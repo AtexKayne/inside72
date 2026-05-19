@@ -1,0 +1,76 @@
+@use "../styles/variables" as *;
+@use "hover" as *;
+
+.panel {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.lead {
+  margin: 0;
+  color: $color-muted;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.messageTextarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  color: $color-muted;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.copyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.copyOk {
+  color: $color-muted;
+  font-size: 0.8rem;
+}
+
+.linksLead {
+  margin: 0.25rem 0 0;
+  color: $color-muted;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.85rem;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border;
+  background: $color-bg-elevated;
+  color: $color-text;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: border-color $transition-fast, background $transition-fast, color $transition-fast;
+
+  @include media-hover {
+    &:hover {
+      border-color: $color-border-strong;
+      background: $color-surface;
+    }
+  }
+}

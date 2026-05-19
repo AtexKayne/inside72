@@ -311,6 +311,7 @@
   border: 1px solid $color-border;
   background: $color-bg-elevated;
   transition: border-color $transition-fast, background $transition-fast;
+  @include autofill-dark($color-bg-elevated, $color-surface);
 
   &:focus {
     outline: none;

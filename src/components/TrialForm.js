@@ -5,6 +5,8 @@ import pages from "@/styles/pages.module.scss";
 import { PhoneInput } from "@/components/PhoneInput";
 import { PersonalDataConsent } from "@/components/PersonalDataConsent";
 import { YandexSmartCaptchaField } from "@/components/YandexSmartCaptchaField";
+import { FormContactTabs } from "@/components/FormContactTabs";
+import { ContactAlexanderPanel } from "@/components/ContactAlexanderPanel";
 import { useCaptchaRequired } from "@/hooks/useCaptchaRequired";
 import { isRuPhoneComplete } from "@/lib/phone-mask";
 
@@ -82,46 +84,60 @@ export function TrialForm({ idPrefix = "trial" }) {
   }
 
   return (
-    <form className={pages.form} onSubmit={onSubmit}>
-      <div className={pages.field}>
-        <label htmlFor={`${idPrefix}-name`}>Имя</label>
-        <input
-          id={`${idPrefix}-name`}
-          name="name"
-          autoComplete="name"
-          required
-          minLength={2}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+    <FormContactTabs
+      idPrefix={`${idPrefix}-contact`}
+      application={
+        <form className={pages.form} onSubmit={onSubmit}>
+          <div className={pages.field}>
+            <label htmlFor={`${idPrefix}-name`}>Имя</label>
+            <input
+              id={`${idPrefix}-name`}
+              name="name"
+              autoComplete="name"
+              required
+              minLength={2}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className={pages.field}>
+            <label htmlFor={`${idPrefix}-phone`}>Телефон</label>
+            <PhoneInput id={`${idPrefix}-phone`} value={phone} onChange={setPhone} required />
+          </div>
+          <div className={pages.field}>
+            <label htmlFor={`${idPrefix}-comment`}>Комментарий</label>
+            <textarea
+              id={`${idPrefix}-comment`}
+              name="comment"
+              value={comment}
+              placeholder="Например: удобнее связаться в Telegram или VK, или ссылка на другую соцсеть"
+              onChange={(e) => setComment(e.target.value)}
+            />
+          </div>
+          {captchaRequired ? (
+            <YandexSmartCaptchaField
+              resetKey={captchaResetKey}
+              onToken={setCaptchaToken}
+              onTokenExpired={() => setCaptchaToken("")}
+            />
+          ) : null}
+          {error ? <p className={pages.formError}>{error}</p> : null}
+          {ok ? <p className={pages.formOk}>Заявка отправлена. Мы свяжемся с вами.</p> : null}
+          <PersonalDataConsent id={`${idPrefix}-consent`} checked={consent} onChange={setConsent} />
+          <button className={pages.btn} type="submit" disabled={!canSubmit}>
+            {loading ? "Отправка…" : "Отправить заявку"}
+          </button>
+        </form>
+      }
+      direct={
+        <ContactAlexanderPanel
+          idPrefix={`${idPrefix}-alexander`}
+          intent="trial"
+          name={name}
+          phone={phone}
+          comment={comment}
         />
-      </div>
-      <div className={pages.field}>
-        <label htmlFor={`${idPrefix}-phone`}>Телефон</label>
-        <PhoneInput id={`${idPrefix}-phone`} value={phone} onChange={setPhone} required />
-      </div>
-      <div className={pages.field}>
-        <label htmlFor={`${idPrefix}-comment`}>Комментарий</label>
-        <textarea
-          id={`${idPrefix}-comment`}
-          name="comment"
-          value={comment}
-          placeholder="Например: удобнее связаться в Telegram или VK, или ссылка на другую соцсеть"
-          onChange={(e) => setComment(e.target.value)}
-        />
-      </div>
-      {captchaRequired ? (
-        <YandexSmartCaptchaField
-          resetKey={captchaResetKey}
-          onToken={setCaptchaToken}
-          onTokenExpired={() => setCaptchaToken("")}
-        />
-      ) : null}
-      {error ? <p className={pages.formError}>{error}</p> : null}
-      {ok ? <p className={pages.formOk}>Заявка отправлена. Мы свяжемся с вами.</p> : null}
-      <PersonalDataConsent id={`${idPrefix}-consent`} checked={consent} onChange={setConsent} />
-      <button className={pages.btn} type="submit" disabled={!canSubmit}>
-        {loading ? "Отправка…" : "Отправить заявку"}
-      </button>
-    </form>
+      }
+    />
   );
 }

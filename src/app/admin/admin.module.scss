@@ -287,6 +287,8 @@
     opacity: 0.45;
     cursor: not-allowed;
   }
+
+  @include autofill-dark(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.5));
 }
 
 .field input[type="file"] {

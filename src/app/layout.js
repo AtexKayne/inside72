@@ -34,8 +34,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ru">
-      <body>
+    <html lang="ru" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <JsonLd />
         <SiteShell>{children}</SiteShell>
       </body>

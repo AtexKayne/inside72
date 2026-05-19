@@ -12,6 +12,7 @@
 html {
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
+  color-scheme: dark;
 }
 
 :root,
@@ -65,6 +66,7 @@ textarea,
 select {
   font: inherit;
   color: inherit;
+  @include autofill-dark;
 }
 
 h1,

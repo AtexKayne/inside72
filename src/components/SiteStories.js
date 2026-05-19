@@ -18,11 +18,7 @@ const VIDEO_PROPS = {
 };
 
 function useFineHover() {
-  const [hasFineHover, setHasFineHover] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(hover: hover) and (pointer: fine)").matches
-  );
+  const [hasFineHover, setHasFineHover] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
