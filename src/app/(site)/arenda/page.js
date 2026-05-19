@@ -1,14 +1,15 @@
 import { HallRentalCalendar } from "@/components/HallRentalCalendar";
 import { HallRentalInfoTabs } from "@/components/HallRentalInfoTabs";
 import { hallRentalInfo } from "@/lib/hall-rental";
+import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Аренда зала",
   description:
     "Аренда танцевального зала Inside в Тюмени: разовая и постоянная почасовая аренда от 500 ₽/час. Запись по календарю, ул. Герцена, 82/1.",
-  alternates: { canonical: "/arenda" },
-};
+  pathname: "/arenda",
+});
 
 export default function HallRentalPage() {
   const info = hallRentalInfo;

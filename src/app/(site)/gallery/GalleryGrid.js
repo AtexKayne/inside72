@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useModalTransition } from "@/hooks/useModalTransition";
 import g from "./gallery-grid.module.scss";
 
-export function GalleryGrid({ items }) {
+export function GalleryGrid({ items, albumTitle = "студии Inside" }) {
   const [index, setIndex] = useState(null);
   const [displayIndex, setDisplayIndex] = useState(null);
   const open = index !== null;
@@ -63,7 +63,7 @@ export function GalleryGrid({ items }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={photo.src}
-              alt=""
+              alt={photo.caption || `Фото из альбома «${albumTitle}»`}
               className={g.thumb}
               loading="lazy"
               sizes="(min-width: 900px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -141,7 +141,11 @@ export function GalleryGrid({ items }) {
 
           <figure className={g.figure} onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={active.src} alt="" className={g.lightboxImg} />
+            <img
+              src={active.src}
+              alt={active.caption || `Фото из альбома «${albumTitle}»`}
+              className={g.lightboxImg}
+            />
             {active.caption ? <figcaption className={g.caption}>{active.caption}</figcaption> : null}
             <span className={g.counter}>
               {displayIndex + 1} / {items.length}

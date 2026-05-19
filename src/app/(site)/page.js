@@ -3,15 +3,18 @@ import { HomeHeroSwiper } from "@/components/HomeHeroSwiper";
 import { SiteStories } from "@/components/SiteStories";
 import { TrialCta } from "@/components/TrialCta";
 import { getStories } from "@/lib/data-store";
+import { pageMetadata, siteSeo } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import bannerImage from "../../../public/banner-tanec-vnutri.webp";
 import bannerImageFallback from "../../../public/banner-tanec-vnutri.png";
 
 export const metadata = {
-  title: "Главная",
-  description:
-    "Студия Inside в Тюмени — социальный хастл с нуля. Парная не нужна, группы стартуют каждый месяц. Опытные преподаватели и дружное сообщество.",
-  alternates: { canonical: "/" },
+  ...pageMetadata({
+    description:
+      "Студия Inside в Тюмени — социальный хастл с нуля. Парная не нужна, группы стартуют каждый месяц. Опытные преподаватели и дружное сообщество.",
+    pathname: "/",
+  }),
+  title: { absolute: siteSeo.defaultTitle },
 };
 
 export default async function HomePage() {

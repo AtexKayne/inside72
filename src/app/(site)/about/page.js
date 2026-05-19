@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { SiteContacts } from "@/components/SiteContacts";
 import { TrialCta } from "@/components/TrialCta";
+import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import styles from "./about-page.module.scss";
 
-export const metadata = {
-  title: "О нас",
+export const metadata = pageMetadata({
+  title: "О студии",
   description:
-    "Студия Inside: преподаватели, адрес на ул. Герцена, часы работы и как добраться до зала.",
-  alternates: { canonical: "/about" },
-};
+    "Студия хастла Inside в Тюмени: адрес на ул. Герцена, 82/1, часы работы, как добраться и записаться на пробное занятие.",
+  pathname: "/about",
+});
 
 const stats = [
   { value: "70%", label: "приходят без пары" },

@@ -1,15 +1,17 @@
 import { getAlbums, getPhotos } from "@/lib/data-store";
 import { GalleryAlbums } from "./GalleryAlbums";
+import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import styles from "./gallery-page.module.scss";
 
 export const revalidate = 30;
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Фотографии",
-  description: "Фотографии со занятий и мероприятий студии Inside.",
-  alternates: { canonical: "/gallery" },
-};
+  description:
+    "Фотографии со занятий, вечеринок и мероприятий студии хастла Inside в Тюмени.",
+  pathname: "/gallery",
+});
 
 function pluralAlbums(n) {
   const mod10 = n % 10;

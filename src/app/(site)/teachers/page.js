@@ -6,15 +6,16 @@ import {
   teachersOutro,
   teachersValues,
 } from "@/lib/teachers";
+import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import styles from "./teachers-page.module.scss";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Преподаватели",
   description:
-    "Основатели студии Inside — Александр Резчиков и Ольга Иванова. Хастл с нуля, системное обучение и опыт преподавания.",
-  alternates: { canonical: "/teachers" },
-};
+    "Преподаватели студии Inside в Тюмени — Александр Резчиков и Ольга Иванова. Хастл с нуля, системное обучение и опыт в парном танце.",
+  pathname: "/teachers",
+});
 
 const stats = [
   { value: "100+", label: "танцоров с нуля" },

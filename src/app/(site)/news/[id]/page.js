@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLdScript } from "@/components/JsonLd";
 import { NewsCard } from "@/components/NewsCard";
 import { TrialCta } from "@/components/TrialCta";
 import { getNews } from "@/lib/data-store";
+import { breadcrumbJsonLd, newsArticleJsonLd, pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import styles from "./news-detail-page.module.scss";
 
@@ -23,16 +25,14 @@ export async function generateMetadata({ params }) {
   const item = items.find((x) => x.id === id);
   if (!item) return { title: "Новость" };
   const ogImage = item.images?.[0];
-  return {
+  return pageMetadata({
     title: item.title,
-    description: item.excerpt,
-    alternates: { canonical: `/news/${item.id}` },
-    openGraph: {
-      title: item.title,
-      description: item.excerpt,
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
-    },
-  };
+    description: item.excerpt || item.title,
+    pathname: `/news/${item.id}`,
+    type: "article",
+    publishedTime: item.createdAt,
+    ...(ogImage ? { ogImage: { url: ogImage, alt: item.title } } : {}),
+  });
 }
 
 function formatDate(iso) {
@@ -64,8 +64,27 @@ export default async function NewsItemPage({ params }) {
     .filter((x) => x.id !== item.id)
     .slice(0, 3);
 
+  const imageAlt = (index) =>
+    index === 0 ? item.title : `${item.title} — фото ${index + 1}`;
+
   return (
     <section className={pages.section}>
+      <JsonLdScript
+        data={breadcrumbJsonLd([
+          { name: "Главная", path: "/" },
+          { name: "Новости", path: "/news" },
+          { name: item.title, path: `/news/${item.id}` },
+        ])}
+      />
+      <JsonLdScript
+        data={newsArticleJsonLd({
+          title: item.title,
+          description: item.excerpt || item.title,
+          pathname: `/news/${item.id}`,
+          publishedAt: item.createdAt,
+          image: heroImage,
+        })}
+      />
       <div className={pages.inner}>
         <nav className={styles.nav} aria-label="Навигация">
           <Link href="/news" className={pages.backLink}>
@@ -99,14 +118,24 @@ export default async function NewsItemPage({ params }) {
           <div className={styles.gallery}>
             <figure className={styles.heroFigure}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={heroImage} alt="" loading="eager" referrerPolicy="no-referrer" />
+              <img
+                src={heroImage}
+                alt={imageAlt(0)}
+                loading="eager"
+                referrerPolicy="no-referrer"
+              />
             </figure>
             {restImages.length > 0 ? (
               <div className={styles.gridFigures}>
-                {restImages.map((src) => (
+                {restImages.map((src, i) => (
                   <figure key={src} className={styles.gridFigure}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                    <img
+                      src={src}
+                      alt={imageAlt(i + 1)}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
                   </figure>
                 ))}
               </div>

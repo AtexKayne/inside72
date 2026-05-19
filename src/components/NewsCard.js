@@ -20,7 +20,12 @@ export function NewsCard({ item, dateLabel, variant = "default", index = 0 }) {
           {image ? (
             <figure className={styles.featuredMedia}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image} alt="" loading="eager" referrerPolicy="no-referrer" />
+              <img
+                src={image}
+                alt={item.title}
+                loading="eager"
+                referrerPolicy="no-referrer"
+              />
               <span className={styles.featuredMediaOverlay} aria-hidden="true" />
             </figure>
           ) : null}
@@ -53,7 +58,7 @@ export function NewsCard({ item, dateLabel, variant = "default", index = 0 }) {
         {image ? (
           <figure className={`${styles.media} ${styles[mediaVariant]}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" />
+            <img src={image} alt={item.title} loading="lazy" referrerPolicy="no-referrer" />
             <span className={styles.mediaOverlay} aria-hidden="true" />
           </figure>
         ) : null}

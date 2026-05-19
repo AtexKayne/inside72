@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { siteContacts } from "@/lib/site-contacts";
+import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 
-export const metadata = {
-  title: "Политика обработки персональных данных",
+export const metadata = pageMetadata({
+  title: "Политика персональных данных",
   description:
-    "Политика обработки персональных данных студии Inside: цели, состав данных, сроки хранения и права субъектов.",
-  alternates: { canonical: "/privacy" },
-};
+    "Политика обработки персональных данных студии Inside в Тюмени: цели, состав данных, сроки хранения и права субъектов.",
+  pathname: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

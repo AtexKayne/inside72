@@ -2,34 +2,30 @@ import "@/styles/globals.scss";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteShell } from "@/components/SiteShell";
 import { getSiteUrl } from "@/lib/site";
+import { pageMetadata, siteSeo } from "@/lib/seo";
 
 const siteUrl = getSiteUrl();
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Inside — студия танца хастл",
-    template: "%s | Inside",
+    default: siteSeo.defaultTitle,
+    template: siteSeo.titleTemplate,
   },
-  description:
-    "Танцевальная студия Inside: обучение хастлу, группы с нуля, пробное занятие. Москва.",
-  keywords: ["хастл", "танцы", "студия Inside", "парный танец", "обучение танцам", "Inside"],
-  alternates: { canonical: "/" },
-  openGraph: {
-    type: "website",
-    locale: "ru_RU",
-    url: siteUrl,
-    siteName: "Inside",
-    title: "Inside — студия танца хастл",
-    description: "Обучение хастлу в студии Inside. Новости, фото, запись на пробное.",
-    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Inside" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Inside — студия танца хастл",
-    description: "Обучение хастлу в студии Inside.",
-  },
+  description: siteSeo.defaultDescription,
+  keywords: siteSeo.keywords,
+  openGraph: pageMetadata({ pathname: "/" }).openGraph,
+  twitter: pageMetadata({ pathname: "/" }).twitter,
   robots: { index: true, follow: true },
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
+  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({ children }) {

@@ -1,15 +1,17 @@
 import { NewsCard } from "@/components/NewsCard";
 import { getNews } from "@/lib/data-store";
+import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import styles from "./news-page.module.scss";
 
 export const revalidate = 30;
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Новости",
-  description: "Новости танцевальной студии Inside: наборы, мастер-классы и события.",
-  alternates: { canonical: "/news" },
-};
+  description:
+    "Новости студии хастла Inside в Тюмени: наборы в группы, мастер-классы и события сообщества.",
+  pathname: "/news",
+});
 
 function formatDate(iso) {
   return new Intl.DateTimeFormat("ru-RU", {

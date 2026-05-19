@@ -1,0 +1,163 @@
+@use "../styles/variables" as *;
+@use "hover" as *;
+
+.section {
+  position: relative;
+  padding-block: clamp(3rem, 8vh, 5.5rem) clamp(4rem, 10vh, 6rem);
+  overflow: hidden;
+}
+
+.inner {
+  @include container;
+  position: relative;
+  z-index: 1;
+}
+
+.motif {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.motifLine {
+  position: absolute;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 35%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  opacity: 0.85;
+
+  &:nth-child(1) {
+    left: 12%;
+    top: 8%;
+    height: min(52vh, 420px);
+    transform: rotate(-18deg);
+    transform-origin: top center;
+  }
+
+  &:nth-child(2) {
+    right: 14%;
+    top: 18%;
+    height: min(44vh, 360px);
+    transform: rotate(14deg);
+    transform-origin: top center;
+  }
+}
+
+.code {
+  margin: 0 0 0.5rem;
+  font-family: $font-sans;
+  font-size: clamp(5.5rem, 18vw, 9.5rem);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  color: transparent;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  user-select: none;
+}
+
+.hero {
+  max-width: 40rem;
+  margin-bottom: 3.5rem;
+  padding-bottom: 2.75rem;
+  border-bottom: 1px solid $color-border;
+}
+
+.title {
+  @include display-heading;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  margin: 0 0 1.25rem;
+}
+
+.lead {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: $color-muted;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 2rem;
+}
+
+.linksLabel {
+  @include label-caps;
+  margin: 0 0 1.25rem;
+}
+
+.linksGrid {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  background: $color-border;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+}
+
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.35rem 1.25rem;
+  background: $color-bg;
+  text-decoration: none;
+  transition: background $transition-fast;
+
+  @include media-hover {
+    &:hover {
+      background: $color-surface;
+      text-decoration: none;
+
+      .linkTitle {
+        color: $color-text;
+      }
+
+      .linkArrow {
+        transform: translateX(3px);
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.linkTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: $font-sans;
+  font-size: 1rem;
+  font-weight: 500;
+  color: $color-text;
+  transition: color $transition-fast;
+}
+
+.linkArrow {
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition:
+    transform $transition-fast,
+    opacity $transition-fast;
+}
+
+.linkDesc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: $color-muted;
+}

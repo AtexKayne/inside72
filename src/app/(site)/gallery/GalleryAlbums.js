@@ -115,7 +115,11 @@ export function GalleryAlbums({ albums, photos }) {
                     >
                       {cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={cover} alt="" className={g.thumb} />
+                        <img
+                          src={cover}
+                          alt={`Обложка альбома «${album.title}»`}
+                          className={g.thumb}
+                        />
                       ) : null}
                       <span className={g.tabText}>
                         <span className={g.tabTitle}>{album.title}</span>
@@ -132,7 +136,7 @@ export function GalleryAlbums({ albums, photos }) {
 
       {active ? (
         <div role="tabpanel" id={active.id} className={g.panel} key={active.id}>
-          <GalleryGrid items={active.photos} />
+          <GalleryGrid items={active.photos} albumTitle={active.title} />
         </div>
       ) : null}
     </div>
