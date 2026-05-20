@@ -40,7 +40,7 @@ export default async function NewsPage() {
           <p className={pages.pageKicker}>Студия Inside</p>
           <h1 className={pages.pageTitle}>Новости</h1>
           <p className={pages.pageLead}>
-            Наборы, мастер-классы, отчёты с мероприятий и всё, что происходит в студии.
+            Наборы, мастер-классы, отчёты с мероприятий и всё, что происходит в нашей студии.
           </p>
           {items.length > 0 ? (
             <div className={styles.meta}>
