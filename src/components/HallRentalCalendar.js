@@ -15,6 +15,7 @@ import {
   getHallSlots,
   getWeekDays,
   isSlotBusy,
+  isSlotIndexPast,
   isSlotRangeFree,
   slotEndFromIndex,
   slotRangeWithMinRental,
@@ -250,6 +251,7 @@ export function HallRentalCalendar({ compact = false }) {
   }
 
   function isSlotFree(ymd, slotIndex) {
+    if (isSlotIndexPast(ymd, slotIndex)) return false;
     const slotStart = slotStartFromIndex(ymd, slotIndex);
     const slotEnd = slotEndFromIndex(ymd, slotIndex);
     return !isSlotBusy(events, slotStart, slotEnd);
@@ -396,6 +398,11 @@ export function HallRentalCalendar({ compact = false }) {
         </div>
       </div>
 
+      {selectionError === "past" ? (
+        <p className={styles.alert} role="alert">
+          Нельзя записаться на прошедшее время. Выберите будущий интервал.
+        </p>
+      ) : null}
       {selectionError === "busy" ? (
         <p className={styles.alert} role="alert">
           В выбранном интервале есть занятое время. Выберите только свободные слоты подряд.
@@ -469,7 +476,8 @@ export function HallRentalCalendar({ compact = false }) {
                 >
                   <div className={styles.dayGrid}>
                     {SLOTS.map((slot) => {
-                      const busy = !isSlotFree(ymd, slot.index);
+                      const past = isSlotIndexPast(ymd, slot.index);
+                      const busy = past || !isSlotFree(ymd, slot.index);
                       const inPreview =
                         preview &&
                         !busy &&
@@ -492,9 +500,11 @@ export function HallRentalCalendar({ compact = false }) {
                           style={{ gridRow: slot.index + 1 }}
                           aria-disabled={busy || loading}
                           aria-label={
-                            busy
-                              ? `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — ${BUSY_LABEL}`
-                              : `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — выбрать`
+                            past
+                              ? `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — прошедшее время`
+                              : busy
+                                ? `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — ${BUSY_LABEL}`
+                                : `${formatDayHeader(day)}, ${formatSlotTime(slot.hour, slot.minute)} — выбрать`
                           }
                         />
                       );

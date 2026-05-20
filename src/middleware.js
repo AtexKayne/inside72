@@ -4,6 +4,10 @@ import { verifyAdminToken, ADMIN_COOKIE_NAME } from "@/lib/auth-token";
 const ADMIN_PREFIX = "/admin";
 const LOGIN = "/admin/login";
 
+function isLocalhost(hostname) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
 /** 308 на основной домен из NEXT_PUBLIC_SITE_URL (www ↔ без www). */
 function canonicalHostRedirect(request) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -13,6 +17,9 @@ function canonicalHostRedirect(request) {
     const canonical = new URL(siteUrl);
     const requestHost = request.headers.get("host");
     if (!requestHost || requestHost === canonical.host) return null;
+
+    const requestHostname = requestHost.split(":")[0];
+    if (isLocalhost(canonical.hostname) || isLocalhost(requestHostname)) return null;
 
     const redirect = request.nextUrl.clone();
     redirect.protocol = canonical.protocol;

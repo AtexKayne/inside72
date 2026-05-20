@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { formatBookingSlot, HALL_MIN_RENTAL_MINUTES } from "@/lib/hall-calendar";
+import {
+  formatBookingSlot,
+  HALL_MIN_RENTAL_MINUTES,
+  isBookingStartPast,
+} from "@/lib/hall-calendar";
 import { DEFAULT_HALL_ID, getHallById, isValidHallId } from "@/lib/halls";
 import { sendTrialEmail } from "@/lib/trial-mail";
 import { sendTrialVkNotify } from "@/lib/trial-vk";
@@ -54,6 +58,10 @@ export async function POST(request) {
   const durationMin = (slotEnd.getTime() - slotStart.getTime()) / 60_000;
   if (durationMin < HALL_MIN_RENTAL_MINUTES) {
     return NextResponse.json({ error: "Минимальная аренда — 1 час" }, { status: 400 });
+  }
+
+  if (isBookingStartPast(slotStart)) {
+    return NextResponse.json({ error: "Нельзя записаться на прошедшее время" }, { status: 400 });
   }
 
   const slotLabel = formatBookingSlot(slotStart, slotEnd);

@@ -235,8 +235,45 @@ export function isSlotBusy(events, slotStart, slotEnd) {
   });
 }
 
-export function isSlotIndexBusy(events, ymd, slotIndex, tz = HALL_CALENDAR_TIMEZONE) {
+/** Начало слота уже наступило (в часовом поясе зала). */
+export function isSlotIndexPast(
+  ymd,
+  slotIndex,
+  now = new Date(),
+  tz = HALL_CALENDAR_TIMEZONE,
+) {
   if (slotIndex < 0 || slotIndex >= HALL_SLOT_COUNT) return true;
+  const slotStart = slotStartFromIndex(ymd, slotIndex, tz);
+  return slotStart.getTime() < now.getTime();
+}
+
+/** Начало бронирования уже в прошлом. */
+export function isBookingStartPast(start, now = new Date()) {
+  const d = start instanceof Date ? start : new Date(start);
+  if (Number.isNaN(d.getTime())) return true;
+  return d.getTime() < now.getTime();
+}
+
+export function isBookingSlotRangePast(
+  ymd,
+  slotFrom,
+  slotTo,
+  now = new Date(),
+  tz = HALL_CALENDAR_TIMEZONE,
+) {
+  const { from } = slotRangeBounds(slotFrom, slotTo);
+  return isSlotIndexPast(ymd, from, now, tz);
+}
+
+export function isSlotIndexBusy(
+  events,
+  ymd,
+  slotIndex,
+  tz = HALL_CALENDAR_TIMEZONE,
+  now = new Date(),
+) {
+  if (slotIndex < 0 || slotIndex >= HALL_SLOT_COUNT) return true;
+  if (isSlotIndexPast(ymd, slotIndex, now, tz)) return true;
   const slotStart = slotStartFromIndex(ymd, slotIndex, tz);
   const slotEnd = slotEndFromIndex(ymd, slotIndex, tz);
   return events.some((e) => {
@@ -247,15 +284,16 @@ export function isSlotIndexBusy(events, ymd, slotIndex, tz = HALL_CALENDAR_TIMEZ
   });
 }
 
-/** Слоты и непрерывный интервал [slotFrom..slotTo] не пересекают аренду. */
-export function isBookingSlotRangeFree(events, ymd, slotFrom, slotTo) {
+/** Слоты и непрерывный интервал [slotFrom..slotTo] не пересекают аренду и не в прошлом. */
+export function isBookingSlotRangeFree(events, ymd, slotFrom, slotTo, now = new Date()) {
   const { from, to } = slotRangeBounds(slotFrom, slotTo);
   const bookingStart = slotStartFromIndex(ymd, from);
   const bookingEnd = slotEndFromIndex(ymd, to);
   if (bookingEnd <= bookingStart) return false;
+  if (isBookingSlotRangePast(ymd, from, to, now)) return false;
 
   for (let i = from; i <= to; i++) {
-    if (isSlotIndexBusy(events, ymd, i)) return false;
+    if (isSlotIndexBusy(events, ymd, i, HALL_CALENDAR_TIMEZONE, now)) return false;
   }
 
   return !events.some((e) => {
@@ -275,13 +313,17 @@ export function slotRangeBounds(slotA, slotB) {
 
 /**
  * Расширяет выбор до минимальной аренды (1 ч), если возможно на сетке.
- * @returns {{ ok: true, from: number, to: number } | { ok: false, reason: "busy" | "min_duration" }}
+ * @returns {{ ok: true, from: number, to: number } | { ok: false, reason: "busy" | "min_duration" | "past" }}
  */
-export function slotRangeWithMinRental(ymd, slotA, slotB, events) {
+export function slotRangeWithMinRental(ymd, slotA, slotB, events, now = new Date()) {
   const { from, to } = slotRangeBounds(slotA, slotB);
   const count = to - from + 1;
 
-  if (!isBookingSlotRangeFree(events, ymd, from, to)) {
+  if (isBookingSlotRangePast(ymd, from, to, now)) {
+    return { ok: false, reason: "past" };
+  }
+
+  if (!isBookingSlotRangeFree(events, ymd, from, to, now)) {
     return { ok: false, reason: "busy" };
   }
 
@@ -290,19 +332,19 @@ export function slotRangeWithMinRental(ymd, slotA, slotB, events) {
   }
 
   const need = HALL_MIN_RENTAL_SLOTS - count;
-  const nextBusy = isSlotIndexBusy(events, ymd, to + 1);
-  const prevBusy = isSlotIndexBusy(events, ymd, from - 1);
+  const nextBusy = isSlotIndexBusy(events, ymd, to + 1, HALL_CALENDAR_TIMEZONE, now);
+  const prevBusy = isSlotIndexBusy(events, ymd, from - 1, HALL_CALENDAR_TIMEZONE, now);
 
   const expandAfter = () => {
     const rangeTo = to + need;
     if (rangeTo >= HALL_SLOT_COUNT) return null;
-    return isBookingSlotRangeFree(events, ymd, from, rangeTo) ? { from, to: rangeTo } : null;
+    return isBookingSlotRangeFree(events, ymd, from, rangeTo, now) ? { from, to: rangeTo } : null;
   };
 
   const expandBefore = () => {
     const rangeFrom = from - need;
     if (rangeFrom < 0) return null;
-    return isBookingSlotRangeFree(events, ymd, rangeFrom, to) ? { from: rangeFrom, to } : null;
+    return isBookingSlotRangeFree(events, ymd, rangeFrom, to, now) ? { from: rangeFrom, to } : null;
   };
 
   const attempts = [];
@@ -324,8 +366,9 @@ export function slotRangeWithMinRental(ymd, slotA, slotB, events) {
   }
 
   const blockedByBusy =
-    (nextBusy && !isBookingSlotRangeFree(events, ymd, from, Math.min(HALL_SLOT_COUNT - 1, to + need))) ||
-    (prevBusy && !isBookingSlotRangeFree(events, ymd, Math.max(0, from - need), to));
+    (nextBusy &&
+      !isBookingSlotRangeFree(events, ymd, from, Math.min(HALL_SLOT_COUNT - 1, to + need), now)) ||
+    (prevBusy && !isBookingSlotRangeFree(events, ymd, Math.max(0, from - need), to, now));
 
   return { ok: false, reason: blockedByBusy ? "busy" : "min_duration" };
 }
