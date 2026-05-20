@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Полный деплой на сервере (нужно ≥2 GB RAM или swap). Для VPS лучше GitHub Actions.
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-$HOME/inside72}"
