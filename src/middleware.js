@@ -19,9 +19,8 @@ function canonicalHostRedirect(request) {
     if (!requestHost) return null;
 
     const requestHostname = requestHost.split(":")[0];
-    const sameHostname = requestHostname === canonical.hostname;
-    const samePort = request.nextUrl.port === canonical.port;
-    if (sameHostname && samePort) return null;
+    // Только www ↔ apex; порт из nextUrl за nginx (3000) не сравниваем — иначе цикл редиректов
+    if (requestHostname === canonical.hostname) return null;
     if (isLocalhost(canonical.hostname) || isLocalhost(requestHostname)) return null;
 
     // origin из NEXT_PUBLIC_SITE_URL — без внутреннего порта приложения (например :3000 за nginx)
