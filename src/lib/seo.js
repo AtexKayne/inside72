@@ -23,6 +23,13 @@ export const siteSeo = {
   ],
 };
 
+function resolveMediaUrl(base, mediaUrl) {
+  const raw = String(mediaUrl ?? "").trim();
+  if (!raw) return raw;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  return `${base}${raw.startsWith("/") ? raw : `/${raw}`}`;
+}
+
 /**
  * @param {{
  *   title?: string;
@@ -48,7 +55,7 @@ export function pageMetadata({
   const url = `${base}${canonical === "/" ? "" : canonical}`;
   const fullTitle = title ? `${title} | ${siteSeo.name}` : siteSeo.defaultTitle;
 
-  const image =
+  const imageSource =
     typeof ogImage === "string"
       ? { url: ogImage, width: 1200, height: 630, alt: siteSeo.name }
       : ogImage ?? {
@@ -57,6 +64,11 @@ export function pageMetadata({
           height: 630,
           alt: `${siteSeo.name} — студия хастла в Тюмени`,
         };
+
+  const image = {
+    ...imageSource,
+    url: resolveMediaUrl(base, imageSource.url),
+  };
 
   const openGraph = {
     type,
@@ -74,13 +86,13 @@ export function pageMetadata({
   return {
     title,
     description,
-    alternates: { canonical },
+    ...(!noIndex ? { alternates: { canonical: url } } : {}),
     openGraph,
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
-      images: [typeof image === "object" && "url" in image ? image.url : image],
+      images: [image.url],
     },
     ...(noIndex ? { robots: { index: false, follow: true } } : {}),
   };

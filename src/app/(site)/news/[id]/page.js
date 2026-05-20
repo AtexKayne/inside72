@@ -23,7 +23,12 @@ export async function generateMetadata({ params }) {
   const { id } = await params;
   const items = await getNews();
   const item = items.find((x) => x.id === id);
-  if (!item) return { title: "Новость" };
+  if (!item) {
+    return {
+      title: "Новость",
+      robots: { index: false, follow: false },
+    };
+  }
   const ogImage = item.images?.[0];
   return pageMetadata({
     title: item.title,

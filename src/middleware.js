@@ -4,7 +4,29 @@ import { verifyAdminToken, ADMIN_COOKIE_NAME } from "@/lib/auth-token";
 const ADMIN_PREFIX = "/admin";
 const LOGIN = "/admin/login";
 
+/** 308 на основной домен из NEXT_PUBLIC_SITE_URL (www ↔ без www). */
+function canonicalHostRedirect(request) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!siteUrl) return null;
+
+  try {
+    const canonical = new URL(siteUrl);
+    const requestHost = request.headers.get("host");
+    if (!requestHost || requestHost === canonical.host) return null;
+
+    const redirect = request.nextUrl.clone();
+    redirect.protocol = canonical.protocol;
+    redirect.host = canonical.host;
+    return NextResponse.redirect(redirect, 308);
+  } catch {
+    return null;
+  }
+}
+
 export async function middleware(request) {
+  const hostRedirect = canonicalHostRedirect(request);
+  if (hostRedirect) return hostRedirect;
+
   const { pathname } = request.nextUrl;
 
   if (!pathname.startsWith(ADMIN_PREFIX) || pathname === LOGIN) {
@@ -23,5 +45,7 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|txt|xml|webmanifest|html)$).*)",
+  ],
 };
