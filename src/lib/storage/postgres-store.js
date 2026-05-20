@@ -1,7 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
 import { asc, desc, eq } from "drizzle-orm";
-import { deleteBlobStoryVideo } from "@/lib/blob-story";
 import { ensureDbSchema, getDb } from "@/lib/db";
 import * as tables from "@/lib/db/schema";
 import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
@@ -397,7 +396,6 @@ export async function updateStory(id, { title, videoUrl }) {
   await database.update(tables.stories).set(patch).where(eq(tables.stories.id, storyId));
 
   if (nextUrl !== prevUrl) {
-    await deleteBlobStoryVideo(prevUrl);
     if (prevUrl?.startsWith("/uploads/stories/")) {
       const absPath = path.join(process.cwd(), "public", prevUrl.replace(/^\//, ""));
       try {
@@ -420,8 +418,6 @@ export async function deleteStory(id) {
   if (!story) return false;
 
   await database.delete(tables.stories).where(eq(tables.stories.id, storyId));
-
-  await deleteBlobStoryVideo(story.videoUrl);
 
   if (story.videoUrl?.startsWith("/uploads/stories/")) {
     const absPath = path.join(process.cwd(), "public", story.videoUrl.replace(/^\//, ""));

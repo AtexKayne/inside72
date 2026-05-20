@@ -1,6 +1,5 @@
 import fs from "fs/promises";
 import path from "path";
-import { deleteBlobStoryVideo } from "@/lib/blob-story";
 import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
 import { sortStoriesItems } from "@/lib/story-order";
 
@@ -337,7 +336,6 @@ export async function updateStory(id, { title, videoUrl }) {
   await writeJson("stories.json", data);
 
   if (nextUrl !== prevUrl) {
-    await deleteBlobStoryVideo(prevUrl);
     if (prevUrl?.startsWith("/uploads/stories/")) {
       const absPath = path.join(process.cwd(), "public", prevUrl.replace(/^\//, ""));
       try {
@@ -361,8 +359,6 @@ export async function deleteStory(id) {
 
   data.items = data.items.filter((s) => s.id !== storyId);
   await writeJson("stories.json", data);
-
-  await deleteBlobStoryVideo(story.videoUrl);
 
   if (story.videoUrl?.startsWith("/uploads/stories/")) {
     const absPath = path.join(process.cwd(), "public", story.videoUrl.replace(/^\//, ""));
