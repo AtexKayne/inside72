@@ -16,14 +16,19 @@ function canonicalHostRedirect(request) {
   try {
     const canonical = new URL(siteUrl);
     const requestHost = request.headers.get("host");
-    if (!requestHost || requestHost === canonical.host) return null;
+    if (!requestHost) return null;
 
     const requestHostname = requestHost.split(":")[0];
+    const sameHostname = requestHostname === canonical.hostname;
+    const samePort = request.nextUrl.port === canonical.port;
+    if (sameHostname && samePort) return null;
     if (isLocalhost(canonical.hostname) || isLocalhost(requestHostname)) return null;
 
-    const redirect = request.nextUrl.clone();
-    redirect.protocol = canonical.protocol;
-    redirect.host = canonical.host;
+    // origin из NEXT_PUBLIC_SITE_URL — без внутреннего порта приложения (например :3000 за nginx)
+    const redirect = new URL(
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      canonical.origin,
+    );
     return NextResponse.redirect(redirect, 308);
   } catch {
     return null;
