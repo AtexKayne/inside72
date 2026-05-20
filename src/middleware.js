@@ -8,30 +8,42 @@ function isLocalhost(hostname) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
-/** 308 на основной домен из NEXT_PUBLIC_SITE_URL (www ↔ без www). */
-function canonicalHostRedirect(request) {
+/** Парсит NEXT_PUBLIC_SITE_URL без порта (защита от :3000 в редиректах). */
+function getCanonicalSite() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (!siteUrl) return null;
-
   try {
-    const canonical = new URL(siteUrl);
-    const requestHost = request.headers.get("host");
-    if (!requestHost) return null;
-
-    const requestHostname = requestHost.split(":")[0];
-    // Только www ↔ apex; порт из nextUrl за nginx (3000) не сравниваем — иначе цикл редиректов
-    if (requestHostname === canonical.hostname) return null;
-    if (isLocalhost(canonical.hostname) || isLocalhost(requestHostname)) return null;
-
-    // origin из NEXT_PUBLIC_SITE_URL — без внутреннего порта приложения (например :3000 за nginx)
-    const redirect = new URL(
-      `${request.nextUrl.pathname}${request.nextUrl.search}`,
-      canonical.origin,
-    );
-    return NextResponse.redirect(redirect, 308);
+    const u = new URL(siteUrl);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return { protocol: u.protocol, hostname: u.hostname };
   } catch {
     return null;
   }
+}
+
+/** Абсолютный публичный URL без порта (Next за nginx иначе подставляет :3000). */
+function publicAbsoluteUrl(canonical, pathname, search) {
+  return `${canonical.protocol}//${canonical.hostname}${pathname}${search}`;
+}
+
+/** 308 на основной домен из NEXT_PUBLIC_SITE_URL (www ↔ без www), запасной вариант если nginx не настроен. */
+function canonicalHostRedirect(request) {
+  const canonical = getCanonicalSite();
+  if (!canonical) return null;
+
+  const requestHost = request.headers.get("host");
+  if (!requestHost) return null;
+
+  const requestHostname = requestHost.split(":")[0];
+  if (requestHostname === canonical.hostname) return null;
+  if (isLocalhost(canonical.hostname) || isLocalhost(requestHostname)) return null;
+
+  const target = publicAbsoluteUrl(
+    canonical,
+    request.nextUrl.pathname,
+    request.nextUrl.search,
+  );
+  return NextResponse.redirect(target, 308);
 }
 
 export async function middleware(request) {
@@ -46,10 +58,12 @@ export async function middleware(request) {
 
   const token = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   if (!token || !(await verifyAdminToken(token))) {
-    const url = request.nextUrl.clone();
-    url.pathname = LOGIN;
-    url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
+    const canonical = getCanonicalSite();
+    const search = `?from=${encodeURIComponent(pathname)}`;
+    const target = canonical
+      ? publicAbsoluteUrl(canonical, LOGIN, search)
+      : `${request.nextUrl.origin}${LOGIN}${search}`;
+    return NextResponse.redirect(target);
   }
 
   return NextResponse.next();

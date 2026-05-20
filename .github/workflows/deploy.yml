@@ -24,6 +24,7 @@ jobs:
       - name: Install and build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Без порта: https://inside72.ru (не :3000 и не localhost)
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_CLIENT_KEY }}
         run: |

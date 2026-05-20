@@ -13,5 +13,8 @@ npm ci --omit=dev --no-audit --no-fund
 echo "==> Restart app"
 pm2 restart "$PM2_NAME"
 
+echo "==> Check www redirect (ожидается Location: https://inside72.ru/ без :3000)"
+curl -sI --max-time 10 https://www.inside72.ru/ | grep -i '^location:' || true
+
 echo "==> Done"
 pm2 status "$PM2_NAME"
