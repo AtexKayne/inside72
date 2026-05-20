@@ -1,7 +1,11 @@
 const CAPTCHA_VALIDATE_URL = "https://smartcaptcha.yandexcloud.net/validate";
 
 export const YANDEX_SMARTCAPTCHA_CLIENT_KEY =
-  process.env.NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_CLIENT_KEY?.trim() || "bpn3nq296cencsbg1ke5";
+  process.env.NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_CLIENT_KEY?.trim() || "";
+
+export function isCaptchaClientKeyConfigured() {
+  return Boolean(YANDEX_SMARTCAPTCHA_CLIENT_KEY);
+}
 
 export function getClientIp(request) {
   const forwarded = request.headers.get("x-forwarded-for");
