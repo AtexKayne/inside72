@@ -62,14 +62,19 @@ function useInView(ref, rootMargin = "120px 0px", { sticky = false } = {}) {
 }
 
 /**
- * @param {{ videoUrl: string; hovered: boolean; hasFineHover: boolean }} props
+ * @param {{ videoUrl: string; hovered: boolean; hasFineHover: boolean; onWarm?: () => void }} props
  */
-function StoryPreview({ videoUrl, hovered, hasFineHover }) {
+function StoryPreview({ videoUrl, hovered, hasFineHover, onWarm }) {
   const wrapRef = useRef(null);
   const videoRef = useRef(null);
+  const srcPinnedRef = useRef(false);
   const inView = useInView(wrapRef, "120px 0px", { sticky: !hasFineHover });
-  const shouldLoad = hasFineHover ? hovered : inView;
+  const shouldLoad = hasFineHover ? hovered || srcPinnedRef.current : inView;
   const shouldPlay = hasFineHover ? hovered : inView;
+
+  useEffect(() => {
+    srcPinnedRef.current = false;
+  }, [videoUrl]);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -77,8 +82,11 @@ function StoryPreview({ videoUrl, hovered, hasFineHover }) {
 
     if (!shouldLoad) {
       el.pause();
-      el.removeAttribute("src");
-      el.load();
+      if (!hasFineHover) {
+        el.removeAttribute("src");
+        el.load();
+        srcPinnedRef.current = false;
+      }
       return;
     }
 
@@ -86,7 +94,11 @@ function StoryPreview({ videoUrl, hovered, hasFineHover }) {
       el.setAttribute("src", videoUrl);
       el.load();
     }
-  }, [videoUrl, shouldLoad]);
+    if (hasFineHover) {
+      srcPinnedRef.current = true;
+    }
+    onWarm?.();
+  }, [videoUrl, shouldLoad, hasFineHover, onWarm]);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -137,19 +149,24 @@ function StoryPreview({ videoUrl, hovered, hasFineHover }) {
 }
 
 /**
- * @param {{ story: StoryItem; onOpen: () => void; hasFineHover: boolean }} props
+ * @param {{ story: StoryItem; onOpen: () => void; onWarm?: () => void; hasFineHover: boolean }} props
  */
-function StoryCircle({ story, onOpen, hasFineHover }) {
+function StoryCircle({ story, onOpen, onWarm, hasFineHover }) {
   const [hovered, setHovered] = useState(false);
+
+  const activate = () => {
+    setHovered(true);
+    onWarm?.();
+  };
 
   return (
     <button
       type="button"
       className={styles.storyBtn}
       onClick={onOpen}
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={activate}
       onMouseLeave={() => setHovered(false)}
-      onFocus={() => setHovered(true)}
+      onFocus={activate}
       onBlur={() => setHovered(false)}
       aria-label={`Открыть сторис: ${story.title}`}
     >
@@ -163,6 +180,7 @@ function StoryCircle({ story, onOpen, hasFineHover }) {
             videoUrl={story.videoUrl}
             hovered={hovered}
             hasFineHover={hasFineHover}
+            onWarm={onWarm}
           />
         </span>
       </span>
@@ -178,10 +196,40 @@ const COLLAPSE_SCROLL_RANGE = 120;
 export function SiteStories({ items = [] }) {
   /** @type {[number | null, React.Dispatch<React.SetStateAction<number | null>>]} */
   const [openIndex, setOpenIndex] = useState(null);
+  /** @type {[Set<number>, React.Dispatch<React.SetStateAction<Set<number>>>]} */
+  const [warmedIndices, setWarmedIndices] = useState(() => new Set());
+  const [overlayAlive, setOverlayAlive] = useState(false);
   const wrapRef = useRef(null);
   const sectionRef = useRef(null);
-  const videoRef = useRef(null);
+  /** @type {React.MutableRefObject<(HTMLVideoElement | null)[]>} */
+  const videoRefs = useRef([]);
   const hasFineHover = useFineHover();
+
+  const warmStoryIndices = useCallback(
+    (index) => {
+      setWarmedIndices((prev) => {
+        const next = new Set(prev);
+        let changed = false;
+        for (const i of [index - 1, index, index + 1]) {
+          if (i >= 0 && i < items.length && !next.has(i)) {
+            next.add(i);
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    },
+    [items.length]
+  );
+
+  const openStory = useCallback(
+    (index) => {
+      warmStoryIndices(index);
+      setOverlayAlive(true);
+      setOpenIndex(index);
+    },
+    [warmStoryIndices]
+  );
 
   const close = useCallback(() => {
     setOpenIndex(null);
@@ -191,12 +239,12 @@ export function SiteStories({ items = [] }) {
     if (openIndex === null) return;
     const onKey = (e) => {
       if (e.key === "Escape") close();
-      if (e.key === "ArrowRight" && openIndex < items.length - 1) setOpenIndex(openIndex + 1);
-      if (e.key === "ArrowLeft" && openIndex > 0) setOpenIndex(openIndex - 1);
+      if (e.key === "ArrowRight" && openIndex < items.length - 1) openStory(openIndex + 1);
+      if (e.key === "ArrowLeft" && openIndex > 0) openStory(openIndex - 1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [close, openIndex, items.length]);
+  }, [close, openIndex, items.length, openStory]);
 
   useEffect(() => {
     if (openIndex === null) return;
@@ -242,12 +290,16 @@ export function SiteStories({ items = [] }) {
   }, []);
 
   useEffect(() => {
-    if (openIndex === null) return;
-    const v = videoRef.current;
-    if (!v) return;
-    v.currentTime = 0;
-    const p = v.play();
-    if (p && typeof p.catch === "function") p.catch(() => {});
+    videoRefs.current.forEach((v, i) => {
+      if (!v) return;
+      if (openIndex === null || i !== openIndex) {
+        v.pause();
+        return;
+      }
+      v.currentTime = 0;
+      const p = v.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    });
   }, [openIndex]);
 
   if (items.length === 0) {
@@ -255,6 +307,7 @@ export function SiteStories({ items = [] }) {
   }
 
   const active = openIndex !== null ? items[openIndex] : null;
+  const overlayOpen = openIndex !== null;
 
   return (
     <>
@@ -290,7 +343,8 @@ export function SiteStories({ items = [] }) {
                   <StoryCircle
                     story={story}
                     hasFineHover={hasFineHover}
-                    onOpen={() => setOpenIndex(index)}
+                    onOpen={() => openStory(index)}
+                    onWarm={() => warmStoryIndices(index)}
                   />
                 </SwiperSlide>
               ))}
@@ -302,14 +356,15 @@ export function SiteStories({ items = [] }) {
         <div className={styles.compensator} aria-hidden />
       </div>
 
-      {active ? (
+      {overlayAlive ? (
         <div
-          className={styles.overlay}
-          role="dialog"
-          aria-modal="true"
-          aria-label={active.title}
+          className={`${styles.overlay} ${overlayOpen ? "" : styles.overlayHidden}`}
+          role={overlayOpen ? "dialog" : undefined}
+          aria-modal={overlayOpen ? "true" : undefined}
+          aria-hidden={overlayOpen ? undefined : "true"}
+          aria-label={active?.title}
           onClick={(e) => {
-            if (e.target === e.currentTarget) close();
+            if (overlayOpen && e.target === e.currentTarget) close();
           }}
         >
           <div className={styles.overlayInner}>
@@ -317,42 +372,49 @@ export function SiteStories({ items = [] }) {
               <button type="button" className={styles.close} onClick={close} aria-label="Закрыть">
                 ×
               </button>
-              {openIndex > 0 ? (
+              {openIndex !== null && openIndex > 0 ? (
                 <button
                   type="button"
                   className={`${styles.nav} ${styles.navPrev}`}
                   aria-label="Предыдущее"
-                  onClick={() => setOpenIndex((i) => (i !== null ? i - 1 : i))}
+                  onClick={() => openStory(openIndex - 1)}
                 >
                   ‹
                 </button>
               ) : (
                 <span className={`${styles.nav} ${styles.navPrev} ${styles.navHidden}`} aria-hidden />
               )}
-              {openIndex < items.length - 1 ? (
+              {openIndex !== null && openIndex < items.length - 1 ? (
                 <button
                   type="button"
                   className={`${styles.nav} ${styles.navNext}`}
                   aria-label="Следующее"
-                  onClick={() => setOpenIndex((i) => (i !== null ? i + 1 : i))}
+                  onClick={() => openStory(openIndex + 1)}
                 >
                   ›
                 </button>
               ) : (
                 <span className={`${styles.nav} ${styles.navNext} ${styles.navHidden}`} aria-hidden />
               )}
-              <video
-                ref={videoRef}
-                key={active.id}
-                className={styles.video}
-                src={active.videoUrl}
-                controls
-                controlsList="nodownload"
-                preload="auto"
-                {...VIDEO_PROPS}
-              />
+              {items.map((story, index) =>
+                warmedIndices.has(index) ? (
+                  <video
+                    key={story.id}
+                    ref={(el) => {
+                      videoRefs.current[index] = el;
+                    }}
+                    className={styles.video}
+                    data-active={index === openIndex ? "" : undefined}
+                    src={story.videoUrl}
+                    controls={index === openIndex}
+                    controlsList="nodownload"
+                    preload="auto"
+                    {...VIDEO_PROPS}
+                  />
+                ) : null
+              )}
             </div>
-            <p className={styles.storyTitle}>{active.title}</p>
+            {active ? <p className={styles.storyTitle}>{active.title}</p> : null}
           </div>
         </div>
       ) : null}

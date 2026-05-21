@@ -272,6 +272,12 @@ $row-inset: 1rem;
   cursor: default;
 }
 
+.overlayHidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .overlayInner {
   position: relative;
   display: flex;
@@ -296,7 +302,11 @@ $row-inset: 1rem;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  display: none;
+
+  &[data-active] {
+    display: block;
+  }
 }
 
 .close {
@@ -325,16 +335,23 @@ $row-inset: 1rem;
 }
 
 .storyTitle {
-  flex-shrink: 0;
-  padding: 0.85rem 1rem;
-  margin: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.35;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.92);
-  text-align: left;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: none;
+}
+
+@include media-hover {
+  .storyTitle {
+    display: block;
+    flex-shrink: 0;
+    padding: 0.85rem 1rem;
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.92);
+    text-align: left;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
 }
 
 .nav {
