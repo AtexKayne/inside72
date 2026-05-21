@@ -9,7 +9,7 @@ export const revalidate = 30;
 export const metadata = pageMetadata({
   title: "Фотографии",
   description:
-    "Фотографии со занятий, вечеринок и мероприятий студии хастла Inside в Тюмени.",
+    "Фотографии с занятий, вечеринок и мероприятий студии хастла Inside в Тюмени.",
   pathname: "/gallery",
 });
 

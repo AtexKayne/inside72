@@ -11,7 +11,7 @@ import bannerImageFallback from "../../../public/banner-tanec-vnutri.png";
 export const metadata = {
   ...pageMetadata({
     description:
-      "Студия Inside в Тюмени — социальный хастл с нуля. Парная не нужна, группы стартуют каждый месяц. Опытные преподаватели и дружное сообщество.",
+      "Студия Inside в Тюмени — танцы для взрослых с нуля. Мы танцуем хастл, группы стартуют каждый месяц. Опытные преподаватели и дружное сообщество.",
     pathname: "/",
   }),
   title: { absolute: siteSeo.defaultTitle },
