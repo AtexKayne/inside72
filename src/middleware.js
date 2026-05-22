@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyAdminToken, ADMIN_COOKIE_NAME } from "@/lib/auth-token";
+import { getCanonicalSite } from "@/lib/site";
 
 const ADMIN_PREFIX = "/admin";
 const LOGIN = "/admin/login";
@@ -8,25 +9,16 @@ function isLocalhost(hostname) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
-/** Парсит NEXT_PUBLIC_SITE_URL без порта (защита от :3000 в редиректах). */
-function getCanonicalSite() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (!siteUrl) return null;
-  try {
-    const u = new URL(siteUrl);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-    return { protocol: u.protocol, hostname: u.hostname };
-  } catch {
-    return null;
-  }
+function isVercelHost(hostname) {
+  return hostname === "vercel.app" || hostname.endsWith(".vercel.app");
 }
 
-/** Абсолютный публичный URL без порта (Next за nginx иначе подставляет :3000). */
+/** Абсолютный публичный URL без порта. */
 function publicAbsoluteUrl(canonical, pathname, search) {
   return `${canonical.protocol}//${canonical.hostname}${pathname}${search}`;
 }
 
-/** 308 на основной домен из NEXT_PUBLIC_SITE_URL (www ↔ без www), запасной вариант если nginx не настроен. */
+/** 308 на основной домен (www ↔ без www, *.vercel.app → inside72.ru). */
 function canonicalHostRedirect(request) {
   const canonical = getCanonicalSite();
   if (!canonical) return null;
@@ -46,7 +38,28 @@ function canonicalHostRedirect(request) {
   return NextResponse.redirect(target, 308);
 }
 
+/** На Vercel: preview/production *.vercel.app → основной домен. */
+function vercelHostRedirect(request) {
+  if (process.env.VERCEL !== "1") return null;
+
+  const requestHostname = request.headers.get("host")?.split(":")[0];
+  if (!requestHostname || !isVercelHost(requestHostname)) return null;
+
+  const canonical = getCanonicalSite();
+  if (!canonical) return null;
+
+  const target = publicAbsoluteUrl(
+    canonical,
+    request.nextUrl.pathname,
+    request.nextUrl.search,
+  );
+  return NextResponse.redirect(target, 308);
+}
+
 export async function middleware(request) {
+  const vercelRedirect = vercelHostRedirect(request);
+  if (vercelRedirect) return vercelRedirect;
+
   const hostRedirect = canonicalHostRedirect(request);
   if (hostRedirect) return hostRedirect;
 
