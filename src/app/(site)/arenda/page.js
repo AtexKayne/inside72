@@ -4,6 +4,8 @@ import { hallRentalInfo } from "@/lib/hall-rental";
 import { pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = pageMetadata({
   title: "Аренда зала",
   description:

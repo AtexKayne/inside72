@@ -7,6 +7,29 @@ export const HALL_CALENDAR_ID = getHallById(DEFAULT_HALL_ID).calendarId;
 
 export const HALL_CALENDAR_TIMEZONE = "Asia/Yekaterinburg";
 
+/** Смещение для Asia/Yekaterinburg (без перехода на летнее время). */
+const YEKATERINBURG_ISO_OFFSET = "+05:00";
+
+const ISO_WEEKDAY = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+
+function addDaysYmd(ymd, days) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
+
+function isoWeekdayInTz(date, tz = HALL_CALENDAR_TIMEZONE) {
+  const wd = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).format(date);
+  return ISO_WEEKDAY[wd] ?? 1;
+}
+
+function dateAtTimeInHallTz(ymd, hour, minute = 0) {
+  const hh = String(hour).padStart(2, "0");
+  const mm = String(minute).padStart(2, "0");
+  return new Date(`${ymd}T${hh}:${mm}:00${YEKATERINBURG_ISO_OFFSET}`);
+}
+
 export const HALL_OPEN_HOUR = 9;
 export const HALL_CLOSE_HOUR = 22;
 export const HALL_SLOT_MINUTES = 30;
@@ -51,19 +74,18 @@ export function minutesInTz(date, tz = HALL_CALENDAR_TIMEZONE) {
   return hour * 60 + minute;
 }
 
-export function startOfWeekMonday(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+/** Понедельник календарной недели в часовом поясе зала. */
+export function startOfWeekMonday(date, tz = HALL_CALENDAR_TIMEZONE) {
+  const ymd = ymdInTz(date, tz);
+  const ref = dateAtTimeInHallTz(ymd, 12, 0);
+  const mondayYmd = addDaysYmd(ymd, -(isoWeekdayInTz(ref, tz) - 1));
+  return dateAtTimeInHallTz(mondayYmd, 0, 0);
 }
 
-export function addDays(date, days) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
+export function addDays(date, days, tz = HALL_CALENDAR_TIMEZONE) {
+  const ymd = ymdInTz(date, tz);
+  const newYmd = addDaysYmd(ymd, days);
+  return dateAtTimeInHallTz(newYmd, 12, 0);
 }
 
 export function getWeekDays(weekStart) {
@@ -132,9 +154,6 @@ export function formatBookingSlot(start, end, tz = HALL_CALENDAR_TIMEZONE) {
   });
   return `${dateFmt.format(start)}, ${timeFmt.format(start)}–${timeFmt.format(end)}`;
 }
-
-/** Смещение для Asia/Yekaterinburg (без перехода на летнее время). */
-const YEKATERINBURG_ISO_OFFSET = "+05:00";
 
 export function slotStartInTz(ymd, hour, minute = 0, tz = HALL_CALENDAR_TIMEZONE) {
   const hh = String(hour).padStart(2, "0");

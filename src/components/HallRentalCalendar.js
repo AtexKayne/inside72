@@ -69,7 +69,8 @@ function slotAtPointer(dayGridEl, clientY) {
 export function HallRentalCalendar({ compact = false }) {
   const [activeHallId, setActiveHallId] = useState(DEFAULT_HALL_ID);
   const activeHall = getHallById(activeHallId);
-  const [weekStart, setWeekStart] = useState(() => startOfWeekMonday(new Date()));
+  const [mounted, setMounted] = useState(false);
+  const [weekStart, setWeekStart] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -88,9 +89,15 @@ export function HallRentalCalendar({ compact = false }) {
   const [guideSpotlightRect, setGuideSpotlightRect] = useState(null);
   const [guidePanelTop, setGuidePanelTop] = useState(0);
 
-  const weekDays = useMemo(() => getWeekDays(weekStart), [weekStart]);
-  const weekLabel = useMemo(() => formatWeekRange(weekStart), [weekStart]);
-  const isCurrentWeek = isSameWeek(weekStart, new Date());
+  const calendarReady = weekStart !== null;
+  const weekDays = useMemo(() => (weekStart ? getWeekDays(weekStart) : []), [weekStart]);
+  const weekLabel = useMemo(() => (weekStart ? formatWeekRange(weekStart) : ""), [weekStart]);
+  const isCurrentWeek = weekStart ? isSameWeek(weekStart, new Date()) : true;
+
+  useEffect(() => {
+    setWeekStart(startOfWeekMonday(new Date()));
+    setMounted(true);
+  }, []);
 
   const loadEvents = useCallback(async (start, hallId) => {
     setLoading(true);
@@ -117,6 +124,7 @@ export function HallRentalCalendar({ compact = false }) {
   }, []);
 
   useEffect(() => {
+    if (!weekStart) return;
     loadEvents(weekStart, activeHallId);
   }, [weekStart, activeHallId, loadEvents]);
 
@@ -357,7 +365,7 @@ export function HallRentalCalendar({ compact = false }) {
       <div ref={calendarHeaderRef} className={styles.calendarHeader}>
         <div className={styles.hallTabs} role="tablist" aria-label="Выбор зала">
           {HALLS.map((hall) => {
-            const comingSoon = isHallComingSoon(hall);
+            const comingSoon = mounted && isHallComingSoon(hall);
             return (
               <button
                 key={hall.id}
@@ -380,18 +388,30 @@ export function HallRentalCalendar({ compact = false }) {
 
         <div className={styles.toolbar}>
           <div className={styles.toolbarStart}>
-            <p className={styles.weekLabel}>{weekLabel}</p>
-            {!isCurrentWeek ? (
+            {calendarReady ? <p className={styles.weekLabel}>{weekLabel}</p> : null}
+            {calendarReady && !isCurrentWeek ? (
               <button type="button" className={styles.todayBtn} onClick={goToday}>
                 Сегодня
               </button>
             ) : null}
           </div>
           <div className={styles.toolbarNav}>
-            <button type="button" className={styles.navBtn} onClick={goPrevWeek} aria-label="Предыдущая неделя">
+            <button
+              type="button"
+              className={styles.navBtn}
+              onClick={goPrevWeek}
+              disabled={!calendarReady}
+              aria-label="Предыдущая неделя"
+            >
               <CalendarNavIcon direction="prev" className={styles.navIcon} />
             </button>
-            <button type="button" className={styles.navBtn} onClick={goNextWeek} aria-label="Следующая неделя">
+            <button
+              type="button"
+              className={styles.navBtn}
+              onClick={goNextWeek}
+              disabled={!calendarReady}
+              aria-label="Следующая неделя"
+            >
               <CalendarNavIcon direction="next" className={styles.navIcon} />
             </button>
           </div>
@@ -431,9 +451,11 @@ export function HallRentalCalendar({ compact = false }) {
         <div
           className={styles.calendar}
           aria-label={`Недельное расписание — ${activeHall.label}`}
-          data-loading={loading || undefined}
+          data-loading={!calendarReady || loading || undefined}
           data-selecting={dragSelect ? true : undefined}
         >
+          {calendarReady ? (
+          <>
           <div className={styles.headerRow}>
             <div className={styles.cornerCell} />
             {weekDays.map((day) => {
@@ -542,10 +564,12 @@ export function HallRentalCalendar({ compact = false }) {
               );
             })}
           </div>
+          </>
+          ) : null}
         </div>
       </div>
 
-      {loading ? <p className={styles.loading}>Загрузка расписания…</p> : null}
+      {!calendarReady || loading ? <p className={styles.loading}>Загрузка расписания…</p> : null}
 
       {showCalendarGuide && guideSpotlightRect
         ? createPortal(<div className={styles.guideBackdrop} aria-hidden />, document.body)
