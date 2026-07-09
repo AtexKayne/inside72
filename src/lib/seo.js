@@ -9,6 +9,8 @@ export const siteSeo = {
     "Танцевальная студия Inside в Тюмени: социальный хастл с нуля, группы каждый месяц, пробное занятие. ул. Герцена, 82/1.",
   locale: "ru_RU",
   ogImage: "/og.svg",
+  logo: "/icon-192.png",
+  favicon: "/favicon.ico",
   keywords: [
     "хастл",
     "школа танцев",
@@ -192,7 +194,9 @@ function buildOrganizationNode(pricing) {
     image: `${url}${siteSeo.ogImage}`,
     logo: {
       "@type": "ImageObject",
-      url: `${url}${siteSeo.ogImage}`,
+      url: `${url}${siteSeo.logo}`,
+      width: 192,
+      height: 192,
     },
     telephone: phone.tel,
     openingHours: hours,
@@ -352,7 +356,9 @@ export function newsArticleJsonLd({ title, description, pathname, publishedAt, i
       url: base,
       logo: {
         "@type": "ImageObject",
-        url: `${base}${siteSeo.ogImage}`,
+        url: `${base}${siteSeo.logo}`,
+        width: 192,
+        height: 192,
       },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
