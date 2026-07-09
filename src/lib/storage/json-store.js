@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
+import { createDefaultPricingContent, normalizePricingContent } from "@/lib/pricing-content";
 import { sortStoriesItems } from "@/lib/story-order";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -404,4 +405,18 @@ export async function markVkImported(vkIds) {
     if (id) set.add(id);
   }
   await writeVkImported(set);
+}
+
+export async function getPricingContent() {
+  const data = await readJson("pricing.json", null);
+  if (!data) {
+    return createDefaultPricingContent();
+  }
+  return normalizePricingContent(data);
+}
+
+export async function updatePricingContent(content) {
+  const normalized = normalizePricingContent(content);
+  await writeJson("pricing.json", normalized);
+  return normalized;
 }

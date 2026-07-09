@@ -1,0 +1,75 @@
+{
+  "promotions": [
+    {
+      "id": "promo-first-free",
+      "title": "Первое посещение",
+      "details": "Бесплатно"
+    },
+    {
+      "id": "promo-first-pass",
+      "title": "Первый абонемент на 8 занятий",
+      "details": "3200 рублей"
+    },
+    {
+      "id": "promo-friend",
+      "title": "Приведи друга",
+      "details": "50% скидка на абонемент"
+    }
+  ],
+  "sections": [
+    {
+      "id": "sec-passes",
+      "title": "Абонементы",
+      "items": [
+        {
+          "id": "pass-8",
+          "title": "8 занятий",
+          "price": "3600",
+          "note": ""
+        },
+        {
+          "id": "pass-24",
+          "title": "24 занятия",
+          "price": "9800",
+          "note": ""
+        },
+        {
+          "id": "pass-48",
+          "title": "48 занятий",
+          "price": "17200",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "sec-individual",
+      "title": "Индивидуальные занятия с тренером",
+      "items": [
+        {
+          "id": "ind-single",
+          "title": "Разовое",
+          "price": "2000 рублей",
+          "note": ""
+        },
+        {
+          "id": "ind-pack",
+          "title": "Пакет из 3-х занятий",
+          "price": "5200",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "sec-self",
+      "title": "Самоподготовка (сампо)",
+      "items": [
+        {
+          "id": "self-one",
+          "title": "С человека",
+          "price": "250 рублей",
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

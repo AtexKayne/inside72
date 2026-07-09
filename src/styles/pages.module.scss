@@ -195,6 +195,101 @@
   color: $color-text;
 }
 
+.pricingWrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.pricingBlock + .pricingBlock {
+  margin-top: 2.5rem;
+}
+
+@media (min-width: 960px) {
+  .pricingWrap {
+    grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
+    align-items: start;
+  }
+}
+
+.pricingPromoCard,
+.pricingCard {
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg;
+  padding: 1.4rem 1.25rem;
+}
+
+.pricingSections {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 960px) {
+  .pricingSections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pricingTitle {
+  margin: 0 0 0.95rem;
+  font-family: $font-sans;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.pricingList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.pricingListItem {
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid $color-border;
+}
+
+.pricingListItem:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.pricingRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pricingItemTitle {
+  color: $color-text;
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+.pricingItemPrice {
+  color: $color-text;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  font-weight: 500;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pricingItemNote {
+  margin-top: 0.3rem;
+  color: $color-muted;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.pricingEmpty {
+  margin: 0;
+  color: $color-muted;
+  font-size: 0.9rem;
+}
+
 .newsItem {
   @include hairline-bottom;
   padding-block: 2rem;

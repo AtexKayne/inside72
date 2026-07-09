@@ -75,6 +75,13 @@ export async function ensureDbSchema() {
       vk_id TEXT PRIMARY KEY
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS site_content (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    )
+  `;
   await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
   await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
   await sql`ALTER TABLE albums ADD COLUMN IF NOT EXISTS sort_order INTEGER`;

@@ -12,6 +12,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.scss";
 
+const EMPTY_PRICING = {
+  promotions: [],
+  sections: [],
+};
+
+function createClientId(prefix) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export default function AdminHomePage() {
   const router = useRouter();
   const [news, setNews] = useState([]);
@@ -48,6 +60,8 @@ export default function AdminHomePage() {
   const [dragPhotoId, setDragPhotoId] = useState(null);
   const [photoDropTarget, setPhotoDropTarget] = useState(null);
   const [photoOrderSaving, setPhotoOrderSaving] = useState(false);
+  const [pricing, setPricing] = useState(EMPTY_PRICING);
+  const [pricingSaving, setPricingSaving] = useState(false);
 
   const photosInAlbum = useMemo(() => {
     if (!albumId) return [];
@@ -55,11 +69,12 @@ export default function AdminHomePage() {
   }, [photos, albumId]);
 
   async function load() {
-    const [n, p, a, s] = await Promise.all([
+    const [n, p, a, s, pr] = await Promise.all([
       fetch("/api/admin/news").then((r) => r.json()),
       fetch("/api/admin/photos").then((r) => r.json()),
       fetch("/api/admin/albums").then((r) => r.json()),
       fetch("/api/admin/stories").then((r) => r.json()),
+      fetch("/api/admin/pricing").then((r) => r.json()),
     ]);
     if (n.items) setNews(n.items);
     if (p.items) setPhotos(p.items);
@@ -68,6 +83,7 @@ export default function AdminHomePage() {
       setAlbumId((prev) => prev || a.items[0]?.id || "");
     }
     if (s.items) setStories(s.items);
+    if (pr.pricing) setPricing(pr.pricing);
   }
 
   useEffect(() => {
@@ -590,6 +606,121 @@ export default function AdminHomePage() {
     }
   }
 
+  function updatePromotion(promoId, field, value) {
+    setPricing((prev) => ({
+      ...prev,
+      promotions: prev.promotions.map((promo) =>
+        promo.id === promoId ? { ...promo, [field]: value } : promo
+      ),
+    }));
+  }
+
+  function addPromotion() {
+    setPricing((prev) => ({
+      ...prev,
+      promotions: [
+        ...prev.promotions,
+        { id: createClientId("promo"), title: "Новая акция", details: "" },
+      ],
+    }));
+  }
+
+  function removePromotion(promoId) {
+    setPricing((prev) => ({
+      ...prev,
+      promotions: prev.promotions.filter((promo) => promo.id !== promoId),
+    }));
+  }
+
+  function updateSection(sectionId, field, value) {
+    setPricing((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) =>
+        section.id === sectionId ? { ...section, [field]: value } : section
+      ),
+    }));
+  }
+
+  function addSection() {
+    setPricing((prev) => ({
+      ...prev,
+      sections: [
+        ...prev.sections,
+        { id: createClientId("section"), title: "Новый раздел", items: [] },
+      ],
+    }));
+  }
+
+  function removeSection(sectionId) {
+    setPricing((prev) => ({
+      ...prev,
+      sections: prev.sections.filter((section) => section.id !== sectionId),
+    }));
+  }
+
+  function updateSectionItem(sectionId, itemId, field, value) {
+    setPricing((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => {
+        if (section.id !== sectionId) return section;
+        return {
+          ...section,
+          items: section.items.map((item) => (item.id === itemId ? { ...item, [field]: value } : item)),
+        };
+      }),
+    }));
+  }
+
+  function addSectionItem(sectionId) {
+    setPricing((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => {
+        if (section.id !== sectionId) return section;
+        return {
+          ...section,
+          items: [
+            ...section.items,
+            { id: createClientId("price"), title: "Новая позиция", price: "", note: "" },
+          ],
+        };
+      }),
+    }));
+  }
+
+  function removeSectionItem(sectionId, itemId) {
+    setPricing((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => {
+        if (section.id !== sectionId) return section;
+        return {
+          ...section,
+          items: section.items.filter((item) => item.id !== itemId),
+        };
+      }),
+    }));
+  }
+
+  async function savePricing() {
+    setMsg(null);
+    setPricingSaving(true);
+    try {
+      const res = await fetch("/api/admin/pricing", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pricing }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg(typeof data.error === "string" ? data.error : "Не удалось сохранить цены и акции");
+        return;
+      }
+      if (data.pricing) setPricing(data.pricing);
+      setMsg("Цены и акции обновлены");
+    } finally {
+      setPricingSaving(false);
+    }
+  }
+
   return (
     <div className={styles.inner}>
       <header className={styles.header}>
@@ -606,6 +737,11 @@ export default function AdminHomePage() {
             {activeTab === "photos" ? (
               <Link href="/gallery" target="_blank" rel="noopener noreferrer">
                 Раздел «Галерея» ↗
+              </Link>
+            ) : null}
+            {activeTab === "pricing" ? (
+              <Link href="/prices" target="_blank" rel="noopener noreferrer">
+                Раздел «Цены и акции» ↗
               </Link>
             ) : null}
           </nav>
@@ -632,6 +768,7 @@ export default function AdminHomePage() {
               ["news", "Новости", news.length],
               ["photos", "Фото", photos.length],
               ["stories", "Сторис", stories.length],
+              ["pricing", "Цены", pricing.promotions.length + pricing.sections.length],
             ].map(([id, label, count]) => (
               <button
                 key={id}
@@ -1092,6 +1229,152 @@ export default function AdminHomePage() {
           {photosInAlbum.length === 0 ? (
             <p className={styles.emptyHint}>В этом альбоме пока нет фотографий.</p>
           ) : null}
+        </div>
+      </section>
+      ) : null}
+
+      {activeTab === "pricing" ? (
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Цены и акции</h2>
+        <p className={styles.cardDesc}>
+          Здесь можно редактировать акции и прайс на главной странице, а также добавлять новые позиции.
+        </p>
+
+        <div className={styles.subsection} style={{ marginTop: 0, paddingTop: 0, borderTop: "none" }}>
+          <h3 className={styles.subsectionTitle}>Акции</h3>
+          <div className={styles.formActions}>
+            <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={addPromotion}>
+              Добавить акцию
+            </button>
+          </div>
+          <ul className={`${styles.list} ${styles.storySortList}`} style={{ marginTop: "0.85rem" }}>
+            {pricing.promotions.map((promo) => (
+              <li key={promo.id} className={styles.storySortItem}>
+                <div className={styles.field}>
+                  <label>Название акции</label>
+                  <input
+                    value={promo.title}
+                    onChange={(e) => updatePromotion(promo.id, "title", e.target.value)}
+                    placeholder="Например: Первое посещение"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Условие / выгода</label>
+                  <input
+                    value={promo.details}
+                    onChange={(e) => updatePromotion(promo.id, "details", e.target.value)}
+                    placeholder="Например: Бесплатно"
+                  />
+                </div>
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
+                    onClick={() => removePromotion(promo.id)}
+                  >
+                    Удалить акцию
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {pricing.promotions.length === 0 ? (
+            <p className={styles.emptyHint}>Список акций пуст. Добавьте первую акцию.</p>
+          ) : null}
+        </div>
+
+        <div className={styles.subsection}>
+          <h3 className={styles.subsectionTitle}>Прайс-лист</h3>
+          <div className={styles.formActions}>
+            <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={addSection}>
+              Добавить раздел
+            </button>
+          </div>
+          <div className={styles.list} style={{ marginTop: "0.85rem" }}>
+            {pricing.sections.map((section) => (
+              <article key={section.id} className={styles.storySortItem}>
+                <div className={styles.field}>
+                  <label>Название раздела</label>
+                  <input
+                    value={section.title}
+                    onChange={(e) => updateSection(section.id, "title", e.target.value)}
+                    placeholder="Например: Абонементы"
+                  />
+                </div>
+
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnGhost} ${styles.btnSmall}`}
+                    onClick={() => addSectionItem(section.id)}
+                  >
+                    Добавить позицию
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
+                    onClick={() => removeSection(section.id)}
+                  >
+                    Удалить раздел
+                  </button>
+                </div>
+
+                <ul className={`${styles.list} ${styles.storySortList}`} style={{ marginTop: "0.75rem" }}>
+                  {section.items.map((item) => (
+                    <li key={item.id} className={styles.storySortItem}>
+                      <div className={styles.field}>
+                        <label>Название позиции</label>
+                        <input
+                          value={item.title}
+                          onChange={(e) => updateSectionItem(section.id, item.id, "title", e.target.value)}
+                          placeholder="Например: 8 занятий"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label>Цена / значение</label>
+                        <input
+                          value={item.price}
+                          onChange={(e) => updateSectionItem(section.id, item.id, "price", e.target.value)}
+                          placeholder="Например: 3600"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label>Комментарий (необязательно)</label>
+                        <input
+                          value={item.note ?? ""}
+                          onChange={(e) => updateSectionItem(section.id, item.id, "note", e.target.value)}
+                          placeholder="Например: с человека"
+                        />
+                      </div>
+                      <div className={styles.formActions}>
+                        <button
+                          type="button"
+                          className={`${styles.btn} ${styles.btnDanger} ${styles.btnSmall}`}
+                          onClick={() => removeSectionItem(section.id, item.id)}
+                        >
+                          Удалить позицию
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {section.items.length === 0 ? (
+                  <p className={styles.emptyHint}>В разделе пока нет позиций.</p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+          {pricing.sections.length === 0 ? (
+            <p className={styles.emptyHint}>Разделы прайс-листа не добавлены.</p>
+          ) : null}
+        </div>
+
+        <div className={styles.subsection}>
+          <div className={styles.formActions}>
+            <button className={styles.btn} type="button" onClick={savePricing} disabled={pricingSaving}>
+              {pricingSaving ? "Сохранение…" : "Сохранить цены и акции"}
+            </button>
+          </div>
         </div>
       </section>
       ) : null}

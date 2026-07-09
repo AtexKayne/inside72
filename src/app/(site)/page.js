@@ -56,6 +56,9 @@ export default async function HomePage() {
               <Link className={`${pages.btn} ${pages.btnGhost}`} href="/about">
                 О студии
               </Link>
+              <Link className={`${pages.btn} ${pages.btnGhost}`} href="/prices">
+                Узнать цены
+              </Link>
             </div>
           </div>
           <HomeHeroSwiper />

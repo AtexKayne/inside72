@@ -44,7 +44,7 @@ export default async function GalleryPage() {
     <section className={`${pages.section} ${styles.gallerySection}`}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Студия Inside</p>
+          <p className={pages.pageKicker}>Inside · Тюмень</p>
           <h1 className={pages.pageTitle}>Фотографии</h1>
           <p className={pages.pageLead}>
             Моменты из зала: занятия, показы и атмосфера студии.

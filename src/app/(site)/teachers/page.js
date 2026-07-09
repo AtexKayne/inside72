@@ -51,7 +51,7 @@ export default function TeachersPage() {
     <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Студия Inside · Тюмень</p>
+          <p className={pages.pageKicker}>Inside · Тюмень</p>
           <h1 className={pages.pageTitle}>Преподаватели</h1>
           <p className={pages.pageLead}>{teachersIntro.lead}</p>
           <div className={styles.stats} aria-label="Ключевые факты">

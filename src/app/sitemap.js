@@ -10,6 +10,7 @@ export default async function sitemap() {
     { path: "/about", priority: 0.9, changeFrequency: "monthly" },
     { path: "/teachers", priority: 0.9, changeFrequency: "monthly" },
     { path: "/arenda", priority: 0.8, changeFrequency: "weekly" },
+    { path: "/prices", priority: 0.8, changeFrequency: "weekly" },
     { path: "/news", priority: 0.8, changeFrequency: "daily" },
     { path: "/gallery", priority: 0.7, changeFrequency: "weekly" },
     { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },

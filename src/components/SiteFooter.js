@@ -29,12 +29,12 @@ export function SiteFooter() {
         <div>
           <p className={layout.footerTitle}>Разделы</p>
           <div className={layout.footerLinks}>
+            <Link href="/prices">Цены и акции</Link>
             <Link href="/news">Новости</Link>
             <Link href="/gallery">Фотографии</Link>
             <Link href="/teachers">Преподаватели</Link>
             <Link href="/arenda">Аренда зала</Link>
             <Link href="/about">О нас</Link>
-            <TrialCtaLink>Запись на пробное</TrialCtaLink>
           </div>
         </div>
         <div>

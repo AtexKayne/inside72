@@ -85,6 +85,13 @@ async function ensureSchema() {
       vk_id TEXT PRIMARY KEY
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS site_content (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    )
+  `;
   await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
   await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
 }
@@ -194,6 +201,24 @@ async function upsertVkImported(ids) {
   }
 }
 
+async function upsertPricing(pricing) {
+  if (!pricing || typeof pricing !== "object") return;
+  await db
+    .insert(schema.siteContent)
+    .values({
+      id: "pricing",
+      data: JSON.stringify(pricing),
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: schema.siteContent.id,
+      set: {
+        data: JSON.stringify(pricing),
+        updatedAt: new Date(),
+      },
+    });
+}
+
 async function main() {
   await ensureSchema();
 
@@ -202,12 +227,14 @@ async function main() {
   const photos = await readJson("photos.json", { items: [] });
   const stories = await readJson("stories.json", { items: [] });
   const vk = await readJson("vk-imported.json", { ids: [] });
+  const pricing = await readJson("pricing.json", null);
 
   await upsertNews(news.items);
   await upsertAlbums(albums.items);
   await upsertPhotos(photos.items);
   await upsertStories(stories.items);
   await upsertVkImported(vk.ids);
+  await upsertPricing(pricing);
 
   console.log(
     `Готово: news=${news.items.length}, albums=${albums.items.length}, photos=${photos.items.length}, stories=${stories.items.length}, vk=${vk.ids.length}`

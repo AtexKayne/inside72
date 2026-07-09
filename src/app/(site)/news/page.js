@@ -37,7 +37,7 @@ export default async function NewsPage() {
     <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Студия Inside</p>
+          <p className={pages.pageKicker}>Inside · Тюмень</p>
           <h1 className={pages.pageTitle}>Новости</h1>
           <p className={pages.pageLead}>
             Наборы, мастер-классы, отчёты с мероприятий и всё, что происходит в нашей студии.

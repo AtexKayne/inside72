@@ -85,3 +85,11 @@ export async function updateStory(id, fields) {
 export async function reorderStories(orderedIds) {
   return store().reorderStories(orderedIds);
 }
+
+export async function getPricingContent() {
+  return store().getPricingContent();
+}
+
+export async function updatePricingContent(content) {
+  return store().updatePricingContent(content);
+}

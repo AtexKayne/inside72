@@ -1,4 +1,5 @@
-import { organizationJsonLd } from "@/lib/seo";
+import { getPricingContent } from "@/lib/data-store";
+import { siteJsonLdGraph } from "@/lib/seo";
 
 export function JsonLdScript({ data }) {
   return (
@@ -9,6 +10,7 @@ export function JsonLdScript({ data }) {
   );
 }
 
-export function JsonLd() {
-  return <JsonLdScript data={organizationJsonLd()} />;
+export async function JsonLd() {
+  const pricing = await getPricingContent();
+  return <JsonLdScript data={siteJsonLdGraph(pricing)} />;
 }

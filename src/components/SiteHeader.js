@@ -9,6 +9,7 @@ import layout from "@/styles/layout.module.scss";
 
 const links = [
   { href: "/", label: "Главная" },
+  { href: "/prices", label: "Цены" },
   { href: "/news", label: "Новости" },
   { href: "/gallery", label: "Фотографии" },
   { href: "/teachers", label: "Преподаватели" },

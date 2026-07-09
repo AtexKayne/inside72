@@ -20,7 +20,7 @@ export default function HallRentalPage() {
     <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Студия Inside</p>
+          <p className={pages.pageKicker}>Inside · Тюмень</p>
           <h1 className={pages.pageTitle}>{info.title}</h1>
           <p className={pages.pageLead}>{info.lead}</p>
         </header>

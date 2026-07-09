@@ -4,6 +4,7 @@ import { asc, desc, eq } from "drizzle-orm";
 import { ensureDbSchema, getDb } from "@/lib/db";
 import * as tables from "@/lib/db/schema";
 import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
+import { createDefaultPricingContent, normalizePricingContent } from "@/lib/pricing-content";
 import { sortStoriesItems } from "@/lib/story-order";
 
 export const DEFAULT_ALBUM_ID = "alb-default";
@@ -453,4 +454,40 @@ export async function markVkImported(vkIds) {
     .insert(tables.vkImported)
     .values(ids.map((vkId) => ({ vkId })))
     .onConflictDoNothing();
+}
+
+export async function getPricingContent() {
+  const [row] = await (await db())
+    .select()
+    .from(tables.siteContent)
+    .where(eq(tables.siteContent.id, "pricing"));
+  if (!row) {
+    return createDefaultPricingContent();
+  }
+  try {
+    const parsed = JSON.parse(row.data);
+    return normalizePricingContent(parsed);
+  } catch {
+    return createDefaultPricingContent();
+  }
+}
+
+export async function updatePricingContent(content) {
+  const normalized = normalizePricingContent(content);
+  const now = new Date();
+  await (await db())
+    .insert(tables.siteContent)
+    .values({
+      id: "pricing",
+      data: JSON.stringify(normalized),
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: tables.siteContent.id,
+      set: {
+        data: JSON.stringify(normalized),
+        updatedAt: now,
+      },
+    });
+  return normalized;
 }

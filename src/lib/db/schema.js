@@ -40,3 +40,9 @@ export const stories = pgTable("stories", {
 export const vkImported = pgTable("vk_imported", {
   vkId: text("vk_id").primaryKey(),
 });
+
+export const siteContent = pgTable("site_content", {
+  id: text("id").primaryKey(),
+  data: text("data").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull(),
+});

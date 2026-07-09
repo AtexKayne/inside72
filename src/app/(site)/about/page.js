@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { JsonLdScript } from "@/components/JsonLd";
 import { SiteContacts } from "@/components/SiteContacts";
 import { TrialCta } from "@/components/TrialCta";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import pages from "@/styles/pages.module.scss";
 import styles from "./about-page.module.scss";
 
@@ -38,10 +39,18 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <section className={pages.section}>
+    <>
+      <JsonLdScript
+        data={breadcrumbJsonLd([
+          { name: "Главная", path: "/" },
+          { name: "О студии", path: "/about" },
+        ])}
+      />
+
+      <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Студия Inside · Тюмень</p>
+          <p className={pages.pageKicker}>Inside · Тюмень</p>
           <h1 className={pages.pageTitle}>О студии Inside</h1>
           <p className={pages.pageLead}>
             Парный танец, который легко освоить с нуля. Занятия в центре города — группы для
@@ -114,6 +123,7 @@ export default function AboutPage() {
 
         <SiteContacts />
       </div>
-    </section>
+      </section>
+    </>
   );
 }

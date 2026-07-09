@@ -51,7 +51,7 @@ export default function NotFound() {
 
       <div className={styles.inner}>
         <header className={styles.hero}>
-          <p className={pages.pageKicker}>Студия Inside · Тюмень</p>
+          <p className={pages.pageKicker}>Inside · Тюмень</p>
           <p className={styles.code} aria-hidden="true">
             404
           </p>
