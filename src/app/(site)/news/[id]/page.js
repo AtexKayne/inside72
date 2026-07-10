@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { JsonLdScript } from "@/components/JsonLd";
 import { NewsCard } from "@/components/NewsCard";
 import { TrialCta } from "@/components/TrialCta";
@@ -10,18 +11,11 @@ import styles from "./news-detail-page.module.scss";
 
 export const revalidate = 30;
 
-export async function generateStaticParams() {
-  try {
-    const items = await getNews();
-    return items.map((n) => ({ id: n.id }));
-  } catch {
-    return [];
-  }
-}
+const getNewsCached = cache(getNews);
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const items = await getNews();
+  const items = await getNewsCached();
   const item = items.find((x) => x.id === id);
   if (!item) {
     return {
@@ -57,7 +51,7 @@ function bodyParagraphs(text) {
 
 export default async function NewsItemPage({ params }) {
   const { id } = await params;
-  const items = await getNews();
+  const items = await getNewsCached();
   const item = items.find((x) => x.id === id);
   if (!item) notFound();
 

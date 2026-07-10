@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install and build
@@ -28,6 +28,10 @@ jobs:
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_YANDEX_SMARTCAPTCHA_CLIENT_KEY }}
         run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set in GitHub Actions"
+            exit 1
+          fi
           npm ci
           npm run build
 
