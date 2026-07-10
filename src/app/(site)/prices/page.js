@@ -8,7 +8,7 @@ import pages from "@/styles/pages.module.scss";
 export const metadata = pageMetadata({
   title: "Цены и акции",
   description:
-    "Актуальные цены на занятия в студии Inside в Тюмени: абонементы, индивидуальные тренировки, самоподготовка и действующие акции.",
+    "Актуальные цены на занятия в студии INSIDE в Тюмени: абонементы, индивидуальные тренировки, самоподготовка и действующие акции.",
   pathname: "/prices",
 });
 
@@ -28,7 +28,7 @@ export default async function PricesPage() {
       <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
           <h1 className={pages.pageTitle}>Цены и акции</h1>
           <p className={pages.pageLead}>
             Актуальный прайс студии. Если нужна помощь с выбором формата занятий, оставьте заявку —

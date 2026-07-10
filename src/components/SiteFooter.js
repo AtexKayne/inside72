@@ -10,8 +10,7 @@ export function SiteFooter() {
         <div>
           <p className={layout.footerTitle}>Студия</p>
           <p className={layout.footerBrand}>
-            Inside — студия социального хастла в Тюмени. С нуля, с опытными преподавателями и
-            дружным сообществом на танцполе.
+          INSIDE — студия танца в Тюмени. Выбери парные танцы, выбери хастл, выбери себя.
           </p>
         </div>
         <div>
@@ -45,7 +44,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className={layout.footerBottom}>
-        <span>© {new Date().getFullYear()} Inside. Все права защищены.</span>
+        <span>© {new Date().getFullYear()} INSIDE. Все права защищены.</span>
         <Link href="/admin/login" className={layout.footerAdminLink}>
           Вход для администратора
         </Link>

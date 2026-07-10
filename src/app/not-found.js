@@ -6,7 +6,7 @@ import styles from "./not-found.module.scss";
 export const metadata = {
   ...pageMetadata({
     title: "Страница не найдена",
-    description: "Запрошенная страница не существует. Вернитесь на главную студии Inside в Тюмени.",
+    description: "Запрошенная страница не существует. Вернитесь на главную студии INSIDE в Тюмени.",
     pathname: "/404",
     noIndex: true,
   }),
@@ -14,7 +14,7 @@ export const metadata = {
 
 const quickLinks = [
   { href: "/about", label: "О студии", desc: "Адрес, контакты, как добраться" },
-  { href: "/teachers", label: "Преподаватели", desc: "Саша и Оля — основатели Inside" },
+  { href: "/teachers", label: "Преподаватели", desc: "Саша и Оля — основатели INSIDE" },
   { href: "/news", label: "Новости", desc: "Наборы, события и мастер-классы" },
   { href: "/gallery", label: "Фотографии", desc: "Занятия и атмосфера студии" },
   { href: "/arenda", label: "Аренда зала", desc: "Почасовая аренда в центре Тюмени" },
@@ -51,7 +51,7 @@ export default function NotFound() {
 
       <div className={styles.inner}>
         <header className={styles.hero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
           <p className={styles.code} aria-hidden="true">
             404
           </p>

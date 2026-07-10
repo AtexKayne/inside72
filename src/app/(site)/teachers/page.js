@@ -13,7 +13,7 @@ import styles from "./teachers-page.module.scss";
 export const metadata = pageMetadata({
   title: "Преподаватели",
   description:
-    "Преподаватели студии Inside в Тюмени — Александр Резчиков и Ольга Иванова. Хастл с нуля, системное обучение и опыт в парном танце.",
+    "Преподаватели студии INSIDE в Тюмени — Александр Резчиков и Ольга Иванова. Хастл с нуля, системное обучение и опыт в парном танце.",
   pathname: "/teachers",
 });
 
@@ -51,7 +51,7 @@ export default function TeachersPage() {
     <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
           <h1 className={pages.pageTitle}>Преподаватели</h1>
           <p className={pages.pageLead}>{teachersIntro.lead}</p>
           <div className={styles.stats} aria-label="Ключевые факты">
@@ -68,12 +68,12 @@ export default function TeachersPage() {
           <div className={styles.introImageWrap}>
             <img
               src={teachersIntro.heroImage}
-              alt="Александр и Ольга — основатели студии Inside"
+              alt="Александр и Ольга — основатели студии INSIDE"
               width={1128}
               height={768}
               className={styles.introImage}
             />
-            <p className={styles.introCaption}>Саша и Оля — основатели Inside</p>
+            <p className={styles.introCaption}>Саша и Оля — основатели INSIDE</p>
           </div>
           <div className={styles.introCopy}>
             <p>
@@ -140,10 +140,9 @@ export default function TeachersPage() {
 
         <div className={styles.ctaBand}>
           <div className={styles.ctaCopy}>
-            <strong>Познакомься с нами на занятии</strong>
+            <strong>Приходи и убедись в этом сам</strong>
             <p>
-              Запишись на пробное — увидишь, как мы объясняем, как меняем партнёров и как
-              быстро появляется уверенность в танце.
+            Запишись на пробное занятие. Это бесплатно и ни к чему не обязывает. Если не понравится — ты ничего не потеряешь.
             </p>
           </div>
           <div className={styles.ctaActions}>

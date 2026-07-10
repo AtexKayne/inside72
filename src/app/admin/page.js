@@ -725,7 +725,7 @@ export default function AdminHomePage() {
     <div className={styles.inner}>
       <header className={styles.header}>
         <div className={styles.headerMain}>
-          <p className={styles.kicker}>Inside · Панель управления</p>
+          <p className={styles.kicker}>INSIDE · Панель управления</p>
           <h1 className={styles.title}>Контент сайта</h1>
           <nav className={styles.siteNav} aria-label="Переходы на сайт">
             <Link href="/">На главную</Link>

@@ -40,7 +40,7 @@ function AdminLoginForm() {
   return (
     <div className={styles.loginWrap}>
       <div className={styles.loginCard}>
-        <p className={styles.kicker}>Inside · Админ</p>
+        <p className={styles.kicker}>INSIDE · Админ</p>
         <h1 className={styles.title}>Вход</h1>
         <p className={styles.lead}>Панель управления новостями, галереей и сторис студии.</p>
         <form onSubmit={onSubmit}>

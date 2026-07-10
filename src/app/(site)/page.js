@@ -11,7 +11,7 @@ import bannerImageFallback from "../../../public/banner-tanec-vnutri.png";
 export const metadata = {
   ...pageMetadata({
     description:
-      "Студия Inside в Тюмени — танцы для взрослых с нуля. Мы танцуем хастл, группы стартуют каждый месяц. Опытные преподаватели и дружное сообщество.",
+      "Студия INSIDE в Тюмени — танцы для взрослых с нуля. Мы танцуем хастл, группы стартуют каждый месяц. Опытные преподаватели и дружное сообщество.",
     pathname: "/",
   }),
   title: { absolute: siteSeo.defaultTitle },
@@ -30,7 +30,7 @@ export default async function HomePage() {
             <source srcSet={bannerImage.src} type="image/webp" />
             <img
               src={bannerImageFallback.src}
-              alt="Inside — социальный хастл: научись танцевать в паре с нуля"
+              alt="INSIDE — социальный хастл: научись танцевать в паре с нуля"
               width={2560}
               height={1023}
               className={pages.promoBannerImage}
@@ -44,12 +44,9 @@ export default async function HomePage() {
         <div className={`${pages.inner} ${pages.heroGrid}`}>
           <div>
             <p className={pages.kicker}>Танцевальная студия · Тюмень</p>
-            <h1 className={pages.pageTitle}>Inside — социальный хастл</h1>
+            <h1 className={pages.pageTitle}>INSIDE — это стиль и эстетика парного танца</h1>
             <p className={pages.lead}>
-              Парный танец, который легко освоить с нуля и танцевать под любую музыку — с разными
-              партнёрами на вечеринках и опенах. Основатели студии Саша и Оля ведут группы по
-              понятной системе: прозрачная методика, внимание к деталям и тусовка, где поддерживают
-              друг друга.
+            Мы танцуем хастл - парный танец, который легко освоить с нуля. Его танцуют как на набережных, так и под софитами сцены. Опыт не требуется, своя пара необязательна.
             </p>
             <div className={pages.ctaRow}>
               <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
@@ -67,27 +64,24 @@ export default async function HomePage() {
 
       <section className={pages.section}>
         <div className={pages.inner}>
-          <h2 className={pages.h2}>Направления</h2>
+          <h2 className={pages.h2}>Почему хастл?</h2>
           <div className={pages.cardGrid}>
             <article className={pages.card}>
-              <h3>Хастл</h3>
+              <h3>Быстрый старт</h3>
               <p>
-                С нуля — под любую музыку, в парке, баре или на танцполе. Пара не нужна: большинство
-                учеников приходят одни.
+              Легко освоить с нуля и танцевать под любую музыку, в парке, баре или на танцполе. Пара не нужна: большинство учеников приходят одни.
               </p>
             </article>
             <article className={pages.card}>
-              <h3>Группы</h3>
+              <h3>Преподы профи</h3>
               <p>
-                Системное обучение от преподавателей с многолетним опытом: ясные шаги, детальные
-                объяснения и комфортный темп.
+              Мы любим покопать вглубь, чтобы мозг работал, а тело училось. Любим делать танец удобным, красивым и безопасным. Мы горим своим делом, поэтому с нами научатся даже те, кто считает себя деревянным.
               </p>
             </article>
             <article className={pages.card}>
-              <h3>Сообщество</h3>
+              <h3>Хобби и комьюнити</h3>
               <p>
-                Тусовка, где поддерживают друг друга: социалы, опены и путь до соревнований — если
-                захочешь.
+              Танцевать прикольнее, чем после работы скролить ленту. А ещё на танцах есть другие люди, часто - разносторонние и интересные.
               </p>
             </article>
           </div>
@@ -98,10 +92,9 @@ export default async function HomePage() {
         <div className={pages.inner}>
           <h2 className={pages.h2}>Пробное занятие</h2>
           <p className={pages.lead} style={{ marginBottom: "1.5rem" }}>
-            Первое занятие — знакомство со студией, преподавателями и атмосферой. Пара не нужна:
-            оставьте заявку, и мы подберём удобное время на открытый урок.
+          Первое занятие — знакомство со студией, преподавателями и атмосферой. Пара не нужна: оставь заявку, и мы подберём удобное время для урока.
           </p>
-          <TrialCta className={pages.btn}>Записаться на пробное</TrialCta>
+          <TrialCta className={pages.btn}>Записаться</TrialCta>
         </div>
       </section>
     </>

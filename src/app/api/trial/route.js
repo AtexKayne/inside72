@@ -40,7 +40,7 @@ export async function POST(request) {
   }
 
   const text = [
-    "Новая заявка на пробное занятие (студия Inside, хастл)",
+    "Новая заявка на пробное занятие (студия INSIDE, хастл)",
     "",
     `Имя: ${name}`,
     `Телефон: ${phone}`,
@@ -49,7 +49,7 @@ export async function POST(request) {
 
   const [emailResult, vkResult] = await Promise.all([
     sendTrialEmail({
-      subject: `Inside — пробное: ${name}`,
+      subject: `INSIDE — пробное: ${name}`,
       text,
     }),
     sendTrialVkNotify(text),

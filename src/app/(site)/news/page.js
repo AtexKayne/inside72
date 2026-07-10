@@ -9,7 +9,7 @@ export const revalidate = 30;
 export const metadata = pageMetadata({
   title: "Новости",
   description:
-    "Новости студии хастла Inside в Тюмени: наборы в группы, мастер-классы и события сообщества.",
+    "Новости студии хастла INSIDE в Тюмени: наборы в группы, мастер-классы и события сообщества.",
   pathname: "/news",
 });
 
@@ -37,7 +37,7 @@ export default async function NewsPage() {
     <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
           <h1 className={pages.pageTitle}>Новости</h1>
           <p className={pages.pageLead}>
             Наборы, мастер-классы, отчёты с мероприятий и всё, что происходит в нашей студии.

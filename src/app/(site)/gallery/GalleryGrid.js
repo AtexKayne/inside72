@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useModalTransition } from "@/hooks/useModalTransition";
 import g from "./gallery-grid.module.scss";
 
-export function GalleryGrid({ items, albumTitle = "студии Inside" }) {
+export function GalleryGrid({ items, albumTitle = "студии INSIDE" }) {
   const [index, setIndex] = useState(null);
   const [displayIndex, setDisplayIndex] = useState(null);
   const open = index !== null;

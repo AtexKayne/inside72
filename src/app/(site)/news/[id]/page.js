@@ -112,7 +112,7 @@ export default async function NewsItemPage({ params }) {
         </nav>
 
         <header className={styles.hero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
           <h1 className={styles.title}>{item.title}</h1>
           <time className={pages.pageLead} dateTime={item.createdAt}>
             {dateLabel}

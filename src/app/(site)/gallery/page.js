@@ -9,7 +9,7 @@ export const revalidate = 30;
 export const metadata = pageMetadata({
   title: "Фотографии",
   description:
-    "Фотографии с занятий, вечеринок и мероприятий студии хастла Inside в Тюмени.",
+    "Фотографии с занятий, вечеринок и мероприятий студии хастла INSIDE в Тюмени.",
   pathname: "/gallery",
 });
 
@@ -44,10 +44,10 @@ export default async function GalleryPage() {
     <section className={`${pages.section} ${styles.gallerySection}`}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
           <h1 className={pages.pageTitle}>Фотографии</h1>
           <p className={pages.pageLead}>
-            Моменты из зала: занятия, показы и атмосфера студии.
+          Это кадры из твоей жизни, если ты выберешь танцы.
           </p>
           {visiblePhotos.length > 0 ? (
             <div className={styles.meta}>

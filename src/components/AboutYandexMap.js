@@ -11,7 +11,7 @@ export function AboutYandexMap({ embedded = false }) {
       <iframe
         className={styles.frame}
         src={map.widgetUrl}
-        title={`Карта — студия Inside, ${address.line}, ${address.city}`}
+        title={`Карта — студия INSIDE, ${address.line}, ${address.city}`}
         allowFullScreen
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"

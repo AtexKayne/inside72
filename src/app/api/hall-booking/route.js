@@ -67,7 +67,7 @@ export async function POST(request) {
   const slotLabel = formatBookingSlot(slotStart, slotEnd);
 
   const text = [
-    "Новая заявка на аренду зала (студия Inside)",
+    "Новая заявка на аренду зала (студия INSIDE)",
     "",
     `Зал: ${hall.label}`,
     `Время: ${slotLabel}`,
@@ -78,7 +78,7 @@ export async function POST(request) {
 
   const [emailResult, vkResult] = await Promise.all([
     sendTrialEmail({
-      subject: `Inside — ${hall.label}: ${name}`,
+      subject: `INSIDE — ${hall.label}: ${name}`,
       text,
     }),
     sendTrialVkNotify(text),

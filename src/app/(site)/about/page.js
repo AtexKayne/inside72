@@ -9,7 +9,7 @@ import styles from "./about-page.module.scss";
 export const metadata = pageMetadata({
   title: "О студии",
   description:
-    "Студия хастла Inside в Тюмени: адрес на ул. Герцена, 82/1, часы работы, как добраться и записаться на пробное занятие.",
+    "Студия хастла INSIDE в Тюмени: адрес на ул. Герцена, 82/1, часы работы, как добраться и записаться на пробное занятие.",
   pathname: "/about",
 });
 
@@ -50,8 +50,8 @@ export default function AboutPage() {
       <section className={pages.section}>
       <div className={pages.inner}>
         <header className={pages.pageHero}>
-          <p className={pages.pageKicker}>Inside · Тюмень</p>
-          <h1 className={pages.pageTitle}>О студии Inside</h1>
+          <p className={pages.pageKicker}>INSIDE · Тюмень</p>
+          <h1 className={pages.pageTitle}>О студии INSIDE</h1>
           <p className={pages.pageLead}>
             Парный танец, который легко освоить с нуля. Занятия в центре города — группы для
             начинающих стартуют каждый месяц.
@@ -81,9 +81,7 @@ export default function AboutPage() {
           <aside className={styles.storyAside}>
             <strong>Пара не нужна</strong>
             <p>
-              Большинство учеников приходят одни. Через три месяца вы уже танцуете и кайфуете от
-              себя — системная методика и внимательные преподаватели делают путь понятным с первого
-              занятия.
+            Большинство учеников приходят одни. На занятиях мы меняемся в парах, чтобы отточить взаимодействие и опыт танцевания с разными людьми. Это комфортно и безопасно: мы все приходим на танцы с одной целью, и в нашем пространстве все относятся друг к другу с уважением к границам.
             </p>
           </aside>
         </div>
