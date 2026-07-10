@@ -1,9 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode } from "swiper/modules";
-import "swiper/css";
 import styles from "./site-stories.module.scss";
 import logoImage from "../../public/logo.jpg";
 import { getStoryPreviewVideoUrl, getStorySlides } from "@/lib/story-slides";
@@ -428,32 +425,18 @@ export function SiteStories({ items = [] }) {
             <div className={styles.inner}>
               <div className={styles.collapseInner}>
                 <div className={styles.rowOuter}>
-                  <Swiper
-                    className={styles.row}
-                    modules={[FreeMode]}
-                    slidesPerView="auto"
-                    freeMode={{
-                      enabled: true,
-                      momentum: true,
-                      momentumRatio: 0.8,
-                      momentumVelocityRatio: 0.8,
-                    }}
-                    speed={400}
-                    grabCursor
-                    watchOverflow
-                    touchStartPreventDefault={false}
-                  >
+                  <div className={styles.row} role="list" aria-label="Сторис">
                     {items.map((story, index) => (
-                      <SwiperSlide key={story.id} className={styles.slide}>
+                      <div key={story.id} className={styles.slide} role="listitem">
                         <StoryCircle
                           story={story}
                           hasFineHover={hasFineHover}
                           onOpen={() => openStory(index, 0)}
                           onWarm={() => warmStoryKeys(index)}
                         />
-                      </SwiperSlide>
+                      </div>
                     ))}
-                  </Swiper>
+                  </div>
                 </div>
               </div>
             </div>
