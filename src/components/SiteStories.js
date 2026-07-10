@@ -64,7 +64,7 @@ function StoryPreview({ videoUrl, hovered, hasFineHover, onWarm }) {
   const wrapRef = useRef(null);
   const videoRef = useRef(null);
   const srcPinnedRef = useRef(false);
-  const inView = useInView(wrapRef, "120px 0px", { sticky: !hasFineHover });
+  const inView = useInView(wrapRef, "120px 240px", { sticky: !hasFineHover });
   const shouldLoad = hasFineHover ? hovered || srcPinnedRef.current : inView;
   const shouldPlay = hasFineHover ? hovered : inView;
 
@@ -168,6 +168,7 @@ function StoryCircle({ story, onOpen, onWarm, hasFineHover }) {
       onFocus={activate}
       onBlur={() => setHovered(false)}
       aria-label={`Открыть сторис: ${story.title}`}
+      title={story.title || undefined}
     >
       <span className={styles.ring} aria-hidden>
         <svg className={styles.ringSvg} viewBox="0 0 100 100" aria-hidden>
@@ -183,7 +184,6 @@ function StoryCircle({ story, onOpen, onWarm, hasFineHover }) {
           />
         </span>
       </span>
-      {story.title ? <span className={styles.caption}>{story.title}</span> : null}
     </button>
   );
 }
@@ -427,32 +427,34 @@ export function SiteStories({ items = [] }) {
           <section ref={sectionRef} className={styles.section} aria-label="Сторис студии">
             <div className={styles.inner}>
               <div className={styles.collapseInner}>
-                <Swiper
-                  className={styles.row}
-                  modules={[FreeMode]}
-                  slidesPerView="auto"
-                  freeMode={{
-                    enabled: true,
-                    momentum: true,
-                    momentumRatio: 0.8,
-                    momentumVelocityRatio: 0.8,
-                  }}
-                  speed={400}
-                  grabCursor
-                  watchOverflow
-                  touchStartPreventDefault={false}
-                >
-                  {items.map((story, index) => (
-                    <SwiperSlide key={story.id} className={styles.slide}>
-                      <StoryCircle
-                        story={story}
-                        hasFineHover={hasFineHover}
-                        onOpen={() => openStory(index, 0)}
-                        onWarm={() => warmStoryKeys(index)}
-                      />
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
+                <div className={styles.rowOuter}>
+                  <Swiper
+                    className={styles.row}
+                    modules={[FreeMode]}
+                    slidesPerView="auto"
+                    freeMode={{
+                      enabled: true,
+                      momentum: true,
+                      momentumRatio: 0.8,
+                      momentumVelocityRatio: 0.8,
+                    }}
+                    speed={400}
+                    grabCursor
+                    watchOverflow
+                    touchStartPreventDefault={false}
+                  >
+                    {items.map((story, index) => (
+                      <SwiperSlide key={story.id} className={styles.slide}>
+                        <StoryCircle
+                          story={story}
+                          hasFineHover={hasFineHover}
+                          onOpen={() => openStory(index, 0)}
+                          onWarm={() => warmStoryKeys(index)}
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
               </div>
             </div>
           </section>

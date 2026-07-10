@@ -1414,7 +1414,7 @@ export default function AdminHomePage() {
         </p>
         <form onSubmit={saveStory}>
           <div className={styles.field}>
-            <label htmlFor="st-title">Название блока на главной</label>
+            <label htmlFor="st-title">Название блока (подсказка при наведении)</label>
             <input
               id="st-title"
               value={storyTitle}

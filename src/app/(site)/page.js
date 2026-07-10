@@ -9,6 +9,8 @@ import pages from "@/styles/pages.module.scss";
 import bannerImage from "../../../public/banner-tanec-vnutri.webp";
 import bannerImageFallback from "../../../public/banner-tanec-vnutri.png";
 
+export const revalidate = 30;
+
 export const metadata = {
   ...pageMetadata({
     description:

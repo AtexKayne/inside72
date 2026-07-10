@@ -2,7 +2,8 @@
 @use "hover" as *;
 
 $stories-scale: 0.8;
-$stories-expanded-height: 11.125rem * $stories-scale;
+$ring-outset: 0.25rem;
+$stories-expanded-height: (11.125rem + 2 * $ring-outset) * $stories-scale;
 $stories-collapse-amount: 5.875rem * $stories-scale;
 
 .wrap {
@@ -52,6 +53,8 @@ $stories-collapse-amount: 5.875rem * $stories-scale;
   display: flex;
   align-items: center;
   height: 100%;
+  padding-block: $ring-outset;
+  box-sizing: border-box;
 }
 
 .head {
@@ -79,16 +82,25 @@ $stories-collapse-amount: 5.875rem * $stories-scale;
 
 $row-inset: 1rem;
 
-.row {
-  overflow: visible;
+.rowOuter {
   margin-inline: calc(-1 * #{$row-inset});
   padding-inline: $row-inset;
+  overflow: visible;
+}
+
+.row {
+  overflow: hidden;
+  padding-block: $ring-outset;
+  margin-block: calc(-1 * #{$ring-outset});
 }
 
 .slide {
   width: var(--story-size);
+  padding: $ring-outset;
+  box-sizing: content-box;
   margin-right: calc(0.8rem - var(--stories-collapse) * 0.28rem);
   height: auto;
+  overflow: visible;
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -98,6 +110,7 @@ $row-inset: 1rem;
   position: relative;
   padding: 0;
   width: var(--story-size);
+  height: var(--story-size);
   border: none;
   border-radius: 0;
   background: transparent;
@@ -105,10 +118,7 @@ $row-inset: 1rem;
   cursor: pointer;
   font: inherit;
   appearance: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
+  display: block;
   -webkit-appearance: none;
 }
 
@@ -253,17 +263,6 @@ $row-inset: 1rem;
   .ringSvg {
     display: block;
   }
-}
-
-.caption {
-  font-size: 0.72rem;
-  line-height: 1.2;
-  color: $color-muted;
-  max-width: calc(var(--story-size) + 0.5rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: center;
 }
 
 .overlay {
