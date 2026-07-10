@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HomeHeroSwiper } from "@/components/HomeHeroSwiper";
+import { HomeLessonVideo } from "@/components/HomeLessonVideo";
 import { SiteStories } from "@/components/SiteStories";
 import { TrialCta } from "@/components/TrialCta";
 import { getStories } from "@/lib/data-store";
@@ -61,6 +62,8 @@ export default async function HomePage() {
           <HomeHeroSwiper />
         </div>
       </section>
+
+      <HomeLessonVideo />
 
       <section className={pages.section}>
         <div className={pages.inner}>

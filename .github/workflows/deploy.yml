@@ -37,7 +37,9 @@ jobs:
 
       - name: Pack build artifacts
         run: |
+          # public/video/*.mp4 — в git для разработки, на VPS не кладём (jsDelivr в home-video.js)
           tar -czf deploy.tar.gz \
+            --exclude='public/video/*.mp4' \
             .next \
             public \
             package.json \
