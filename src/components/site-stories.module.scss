@@ -98,17 +98,18 @@ $row-inset: 1rem;
   position: relative;
   padding: 0;
   width: var(--story-size);
-  height: var(--story-size);
   border: none;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   color: $color-text;
   cursor: pointer;
   font: inherit;
   appearance: none;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
   -webkit-appearance: none;
-  border: 1px solid #8a8a8a;
 }
 
 .storyBtn:focus-visible {
@@ -117,12 +118,13 @@ $row-inset: 1rem;
 }
 
 .ring {
-  width: 100%;
-  height: 100%;
+  width: var(--story-size);
+  height: var(--story-size);
   display: block;
   border-radius: 50%;
-  position: absolute;
-  inset: 0;
+  position: relative;
+  flex-shrink: 0;
+  border: 1px solid #8a8a8a;
 }
 
 .ringSvg {
@@ -226,6 +228,10 @@ $row-inset: 1rem;
 
   .storyBtn:hover,
   .storyBtn:focus-visible {
+    .ring {
+      border-color: transparent;
+    }
+
     .ringProgress {
       stroke-dashoffset: 0;
     }
@@ -253,10 +259,11 @@ $row-inset: 1rem;
   font-size: 0.72rem;
   line-height: 1.2;
   color: $color-muted;
-  max-width: 84px;
+  max-width: calc(var(--story-size) + 0.5rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
 }
 
 .overlay {
@@ -296,6 +303,34 @@ $row-inset: 1rem;
   min-height: 0;
   aspect-ratio: 9 / 16;
   background: #000;
+  overflow: hidden;
+}
+
+.progressRow {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  right: 0.55rem;
+  z-index: 3;
+  display: flex;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.progressSegment {
+  flex: 1;
+  height: 2px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.95);
+  transition: width 0.08s linear;
 }
 
 .video {
@@ -313,7 +348,7 @@ $row-inset: 1rem;
   position: absolute;
   top: 0.65rem;
   right: 0.65rem;
-  z-index: 2;
+  z-index: 4;
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 50%;
@@ -338,27 +373,31 @@ $row-inset: 1rem;
   display: none;
 }
 
-@include media-hover {
-  .storyTitle {
-    display: block;
-    flex-shrink: 0;
-    padding: 0.85rem 1rem;
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.92);
-    text-align: left;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-  }
+.tapZone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 35%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tapPrev {
+  left: 0;
+}
+
+.tapNext {
+  right: 0;
 }
 
 .nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 1;
+  z-index: 4;
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;

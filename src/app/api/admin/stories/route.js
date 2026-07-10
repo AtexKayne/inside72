@@ -8,7 +8,23 @@ import {
   reorderStories,
   updateStory,
 } from "@/lib/data-store";
+import { parseStorySlidesInput } from "@/lib/story-slides";
 import { isAllowedStoryVideoUrl } from "@/lib/story-video-url";
+
+function validateSlides(slides) {
+  const normalized = parseStorySlidesInput(slides);
+  if (!normalized) {
+    return { error: "Добавьте хотя бы одно видео в сторис" };
+  }
+
+  for (const slide of normalized) {
+    if (!isAllowedStoryVideoUrl(slide.videoUrl)) {
+      return { error: "Некорректный URL видео в одном из слайдов" };
+    }
+  }
+
+  return { slides: normalized };
+}
 
 export async function GET() {
   if (!(await isAdminRequest())) {
@@ -25,19 +41,30 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
   const title = typeof body.title === "string" ? body.title.trim() : "";
+  const hasSlides = Array.isArray(body.slides);
   const videoUrl = String(body.videoUrl ?? "").trim();
 
-  if (!videoUrl) {
-    return NextResponse.json({ error: "Видео не загружено" }, { status: 400 });
-  }
-
-  if (!isAllowedStoryVideoUrl(videoUrl)) {
+  let slides;
+  if (hasSlides) {
+    const validated = validateSlides(body.slides);
+    if (validated.error) {
+      return NextResponse.json({ error: validated.error }, { status: 400 });
+    }
+    slides = validated.slides;
+  } else if (!videoUrl) {
+    return NextResponse.json({ error: "Добавьте хотя бы одно видео" }, { status: 400 });
+  } else if (!isAllowedStoryVideoUrl(videoUrl)) {
     return NextResponse.json({ error: "Некорректный URL видео" }, { status: 400 });
   }
 
   try {
     const id = `s-${Date.now()}`;
-    const item = await addStory({ id, title: title || "Сторис", videoUrl });
+    const item = await addStory({
+      id,
+      title: title || "Сторис",
+      videoUrl,
+      slides,
+    });
 
     try {
       revalidatePath("/");
@@ -89,10 +116,18 @@ export async function PATCH(request) {
   }
 
   const title = typeof body.title === "string" ? body.title.trim() : undefined;
+  const hasSlides = Array.isArray(body.slides);
   const hasVideoUrl = body.videoUrl != null;
   const videoUrl = hasVideoUrl ? String(body.videoUrl).trim() : undefined;
 
-  if (hasVideoUrl) {
+  let slides;
+  if (hasSlides) {
+    const validated = validateSlides(body.slides);
+    if (validated.error) {
+      return NextResponse.json({ error: validated.error }, { status: 400 });
+    }
+    slides = validated.slides;
+  } else if (hasVideoUrl) {
     if (!videoUrl) {
       return NextResponse.json({ error: "Укажите URL видео" }, { status: 400 });
     }
@@ -102,7 +137,7 @@ export async function PATCH(request) {
   }
 
   try {
-    const item = await updateStory(id, { title, videoUrl });
+    const item = await updateStory(id, { title, videoUrl, slides });
     if (!item) {
       return NextResponse.json({ error: "Сторис не найден" }, { status: 404 });
     }

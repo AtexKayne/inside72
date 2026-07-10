@@ -6,11 +6,7 @@ import { FreeMode } from "swiper/modules";
 import "swiper/css";
 import styles from "./site-stories.module.scss";
 import logoImage from "../../public/logo.jpg";
-
-
-/**
- * @typedef {{ id: string; title: string; videoUrl: string }} StoryItem
- */
+import { getStoryPreviewVideoUrl, getStorySlides } from "@/lib/story-slides";
 
 const VIDEO_PROPS = {
   playsInline: true,
@@ -132,6 +128,8 @@ function StoryPreview({ videoUrl, hovered, hasFineHover, onWarm }) {
     };
   }, [videoUrl, shouldPlay, shouldLoad]);
 
+  if (!videoUrl) return null;
+
   return (
     <span ref={wrapRef} className={styles.previewWrap}>
       <video
@@ -149,10 +147,11 @@ function StoryPreview({ videoUrl, hovered, hasFineHover, onWarm }) {
 }
 
 /**
- * @param {{ story: StoryItem; onOpen: () => void; onWarm?: () => void; hasFineHover: boolean }} props
+ * @param {{ story: import("@/lib/story-slides").StoryItem; onOpen: () => void; onWarm?: () => void; hasFineHover: boolean }} props
  */
 function StoryCircle({ story, onOpen, onWarm, hasFineHover }) {
   const [hovered, setHovered] = useState(false);
+  const previewUrl = getStoryPreviewVideoUrl(story);
 
   const activate = () => {
     setHovered(true);
@@ -177,74 +176,141 @@ function StoryCircle({ story, onOpen, onWarm, hasFineHover }) {
         </svg>
         <span className={styles.ringInner}>
           <StoryPreview
-            videoUrl={story.videoUrl}
+            videoUrl={previewUrl}
             hovered={hovered}
             hasFineHover={hasFineHover}
             onWarm={onWarm}
           />
         </span>
       </span>
+      {story.title ? <span className={styles.caption}>{story.title}</span> : null}
     </button>
   );
 }
 
 /**
- * @param {{ items: StoryItem[] }} props
+ * @param {{ count: number; activeIndex: number; progress: number }} props
  */
+function StoryProgress({ count, activeIndex, progress }) {
+  if (count <= 1) return null;
+
+  return (
+    <div className={styles.progressRow} aria-hidden>
+      {Array.from({ length: count }, (_, index) => {
+        let fill = 0;
+        if (index < activeIndex) fill = 100;
+        else if (index === activeIndex) fill = progress;
+
+        return (
+          <span key={index} className={styles.progressSegment}>
+            <span className={styles.progressFill} style={{ width: `${fill}%` }} />
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 const COLLAPSE_SCROLL_RANGE = 120;
 
+/**
+ * @param {{ items: import("@/lib/story-slides").StoryItem[] }} props
+ */
 export function SiteStories({ items = [] }) {
   /** @type {[number | null, React.Dispatch<React.SetStateAction<number | null>>]} */
   const [openIndex, setOpenIndex] = useState(null);
-  /** @type {[Set<number>, React.Dispatch<React.SetStateAction<Set<number>>>]} */
-  const [warmedIndices, setWarmedIndices] = useState(() => new Set());
+  const [slideIndex, setSlideIndex] = useState(0);
+  /** @type {[Set<string>, React.Dispatch<React.SetStateAction<Set<string>>>]} */
+  const [warmedKeys, setWarmedKeys] = useState(() => new Set());
   const [overlayAlive, setOverlayAlive] = useState(false);
+  const [slideProgress, setSlideProgress] = useState(0);
   const wrapRef = useRef(null);
   const sectionRef = useRef(null);
-  /** @type {React.MutableRefObject<(HTMLVideoElement | null)[]>} */
-  const videoRefs = useRef([]);
+  /** @type {React.MutableRefObject<Record<string, HTMLVideoElement | null>>} */
+  const videoRefs = useRef({});
+  const activeVideoRef = useRef(null);
   const hasFineHover = useFineHover();
 
-  const warmStoryIndices = useCallback(
+  const getSlides = useCallback((index) => getStorySlides(items[index]), [items]);
+
+  const warmStoryKeys = useCallback(
     (index) => {
-      setWarmedIndices((prev) => {
+      setWarmedKeys((prev) => {
         const next = new Set(prev);
         let changed = false;
-        for (const i of [index - 1, index, index + 1]) {
-          if (i >= 0 && i < items.length && !next.has(i)) {
-            next.add(i);
-            changed = true;
-          }
+
+        for (const storyOffset of [-1, 0, 1]) {
+          const storyIndex = index + storyOffset;
+          if (storyIndex < 0 || storyIndex >= items.length) continue;
+          const slides = getSlides(storyIndex);
+          slides.forEach((_, slideIdx) => {
+            const key = `${storyIndex}-${slideIdx}`;
+            if (!next.has(key)) {
+              next.add(key);
+              changed = true;
+            }
+          });
         }
+
         return changed ? next : prev;
       });
     },
-    [items.length]
+    [getSlides, items.length]
   );
 
   const openStory = useCallback(
-    (index) => {
-      warmStoryIndices(index);
+    (index, nextSlideIndex = 0) => {
+      warmStoryKeys(index);
       setOverlayAlive(true);
       setOpenIndex(index);
+      setSlideIndex(nextSlideIndex);
+      setSlideProgress(0);
     },
-    [warmStoryIndices]
+    [warmStoryKeys]
   );
 
   const close = useCallback(() => {
     setOpenIndex(null);
+    setSlideIndex(0);
+    setSlideProgress(0);
   }, []);
+
+  const goNext = useCallback(() => {
+    if (openIndex === null) return;
+    const slides = getSlides(openIndex);
+    if (slideIndex < slides.length - 1) {
+      setSlideIndex((prev) => prev + 1);
+      setSlideProgress(0);
+      return;
+    }
+    if (openIndex < items.length - 1) {
+      openStory(openIndex + 1, 0);
+    }
+  }, [getSlides, items.length, openIndex, openStory, slideIndex]);
+
+  const goPrev = useCallback(() => {
+    if (openIndex === null) return;
+    if (slideIndex > 0) {
+      setSlideIndex((prev) => prev - 1);
+      setSlideProgress(0);
+      return;
+    }
+    if (openIndex > 0) {
+      const prevSlides = getSlides(openIndex - 1);
+      openStory(openIndex - 1, Math.max(prevSlides.length - 1, 0));
+    }
+  }, [getSlides, openIndex, openStory, slideIndex]);
 
   useEffect(() => {
     if (openIndex === null) return;
     const onKey = (e) => {
       if (e.key === "Escape") close();
-      if (e.key === "ArrowRight" && openIndex < items.length - 1) openStory(openIndex + 1);
-      if (e.key === "ArrowLeft" && openIndex > 0) openStory(openIndex - 1);
+      if (e.key === "ArrowRight") goNext();
+      if (e.key === "ArrowLeft") goPrev();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [close, openIndex, items.length, openStory]);
+  }, [close, goNext, goPrev, openIndex]);
 
   useEffect(() => {
     if (openIndex === null) return;
@@ -260,7 +326,6 @@ export function SiteStories({ items = [] }) {
     if (!wrap || !section) return;
 
     let raf = 0;
-
     let lastCollapse = -1;
 
     const updateCollapse = () => {
@@ -290,67 +355,106 @@ export function SiteStories({ items = [] }) {
   }, []);
 
   useEffect(() => {
-    videoRefs.current.forEach((v, i) => {
-      if (!v) return;
-      if (openIndex === null || i !== openIndex) {
-        v.pause();
+    Object.entries(videoRefs.current).forEach(([key, video]) => {
+      if (!video) return;
+      const [storyIdx, slideIdx] = key.split("-").map(Number);
+      const isActive = openIndex === storyIdx && slideIndex === slideIdx;
+      if (openIndex === null || !isActive) {
+        video.pause();
         return;
       }
-      v.currentTime = 0;
-      const p = v.play();
+      video.currentTime = 0;
+      const p = video.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     });
-  }, [openIndex]);
+  }, [openIndex, slideIndex]);
+
+  useEffect(() => {
+    const video = activeVideoRef.current;
+    if (!video || openIndex === null) {
+      setSlideProgress(0);
+      return;
+    }
+
+    const updateProgress = () => {
+      const duration = video.duration;
+      if (!Number.isFinite(duration) || duration <= 0) {
+        setSlideProgress(0);
+        return;
+      }
+      setSlideProgress(Math.min(100, (video.currentTime / duration) * 100));
+    };
+
+    const onEnded = () => {
+      goNext();
+    };
+
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("durationchange", updateProgress);
+    video.addEventListener("ended", onEnded);
+    updateProgress();
+
+    return () => {
+      video.removeEventListener("timeupdate", updateProgress);
+      video.removeEventListener("durationchange", updateProgress);
+      video.removeEventListener("ended", onEnded);
+    };
+  }, [goNext, openIndex, slideIndex]);
 
   if (items.length === 0) {
     return null;
   }
 
-  const active = openIndex !== null ? items[openIndex] : null;
+  const activeStory = openIndex !== null ? items[openIndex] : null;
+  const activeSlides = activeStory ? getStorySlides(activeStory) : [];
   const overlayOpen = openIndex !== null;
+  const canGoPrev = openIndex !== null && (slideIndex > 0 || openIndex > 0);
+  const canGoNext =
+    openIndex !== null &&
+    (slideIndex < activeSlides.length - 1 || openIndex < items.length - 1);
 
   return (
     <>
-      <div ref={wrapRef} className={styles.wrap} style={{
+      <div
+        ref={wrapRef}
+        className={styles.wrap}
+        style={{
           "--stories-collapse": 0,
           "--story-logo-url": `url(${logoImage.src})`,
-        }}>
+        }}
+      >
         <div className={styles.anchor}>
-          <section
-            ref={sectionRef}
-            className={styles.section}
-            aria-label="Сторис студии"
-          >
-        <div className={styles.inner}>
-          <div className={styles.collapseInner}>
-            <Swiper
-              className={styles.row}
-              modules={[FreeMode]}
-              slidesPerView="auto"
-              freeMode={{
-                enabled: true,
-                momentum: true,
-                momentumRatio: 0.8,
-                momentumVelocityRatio: 0.8,
-              }}
-              speed={400}
-              grabCursor
-              watchOverflow
-              touchStartPreventDefault={false}
-            >
-              {items.map((story, index) => (
-                <SwiperSlide key={story.id} className={styles.slide}>
-                  <StoryCircle
-                    story={story}
-                    hasFineHover={hasFineHover}
-                    onOpen={() => openStory(index)}
-                    onWarm={() => warmStoryIndices(index)}
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
-        </div>
+          <section ref={sectionRef} className={styles.section} aria-label="Сторис студии">
+            <div className={styles.inner}>
+              <div className={styles.collapseInner}>
+                <Swiper
+                  className={styles.row}
+                  modules={[FreeMode]}
+                  slidesPerView="auto"
+                  freeMode={{
+                    enabled: true,
+                    momentum: true,
+                    momentumRatio: 0.8,
+                    momentumVelocityRatio: 0.8,
+                  }}
+                  speed={400}
+                  grabCursor
+                  watchOverflow
+                  touchStartPreventDefault={false}
+                >
+                  {items.map((story, index) => (
+                    <SwiperSlide key={story.id} className={styles.slide}>
+                      <StoryCircle
+                        story={story}
+                        hasFineHover={hasFineHover}
+                        onOpen={() => openStory(index, 0)}
+                        onWarm={() => warmStoryKeys(index)}
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            </div>
           </section>
         </div>
         <div className={styles.compensator} aria-hidden />
@@ -362,59 +466,89 @@ export function SiteStories({ items = [] }) {
           role={overlayOpen ? "dialog" : undefined}
           aria-modal={overlayOpen ? "true" : undefined}
           aria-hidden={overlayOpen ? undefined : "true"}
-          aria-label={active?.title}
+          aria-label={activeStory?.title}
           onClick={(e) => {
             if (overlayOpen && e.target === e.currentTarget) close();
           }}
         >
           <div className={styles.overlayInner}>
             <div className={styles.videoFrame}>
+              <StoryProgress
+                count={activeSlides.length}
+                activeIndex={slideIndex}
+                progress={slideProgress}
+              />
+
               <button type="button" className={styles.close} onClick={close} aria-label="Закрыть">
                 ×
               </button>
-              {openIndex !== null && openIndex > 0 ? (
+
+              {canGoPrev ? (
                 <button
                   type="button"
                   className={`${styles.nav} ${styles.navPrev}`}
                   aria-label="Предыдущее"
-                  onClick={() => openStory(openIndex - 1)}
+                  onClick={goPrev}
                 >
                   ‹
                 </button>
               ) : (
                 <span className={`${styles.nav} ${styles.navPrev} ${styles.navHidden}`} aria-hidden />
               )}
-              {openIndex !== null && openIndex < items.length - 1 ? (
+
+              {canGoNext ? (
                 <button
                   type="button"
                   className={`${styles.nav} ${styles.navNext}`}
                   aria-label="Следующее"
-                  onClick={() => openStory(openIndex + 1)}
+                  onClick={goNext}
                 >
                   ›
                 </button>
               ) : (
                 <span className={`${styles.nav} ${styles.navNext} ${styles.navHidden}`} aria-hidden />
               )}
-              {items.map((story, index) =>
-                warmedIndices.has(index) ? (
-                  <video
-                    key={story.id}
-                    ref={(el) => {
-                      videoRefs.current[index] = el;
-                    }}
-                    className={styles.video}
-                    data-active={index === openIndex ? "" : undefined}
-                    src={story.videoUrl}
-                    controls={index === openIndex}
-                    controlsList="nodownload"
-                    preload="auto"
-                    {...VIDEO_PROPS}
-                  />
-                ) : null
+
+              <button
+                type="button"
+                className={`${styles.tapZone} ${styles.tapPrev}`}
+                aria-label="Предыдущий слайд"
+                onClick={goPrev}
+                tabIndex={-1}
+              />
+              <button
+                type="button"
+                className={`${styles.tapZone} ${styles.tapNext}`}
+                aria-label="Следующий слайд"
+                onClick={goNext}
+                tabIndex={-1}
+              />
+
+              {items.map((story, storyIdx) =>
+                getSlides(storyIdx).map((slide, slideIdx) => {
+                  const key = `${storyIdx}-${slideIdx}`;
+                  if (!warmedKeys.has(key)) return null;
+                  const isActive = openIndex === storyIdx && slideIndex === slideIdx;
+
+                  return (
+                    <video
+                      key={`${story.id}-${slideIdx}`}
+                      ref={(el) => {
+                        videoRefs.current[key] = el;
+                        if (isActive) activeVideoRef.current = el;
+                      }}
+                      className={styles.video}
+                      data-active={isActive ? "" : undefined}
+                      src={slide.videoUrl}
+                      controls={isActive}
+                      controlsList="nodownload"
+                      preload="auto"
+                      {...VIDEO_PROPS}
+                    />
+                  );
+                })
               )}
             </div>
-            {active ? <p className={styles.storyTitle}>{active.title}</p> : null}
           </div>
         </div>
       ) : null}

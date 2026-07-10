@@ -8,6 +8,7 @@ import {
   finalizePhotoUrlRows,
   parsePastedPhotoUrls,
 } from "@/lib/photo-url-rows";
+import { getStoryPreviewVideoUrl, getStorySlides } from "@/lib/story-slides";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.scss";
@@ -22,6 +23,10 @@ function createClientId(prefix) {
     return `${prefix}-${crypto.randomUUID()}`;
   }
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createStorySlideRow(videoUrl = "") {
+  return { id: createClientId("slide"), videoUrl };
 }
 
 export default function AdminHomePage() {
@@ -39,7 +44,7 @@ export default function AdminHomePage() {
   const [photoSaving, setPhotoSaving] = useState(false);
   const [albumId, setAlbumId] = useState("");
   const [storyTitle, setStoryTitle] = useState("");
-  const [storyVideoUrl, setStoryVideoUrl] = useState("");
+  const [storySlides, setStorySlides] = useState(() => [createStorySlideRow()]);
   const [storySaving, setStorySaving] = useState(false);
   const [dragStoryId, setDragStoryId] = useState(null);
   const [storyDropTarget, setStoryDropTarget] = useState(null);
@@ -124,14 +129,36 @@ export default function AdminHomePage() {
   function resetStoryForm() {
     setEditingStoryId(null);
     setStoryTitle("");
-    setStoryVideoUrl("");
+    setStorySlides([createStorySlideRow()]);
   }
 
   function startEditStory(item) {
     setEditingStoryId(item.id);
     setStoryTitle(item.title);
-    setStoryVideoUrl(item.videoUrl);
+    const slides = getStorySlides(item);
+    setStorySlides(
+      slides.length
+        ? slides.map((slide) => createStorySlideRow(slide.videoUrl))
+        : [createStorySlideRow()]
+    );
     setMsg(null);
+  }
+
+  function updateStorySlide(id, field, value) {
+    setStorySlides((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
+  }
+
+  function addStorySlide() {
+    setStorySlides((prev) => [...prev, createStorySlideRow()]);
+  }
+
+  function removeStorySlide(id) {
+    setStorySlides((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((row) => row.id !== id);
+    });
   }
 
   function switchTab(id) {
@@ -562,22 +589,20 @@ export default function AdminHomePage() {
   async function saveStory(e) {
     e.preventDefault();
     setMsg(null);
-    const url = storyVideoUrl.trim();
     const isEditing = Boolean(editingStoryId);
+    const slides = storySlides
+      .map((row) => ({
+        videoUrl: row.videoUrl.trim(),
+      }))
+      .filter((row) => row.videoUrl);
 
-    if (!isEditing && !url) {
-      setMsg("Укажите прямую ссылку на видео (https://…)");
+    if (slides.length === 0) {
+      setMsg("Добавьте хотя бы одно видео (https://…)");
       return;
     }
 
     setStorySaving(true);
     try {
-      const currentStory = isEditing ? stories.find((s) => s.id === editingStoryId) : null;
-      let videoUrl;
-      if (url && (!isEditing || url !== currentStory?.videoUrl)) {
-        videoUrl = url;
-      }
-
       const res = await fetch("/api/admin/stories", {
         method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -586,9 +611,9 @@ export default function AdminHomePage() {
             ? {
                 id: editingStoryId,
                 title: storyTitle,
-                ...(videoUrl != null ? { videoUrl } : {}),
+                slides,
               }
-            : { title: storyTitle, videoUrl }
+            : { title: storyTitle, slides }
         ),
       });
       const data = await res.json().catch(() => ({}));
@@ -1384,29 +1409,55 @@ export default function AdminHomePage() {
         <h2 className={styles.cardTitle}>{editingStoryId ? "Редактирование сторис" : "Новый сторис"}</h2>
         <p className={styles.cardDesc}>
           {editingStoryId
-            ? "Измените подпись или укажите новый URL видео. Если поле ссылки не менять — останется текущее видео."
-            : "Вставьте прямую ссылку на видео (https://…). Загрузка файла с компьютера временно отключена."}
+            ? "Измените название блока или список видео."
+            : "Создайте блок «актуальное»: добавьте одно или несколько видео."}
         </p>
         <form onSubmit={saveStory}>
           <div className={styles.field}>
-            <label htmlFor="st-url">URL видео{editingStoryId ? " (заменить)" : ""}</label>
-            <input
-              id="st-url"
-              type="url"
-              value={storyVideoUrl}
-              onChange={(e) => setStoryVideoUrl(e.target.value)}
-              disabled={storySaving}
-              placeholder="https://…"
-            />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="st-title">Подпись на главной</label>
+            <label htmlFor="st-title">Название блока на главной</label>
             <input
               id="st-title"
               value={storyTitle}
               onChange={(e) => setStoryTitle(e.target.value)}
               placeholder="Например: Пробный урок"
             />
+          </div>
+
+          <div className={styles.subsection}>
+            <h3 className={styles.subsectionTitle}>Видео в блоке</h3>
+            {storySlides.map((row, index) => (
+              <div key={row.id} className={styles.storySlideRow}>
+                <div className={styles.field}>
+                  <label htmlFor={`st-url-${row.id}`}>URL видео {index + 1}</label>
+                  <input
+                    id={`st-url-${row.id}`}
+                    type="url"
+                    value={row.videoUrl}
+                    onChange={(e) => updateStorySlide(row.id, "videoUrl", e.target.value)}
+                    disabled={storySaving}
+                    placeholder="https://…"
+                  />
+                </div>
+                {storySlides.length > 1 ? (
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnGhost} ${styles.btnSmall}`}
+                    onClick={() => removeStorySlide(row.id)}
+                    disabled={storySaving}
+                  >
+                    Удалить видео
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnGhost}`}
+              onClick={addStorySlide}
+              disabled={storySaving}
+            >
+              Добавить ещё видео
+            </button>
           </div>
           <div className={styles.formActions}>
             <button className={styles.btn} type="submit" disabled={storySaving}>
@@ -1497,7 +1548,7 @@ export default function AdminHomePage() {
                         </span>
                       </button>
                     <video
-                      src={x.videoUrl}
+                      src={getStoryPreviewVideoUrl(x)}
                       muted
                       playsInline
                       preload="metadata"
@@ -1506,7 +1557,9 @@ export default function AdminHomePage() {
                     />
                     <div className={styles.listBody}>
                       <div className={styles.listTitle}>{x.title}</div>
-                      <div className={styles.listMeta}>{x.videoUrl}</div>
+                      <div className={styles.listMeta}>
+                        {getStorySlides(x).length} видео
+                      </div>
                       <div className={styles.listMeta}>{new Date(x.createdAt).toLocaleString("ru-RU")}</div>
                     </div>
                     </div>

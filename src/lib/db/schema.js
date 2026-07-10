@@ -32,6 +32,7 @@ export const stories = pgTable("stories", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
   videoUrl: text("video_url").notNull(),
+  slides: text("slides"),
   vkId: text("vk_id"),
   sortOrder: integer("sort_order"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),

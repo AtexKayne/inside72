@@ -338,6 +338,10 @@
   margin-top: 0.25rem;
 }
 
+.subsection + .formActions {
+  margin-top: 1.25rem;
+}
+
 // —— Buttons ——
 
 .btn {
@@ -422,6 +426,18 @@
 .subsectionTitle {
   @include label-caps;
   margin: 0 0 1rem;
+}
+
+.storySlideRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  @include hairline-bottom;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
 }
 
 .list {

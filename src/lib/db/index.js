@@ -84,6 +84,7 @@ export async function ensureDbSchema() {
   `;
   await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS images TEXT`;
   await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
+  await sql`ALTER TABLE stories ADD COLUMN IF NOT EXISTS slides TEXT`;
   await sql`ALTER TABLE albums ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
   await sql`ALTER TABLE photos ADD COLUMN IF NOT EXISTS sort_order INTEGER`;
   await sql`

@@ -3,6 +3,7 @@ import path from "path";
 import { sortAlbumsItems, sortPhotosItems } from "@/lib/gallery-order";
 import { createDefaultPricingContent, normalizePricingContent } from "@/lib/pricing-content";
 import { sortStoriesItems } from "@/lib/story-order";
+import { getStorySlides, normalizeStorySlides, parseStorySlidesInput } from "@/lib/story-slides";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -270,15 +271,22 @@ export async function getStories() {
   return sortStoriesItems(data.items);
 }
 
-export async function addStory({ id, title, videoUrl, createdAt, vkId }) {
+export async function addStory({ id, title, videoUrl, slides, createdAt, vkId }) {
   const data = await readJson("stories.json", { items: [] });
+  const normalizedSlides = parseStorySlidesInput(slides);
+  const primaryVideoUrl =
+    normalizedSlides?.[0]?.videoUrl ?? String(videoUrl ?? "").trim();
+
   const story = {
     id: id || `s-${Date.now()}`,
     title: String(title ?? "").trim() || "Сторис",
-    videoUrl: String(videoUrl ?? "").trim(),
+    videoUrl: primaryVideoUrl,
     createdAt: createdAt || new Date().toISOString(),
     sortOrder: 0,
   };
+  if (normalizedSlides) {
+    story.slides = normalizedSlides;
+  }
   if (vkId) {
     story.vkId = vkId;
   }
@@ -317,7 +325,7 @@ export async function reorderStories(orderedIds) {
   return sortStoriesItems(data.items);
 }
 
-export async function updateStory(id, { title, videoUrl }) {
+export async function updateStory(id, { title, videoUrl, slides }) {
   const storyId = String(id ?? "").trim();
   if (!storyId) return null;
 
@@ -326,18 +334,28 @@ export async function updateStory(id, { title, videoUrl }) {
   if (idx === -1) return null;
 
   const item = data.items[idx];
-  const prevUrl = item.videoUrl;
-  const nextUrl = videoUrl != null ? String(videoUrl).trim() : prevUrl;
+  const prevUrls = new Set(getStorySlides(item).map((s) => s.videoUrl));
+  const normalizedSlides = slides != null ? parseStorySlidesInput(slides) : normalizeStorySlides(item.slides);
+  const nextUrl =
+    normalizedSlides?.[0]?.videoUrl ??
+    (videoUrl != null ? String(videoUrl).trim() : item.videoUrl);
+
   const updated = {
     ...item,
     title: title != null ? String(title).trim() || "Сторис" : item.title,
     videoUrl: nextUrl,
   };
+  if (normalizedSlides) {
+    updated.slides = normalizedSlides;
+  } else {
+    delete updated.slides;
+  }
   data.items[idx] = updated;
   await writeJson("stories.json", data);
 
-  if (nextUrl !== prevUrl) {
-    if (prevUrl?.startsWith("/uploads/stories/")) {
+  const nextUrls = new Set(getStorySlides(updated).map((s) => s.videoUrl));
+  for (const prevUrl of prevUrls) {
+    if (!nextUrls.has(prevUrl) && prevUrl?.startsWith("/uploads/stories/")) {
       const absPath = path.join(process.cwd(), "public", prevUrl.replace(/^\//, ""));
       try {
         await fs.unlink(absPath);
@@ -361,12 +379,16 @@ export async function deleteStory(id) {
   data.items = data.items.filter((s) => s.id !== storyId);
   await writeJson("stories.json", data);
 
-  if (story.videoUrl?.startsWith("/uploads/stories/")) {
-    const absPath = path.join(process.cwd(), "public", story.videoUrl.replace(/^\//, ""));
-    try {
-      await fs.unlink(absPath);
-    } catch {
-      /* file may already be missing */
+  if (story) {
+    for (const slide of getStorySlides(story)) {
+      if (slide.videoUrl?.startsWith("/uploads/stories/")) {
+        const absPath = path.join(process.cwd(), "public", slide.videoUrl.replace(/^\//, ""));
+        try {
+          await fs.unlink(absPath);
+        } catch {
+          /* file may already be missing */
+        }
+      }
     }
   }
 
