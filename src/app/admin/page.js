@@ -67,6 +67,7 @@ export default function AdminHomePage() {
   const [photoOrderSaving, setPhotoOrderSaving] = useState(false);
   const [pricing, setPricing] = useState(EMPTY_PRICING);
   const [pricingSaving, setPricingSaving] = useState(false);
+  const [cacheClearing, setCacheClearing] = useState(false);
 
   const photosInAlbum = useMemo(() => {
     if (!albumId) return [];
@@ -99,6 +100,24 @@ export default function AdminHomePage() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.replace("/admin/login");
     router.refresh();
+  }
+
+  async function clearSiteCache() {
+    setMsg(null);
+    setCacheClearing(true);
+    try {
+      const res = await fetch("/api/admin/revalidate", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg(typeof data.error === "string" ? data.error : "Не удалось сбросить кэш");
+        return;
+      }
+      const pages = data.revalidated?.pages?.length ?? 0;
+      const news = data.revalidated?.news?.length ?? 0;
+      setMsg(`Кэш сайта сброшен (${pages} страниц${news ? `, ${news} новостей` : ""})`);
+    } finally {
+      setCacheClearing(false);
+    }
   }
 
   function resetNewsForm() {
@@ -740,7 +759,7 @@ export default function AdminHomePage() {
         return;
       }
       if (data.pricing) setPricing(data.pricing);
-      setMsg("Цены и акции обновлены");
+      setMsg("Цены и акции обновлены, кэш страницы сброшен");
     } finally {
       setPricingSaving(false);
     }
@@ -772,6 +791,15 @@ export default function AdminHomePage() {
           </nav>
         </div>
         <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnGhost}`}
+            onClick={() => clearSiteCache()}
+            disabled={cacheClearing}
+            title="Обновить кэшированные страницы сайта после изменений в админке"
+          >
+            {cacheClearing ? "Сброс кэша…" : "Сбросить кэш"}
+          </button>
           <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => logout()}>
             Выйти
           </button>

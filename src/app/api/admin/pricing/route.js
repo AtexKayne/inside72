@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { isAdminRequest } from "@/lib/admin-session";
 import { getPricingContent, updatePricingContent } from "@/lib/data-store";
-
-function revalidatePricing() {
-  try {
-    revalidatePath("/");
-  } catch {
-    /* ignore */
-  }
-}
+import { revalidatePricingCache } from "@/lib/revalidate-site";
 
 export async function GET() {
   if (!(await isAdminRequest())) {
@@ -25,6 +17,6 @@ export async function PATCH(request) {
   }
   const body = await request.json().catch(() => ({}));
   const pricing = await updatePricingContent(body.pricing);
-  revalidatePricing();
+  revalidatePricingCache();
   return NextResponse.json({ pricing });
 }
