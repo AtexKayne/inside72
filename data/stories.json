@@ -1,3 +1,49 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "s-1783690080128",
+      "title": "INSIDE",
+      "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/6.mp4",
+      "createdAt": "2026-07-10T13:28:00.493Z",
+      "slides": [
+        {
+          "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/6.mp4"
+        }
+      ],
+      "sortOrder": 0
+    },
+    {
+      "id": "s-1783690229541",
+      "title": "Разное",
+      "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/8.mp4",
+      "createdAt": "2026-07-10T13:30:30.154Z",
+      "slides": [
+        {
+          "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/8.mp4"
+        },
+        {
+          "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/9.mp4"
+        },
+        {
+          "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/10.mp4"
+        }
+      ],
+      "sortOrder": 1
+    },
+    {
+      "id": "s-1783689737969",
+      "title": "Основатели",
+      "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/2.mp4",
+      "createdAt": "2026-07-10T13:22:18.094Z",
+      "slides": [
+        {
+          "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/2.mp4"
+        },
+        {
+          "videoUrl": "https://cdn.jsdelivr.net/gh/AtexKayne/inside72@main/public/stories/4.mp4"
+        }
+      ],
+      "sortOrder": 2
+    }
+  ]
 }
