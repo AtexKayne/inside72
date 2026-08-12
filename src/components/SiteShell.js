@@ -3,9 +3,7 @@
 import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { TrialModal } from "@/components/TrialModal";
 import { PageTransition } from "@/components/PageTransition";
-import { TrialModalProvider } from "@/contexts/TrialModalContext";
 
 export function SiteShell({ children }) {
   const pathname = usePathname();
@@ -14,12 +12,11 @@ export function SiteShell({ children }) {
   }
 
   return (
-    <TrialModalProvider>
+    <>
       <PageTransition />
       <SiteHeader />
       <main>{children}</main>
       <SiteFooter />
-      <TrialModal />
-    </TrialModalProvider>
+    </>
   );
 }

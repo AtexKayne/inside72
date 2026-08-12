@@ -71,7 +71,7 @@ export async function POST(request) {
   }
 
   try {
-    revalidatePath("/gallery");
+    revalidatePath("/");
   } catch {
     /* ignore */
   }
@@ -103,7 +103,7 @@ export async function PATCH(request) {
   try {
     const items = await reorderPhotos(albumId, body.ids);
     try {
-      revalidatePath("/gallery");
+      revalidatePath("/");
     } catch {
       /* ignore */
     }
@@ -142,7 +142,7 @@ export async function DELETE(request) {
   }
 
   try {
-    revalidatePath("/gallery");
+    revalidatePath("/");
   } catch {
     /* ignore */
   }

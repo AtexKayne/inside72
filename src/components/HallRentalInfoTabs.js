@@ -220,7 +220,7 @@ export function HallRentalInfoTabs() {
                 ))}
               </ul>
               <div className={styles.actions}>
-                <Link className={`${pages.btn} ${pages.btnGhost}`} href="/gallery#alb-1779038479422">
+                <Link className={`${pages.btn} ${pages.btnGhost}`} href="/#photos">
                   Посмотреть фото
                 </Link>
               </div>
@@ -241,8 +241,8 @@ export function HallRentalInfoTabs() {
                 {info.address.entry}
               </p>
               <div className={styles.actions}>
-                <Link className={`${pages.btn} ${pages.btnGhost}`} href="/about#contacts">
-                  Контакты и схема проезда
+                <Link className={`${pages.btn} ${pages.btnGhost}`} href="/#contacts">
+                  Как добраться
                 </Link>
               </div>
               <p className={`${styles.subheading} ${styles.subheadingSpaced}`}>Парковка</p>
@@ -254,7 +254,7 @@ export function HallRentalInfoTabs() {
                 </a>
                 {" · "}
                 <a href={`tel:${siteContacts.phone.tel}`}>{siteContacts.phone.display}</a>
-                <span className={styles.bookingNote}>{info.bookingNote}</span>
+                <span className={styles.bookingNote}>{info.bookingNote ?? ""}</span>
               </p>
             </>
           ) : null}

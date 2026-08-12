@@ -1,16 +1,6 @@
 import { revalidatePath } from "next/cache";
-import { getNews } from "@/lib/data-store";
 
-const SITE_PAGE_PATHS = [
-  "/",
-  "/news",
-  "/gallery",
-  "/prices",
-  "/about",
-  "/arenda",
-  "/teachers",
-  "/privacy",
-];
+const SITE_PAGE_PATHS = ["/", "/privacy"];
 
 function safeRevalidatePath(path, type) {
   try {
@@ -27,17 +17,13 @@ function safeRevalidatePath(path, type) {
 
 /** Сбрасывает кэш страниц с ценами и общий layout (JSON-LD на всех страницах). */
 export function revalidatePricingCache() {
-  const pages = [];
-  if (safeRevalidatePath("/prices")) {
-    pages.push("/prices");
-  }
   return {
     layout: safeRevalidatePath("/", "layout"),
-    pages,
+    pages: safeRevalidatePath("/") ? ["/"] : [],
   };
 }
 
-/** Полный сброс кэша сайта: layout, статические страницы и все новости. */
+/** Полный сброс кэша публичных страниц. */
 export async function revalidateSiteCache() {
   const result = {
     layout: safeRevalidatePath("/", "layout"),
@@ -49,18 +35,6 @@ export async function revalidateSiteCache() {
     if (safeRevalidatePath(path)) {
       result.pages.push(path);
     }
-  }
-
-  try {
-    const news = await getNews();
-    for (const item of news) {
-      const path = `/news/${item.id}`;
-      if (safeRevalidatePath(path)) {
-        result.news.push(path);
-      }
-    }
-  } catch {
-    /* ignore */
   }
 
   return result;

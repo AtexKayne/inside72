@@ -8,12 +8,12 @@ export function SiteContacts() {
   return (
     <section id="contacts" className={styles.section} aria-labelledby="contacts-heading">
       <header className={styles.header}>
-        <p className={styles.kicker}>Контакты</p>
+        <p className={styles.kicker}>Адрес</p>
         <h2 id="contacts-heading" className={styles.title}>
-          Как нас найти
+          Как добраться
         </h2>
         <p className={styles.lead}>
-          Мы в центре Тюмени — от ЦУМа до нас 200 метров. Заходите с ул. Герцена.
+          Залы в центре Тюмени — от ЦУМа 200 метров. Заходите с ул. Герцена.
         </p>
       </header>
 
@@ -66,13 +66,6 @@ export function SiteContacts() {
         <p className={styles.note} role="note">
           Обратите внимание! К нам можно зайти только с улицы Герцена. С другой стороны здание
           ограждено воротами.
-        </p>
-        <p className={styles.help}>
-          Непременно звоните, если чувствуете, что теряетесь — мы поможем найтись:{" "}
-          <a className={styles.phoneLink} href={`tel:${phone.tel}`}>
-            {phone.display}
-          </a>{" "}
-          ({phone.contact}).
         </p>
       </div>
     </section>

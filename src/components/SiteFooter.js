@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { TrialCtaLink } from "@/components/TrialCtaLink";
 import { siteContacts } from "@/lib/site-contacts";
 import layout from "@/styles/layout.module.scss";
 
@@ -8,9 +7,10 @@ export function SiteFooter() {
     <footer className={layout.footer}>
       <div className={layout.footerInner}>
         <div>
-          <p className={layout.footerTitle}>Студия</p>
+          <p className={layout.footerTitle}>Аренда зала</p>
           <p className={layout.footerBrand}>
-          INSIDE — студия танца в Тюмени. Выбери парные танцы, выбери хастл, выбери себя.
+            INSIDE — танцевальные залы в центре Тюмени. Смотрите занятость и оставляйте заявку
+            онлайн.
           </p>
         </div>
         <div>
@@ -22,18 +22,15 @@ export function SiteFooter() {
             <a href={siteContacts.vk.url} target="_blank" rel="noopener noreferrer">
               ВКонтакте
             </a>
-            <Link href="/about#contacts">Как нас найти</Link>
+            <Link href="/#contacts">Как добраться</Link>
           </div>
         </div>
         <div>
           <p className={layout.footerTitle}>Разделы</p>
           <div className={layout.footerLinks}>
-            <Link href="/prices">Цены и акции</Link>
-            <Link href="/news">Новости</Link>
-            <Link href="/gallery">Фотографии</Link>
-            <Link href="/teachers">Преподаватели</Link>
-            <Link href="/arenda">Аренда зала</Link>
-            <Link href="/about">О нас</Link>
+            <Link href="/#rental">Аренда и календарь</Link>
+            <Link href="/#photos">Фотографии зала</Link>
+            <Link href="/#contacts">Как добраться</Link>
           </div>
         </div>
         <div>

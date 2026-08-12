@@ -42,7 +42,7 @@ function AdminLoginForm() {
       <div className={styles.loginCard}>
         <p className={styles.kicker}>INSIDE · Админ</p>
         <h1 className={styles.title}>Вход</h1>
-        <p className={styles.lead}>Панель управления новостями, галереей и сторис студии.</p>
+        <p className={styles.lead}>Панель загрузки фотографий зала.</p>
         <form onSubmit={onSubmit}>
           <div className={styles.field}>
             <label htmlFor="user">Логин</label>

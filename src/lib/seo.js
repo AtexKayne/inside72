@@ -3,25 +3,21 @@ import { getSiteUrl } from "@/lib/site";
 
 export const siteSeo = {
   name: "Inside",
-  defaultTitle: "Inside — студия хастла в Тюмени",
+  defaultTitle: "Inside — аренда танцевального зала в Тюмени",
   titleTemplate: "%s | Inside",
   defaultDescription:
-    "Танцевальная студия Inside в Тюмени: социальный хастл с нуля, группы каждый месяц, пробное занятие. ул. Герцена, 82/1.",
+    "Аренда танцевального зала Inside в Тюмени: занятость по календарю, заявка онлайн. ул. Герцена, 82/1, два зала от 80 м².",
   locale: "ru_RU",
   ogImage: "/og.svg",
   logo: "/icon-192.png",
   favicon: "/favicon.ico",
   keywords: [
-    "хастл",
-    "школа танцев",
-    "Танцы для взрослых",
-    "танцы Тюмень",
-    "студия танцев Тюмень",
-    "парный танец",
-    "обучение хастлу",
-    "Inside",
-    "пробное занятие танцы",
     "аренда танцевального зала Тюмень",
+    "аренда зала Тюмень",
+    "танцевальный зал аренда",
+    "Inside Тюмень",
+    "зал на Герцена",
+    "почасовая аренда зала",
   ],
 };
 
@@ -64,7 +60,7 @@ export function pageMetadata({
           url: siteSeo.ogImage,
           width: 1200,
           height: 630,
-          alt: `${siteSeo.name} — студия хастла в Тюмени`,
+          alt: `${siteSeo.name} — аренда танцевального зала в Тюмени`,
         };
 
   const image = {
@@ -179,14 +175,13 @@ function buildPriceRange(offers) {
 
 function buildOrganizationNode(pricing) {
   const url = getSiteUrl();
-  const pricesUrl = `${url}/prices`;
   const orgId = `${url}/#organization`;
   const { address, phone, vk, hours, map } = siteContacts;
-  const offers = buildOffersFromPricing(pricing, pricesUrl);
+  const offers = buildOffersFromPricing(pricing, `${url}/`);
   const priceRange = buildPriceRange(offers);
 
   return {
-    "@type": ["DanceSchool", "LocalBusiness"],
+    "@type": ["SportsActivityLocation", "LocalBusiness"],
     "@id": orgId,
     name: siteSeo.name,
     description: siteSeo.defaultDescription,
@@ -233,17 +228,6 @@ function buildOrganizationNode(pricing) {
       areaServed: "RU",
     },
     sameAs: [vk.url],
-    ...(offers.length
-      ? {
-          hasOfferCatalog: {
-            "@type": "OfferCatalog",
-            name: "Цены и акции Inside",
-            url: pricesUrl,
-            itemListElement: offers,
-          },
-          makesOffer: offers,
-        }
-      : {}),
   };
 }
 
@@ -280,7 +264,7 @@ export function organizationJsonLd(pricing) {
 
   return {
     "@context": "https://schema.org",
-    "@type": ["DanceSchool", "LocalBusiness"],
+    "@type": ["SportsActivityLocation", "LocalBusiness"],
     name: siteSeo.name,
     description: siteSeo.defaultDescription,
     url,

@@ -3,24 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useTrialModal } from "@/contexts/TrialModalContext";
 import { MOBILE_MENU_EXIT_MS, useModalTransition } from "@/hooks/useModalTransition";
 import layout from "@/styles/layout.module.scss";
 
 const links = [
-  { href: "/", label: "Главная" },
-  { href: "/prices", label: "Цены" },
-  { href: "/news", label: "Новости" },
-  { href: "/gallery", label: "Фотографии" },
-  { href: "/teachers", label: "Преподаватели" },
-  { href: "/arenda", label: "Аренда зала" },
-  { href: "/about", label: "О нас" },
+  { href: "/#rental", label: "Аренда", hash: "rental" },
+  { href: "/#photos", label: "Фото", hash: "photos" },
+  { href: "/#contacts", label: "Как добраться", hash: "contacts" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { open: trialOpen, openModal } = useTrialModal();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState("");
   const { mounted, exiting, handleAnimationEnd } = useModalTransition(menuOpen, {
     exitAnimationName: "mobileMenuBackdropOut",
     exitMs: MOBILE_MENU_EXIT_MS,
@@ -32,17 +27,28 @@ export function SiteHeader() {
   }, [menuOpen, exiting]);
 
   useEffect(() => {
-    if (!mounted || trialOpen || exiting) return;
+    if (!mounted || exiting) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [mounted, trialOpen, exiting]);
+  }, [mounted, exiting]);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const syncHash = () => setActiveHash(window.location.hash.replace(/^#/, ""));
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    window.addEventListener("popstate", syncHash);
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
+      window.removeEventListener("popstate", syncHash);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mounted || exiting) return;
@@ -53,16 +59,11 @@ export function SiteHeader() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mounted, exiting, closeMenu]);
 
-  function openTrial() {
-    setMenuOpen(false);
-    openModal();
-  }
-
   return (
     <>
       <header className={layout.header}>
         <div className={layout.headerInner}>
-          <Link href="/" className={layout.logo} aria-label="Inside — студия танца">
+          <Link href="/" className={layout.logo} aria-label="Inside — аренда зала">
             INSIDE
           </Link>
           <nav className={layout.nav} aria-label="Основная навигация">
@@ -70,14 +71,12 @@ export function SiteHeader() {
               <Link
                 key={l.href}
                 href={l.href}
-                aria-current={pathname === l.href ? "page" : undefined}
+                onClick={() => setActiveHash(l.hash)}
+                aria-current={pathname === "/" && activeHash === l.hash ? "page" : undefined}
               >
                 {l.label}
               </Link>
             ))}
-            <button type="button" className={layout.navTrialBtn} onClick={openModal}>
-              Пробное
-            </button>
           </nav>
           <button
             type="button"
@@ -114,15 +113,15 @@ export function SiteHeader() {
               <Link
                 key={l.href}
                 href={l.href}
-                onClick={closeMenu}
-                aria-current={pathname === l.href ? "page" : undefined}
+                onClick={() => {
+                  setActiveHash(l.hash);
+                  closeMenu();
+                }}
+                aria-current={pathname === "/" && activeHash === l.hash ? "page" : undefined}
               >
                 {l.label}
               </Link>
             ))}
-            <button type="button" className={layout.mobileNavTrialBtn} onClick={openTrial}>
-              Пробное
-            </button>
           </div>
         </div>
       ) : null}

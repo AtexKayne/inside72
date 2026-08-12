@@ -1,0 +1,32 @@
+@use "../styles/variables" as *;
+
+.section {
+  scroll-margin-top: calc(#{$header-height} + 1.25rem);
+
+  @media (max-width: 899px) {
+    overflow-x: clip;
+  }
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  @include display-heading;
+  font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+  margin: 0 0 0.75rem;
+}
+
+.lead {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: $color-muted;
+}
+
+.empty {
+  margin: 0;
+  color: $color-muted;
+}

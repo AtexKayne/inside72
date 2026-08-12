@@ -6,18 +6,16 @@ import styles from "./not-found.module.scss";
 export const metadata = {
   ...pageMetadata({
     title: "Страница не найдена",
-    description: "Запрошенная страница не существует. Вернитесь на главную студии INSIDE в Тюмени.",
+    description: "Запрошенная страница не существует. Вернитесь к аренде зала INSIDE в Тюмени.",
     pathname: "/404",
     noIndex: true,
   }),
 };
 
 const quickLinks = [
-  { href: "/about", label: "О студии", desc: "Адрес, контакты, как добраться" },
-  { href: "/teachers", label: "Преподаватели", desc: "Саша и Оля — основатели INSIDE" },
-  { href: "/news", label: "Новости", desc: "Наборы, события и мастер-классы" },
-  { href: "/gallery", label: "Фотографии", desc: "Занятия и атмосфера студии" },
-  { href: "/arenda", label: "Аренда зала", desc: "Почасовая аренда в центре Тюмени" },
+  { href: "/#rental", label: "Аренда зала", desc: "Календарь занятости и заявка" },
+  { href: "/#photos", label: "Фотографии", desc: "Как выглядят залы" },
+  { href: "/#contacts", label: "Как добраться", desc: "Адрес, карта и парковка" },
 ];
 
 function ArrowIcon() {
@@ -59,22 +57,21 @@ export default function NotFound() {
             Страница не найдена
           </h1>
           <p className={styles.lead}>
-            Возможно, ссылка устарела или страница была перенесена. Вернитесь на главную или
-            выберите раздел ниже.
+            Возможно, ссылка устарела. Вернитесь к аренде зала или выберите раздел ниже.
           </p>
           <div className={styles.ctaRow}>
             <Link className={pages.btn} href="/">
-              На главную
+              К аренде
             </Link>
-            <Link className={`${pages.btn} ${pages.btnGhost}`} href="/news">
-              Новости
+            <Link className={`${pages.btn} ${pages.btnGhost}`} href="/#contacts">
+              Как добраться
             </Link>
           </div>
         </header>
 
         <div>
           <p className={styles.linksLabel} id="not-found-nav-label">
-            Разделы сайта
+            Разделы
           </p>
           <nav className={styles.linksGrid} aria-labelledby="not-found-nav-label">
             {quickLinks.map((link) => (

@@ -5,7 +5,7 @@ import { addAlbum, deleteAlbum, getAlbums, reorderAlbums } from "@/lib/data-stor
 
 function revalidateGallery() {
   try {
-    revalidatePath("/gallery");
+    revalidatePath("/");
   } catch {
     /* ignore */
   }
