@@ -7,6 +7,14 @@ PM2_NAME="${PM2_NAME:-inside72}"
 
 cd "$APP_DIR"
 
+# Старый DATABASE_URL от Supabase не должен снова включать Postgres.
+touch .env
+if grep -q '^STORAGE_BACKEND=' .env; then
+  sed -i 's/^STORAGE_BACKEND=.*/STORAGE_BACKEND=json/' .env
+else
+  printf '\nSTORAGE_BACKEND=json\n' >> .env
+fi
+
 echo "==> Install production dependencies only"
 npm ci --omit=dev --no-audit --no-fund
 

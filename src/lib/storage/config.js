@@ -14,18 +14,19 @@ export function isVercelRuntime() {
 }
 
 /**
- * Postgres, если задан DATABASE_URL (и не форсирован JSON).
- * STORAGE_BACKEND=json — файлы data/*.json (VPS / локально; на Vercel нельзя).
+ * JSON по умолчанию (VPS и локально).
+ * Postgres только при STORAGE_BACKEND=postgres или на Vercel, если задан DATABASE_URL.
+ * Старый DATABASE_URL сам по себе хранилище не включает: удалённый Supabase ронял SSR.
  */
 export function isPostgresStorage() {
   const backend = process.env.STORAGE_BACKEND?.trim().toLowerCase();
   if (backend === "json") {
     return false;
   }
-  if (backend === "postgres") {
+  if (backend === "postgres" || isVercelRuntime()) {
     return Boolean(getDatabaseUrl());
   }
-  return Boolean(getDatabaseUrl());
+  return false;
 }
 
 /** На Vercel без Postgres запись в data/*.json невозможна (read-only FS). */
