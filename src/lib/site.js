@@ -15,7 +15,7 @@ function parseSiteUrl(raw) {
   }
 }
 
-/** hostname + protocol для редиректов (без порта). */
+/** hostname + protocol для редиректов. Порт остаётся, если он не 80/443. */
 export function getCanonicalSite() {
   const parsed =
     parseSiteUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
@@ -23,7 +23,7 @@ export function getCanonicalSite() {
   if (!parsed) return null;
 
   const u = new URL(parsed);
-  return { protocol: u.protocol, hostname: u.hostname };
+  return { protocol: u.protocol, hostname: u.hostname, port: u.port };
 }
 
 export function getSiteUrl() {

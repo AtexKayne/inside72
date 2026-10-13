@@ -13,9 +13,13 @@ function isVercelHost(hostname) {
   return hostname === "vercel.app" || hostname.endsWith(".vercel.app");
 }
 
-/** Абсолютный публичный URL без порта. */
+/** Абсолютный публичный URL. Стандартные порты 80/443 не добавляются. */
 function publicAbsoluteUrl(canonical, pathname, search) {
-  return `${canonical.protocol}//${canonical.hostname}${pathname}${search}`;
+  const hostname = canonical.hostname.includes(":")
+    ? `[${canonical.hostname}]`
+    : canonical.hostname;
+  const host = canonical.port ? `${hostname}:${canonical.port}` : hostname;
+  return `${canonical.protocol}//${host}${pathname}${search}`;
 }
 
 /** 308 на основной домен (www ↔ без www, *.vercel.app → inside72.ru). */
